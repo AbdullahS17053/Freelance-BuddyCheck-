@@ -8,6 +8,8 @@ using System.Collections.Generic;
 
 public class PlayerListUI : MonoBehaviourPunCallbacks
 {
+    public static PlayerListUI instance;
+
     public GameObject playerSlotPrefab;
     public Transform playerListContainer;
     public Sprite[] avatarSprites;
@@ -16,6 +18,7 @@ public class PlayerListUI : MonoBehaviourPunCallbacks
 
     void Start()
     {
+        instance = this;
         RefreshPlayerList();
     }
 
@@ -39,7 +42,7 @@ public class PlayerListUI : MonoBehaviourPunCallbacks
         RefreshPlayerList();
     }
 
-    void RefreshPlayerList()
+    public void RefreshPlayerList()
     {
         // Clear all current slots
         foreach (Transform child in playerListContainer)
