@@ -11,6 +11,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     public GameObject hostPanel;
     public GameObject gameplayPanel;
     public TMP_Text hostNameText;
+    public TMP_Text AnswerText;
     public TMP_Text hostHintText;
     public TMP_InputField hostHintInput;
     public Button startGameButton;
@@ -54,6 +55,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (isLocalHost)
         {
             hostNumber = Random.Range(0, 11); // Assigned secretly
+            AnswerText.text = hostNumber.ToString();
             hostPanel.SetActive(true);
             gameplayPanel.SetActive(true);
         }

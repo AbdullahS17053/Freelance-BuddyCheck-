@@ -32,9 +32,10 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
             PFP.sprite = pfp_;
         }
     }
-    public void UpdateUsername(string name_)
+    public void UpdateUsername(TMP_InputField name_)
     {
-        defaultUsername = name_;
+        defaultUsername = name_.text;
+        UpdateUsernameLocal(defaultUsername);
         SaveProfile(defaultUsername, defaultAvatarIndex);
     }
     public void UpdateUsernameLocal(string usn)
