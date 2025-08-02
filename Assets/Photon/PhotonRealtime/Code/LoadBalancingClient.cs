@@ -3908,7 +3908,7 @@ namespace Photon.Realtime
         /// </remarks>
         /// <param name="debugMessage">Contains a debug message why authentication failed. This has to be fixed during development.</param>
         void OnCustomAuthenticationFailed(string debugMessage);
-        void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps);
+
     }
 
 

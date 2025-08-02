@@ -6,14 +6,14 @@ using UnityEngine.UI;
 using ExitGames.Client.Photon;
 using System.Collections.Generic;
 
-public class PlayerListUI : MonoBehaviourPunCallbacks, IInRoomCallbacks
+public class PlayerListUI : MonoBehaviourPunCallbacks
 {
     public static PlayerListUI instance;
 
     [Header("UI References")]
     [SerializeField] private GameObject playerSlotPrefab;
     [SerializeField] private Transform playerListContainer;
-    [SerializeField] private Sprite[] avatarSprites;
+    [SerializeField] public Sprite[] avatarSprites;
     [SerializeField] private Sprite defaultAvatar;
 
     private Dictionary<int, GameObject> playerSlots = new Dictionary<int, GameObject>();
