@@ -47,6 +47,9 @@ MonoBehaviour:
   - BroadcastHostHint
   - SetGameData
   - SubmitGuessRPC
+  - RestartGameRPC
+  - FinalizeGuesses
+  - SyncPlayerGuess
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

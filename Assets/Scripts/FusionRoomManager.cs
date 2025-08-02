@@ -10,22 +10,23 @@ using Random = UnityEngine.Random;
 public class PUNRoomManager : MonoBehaviourPunCallbacks
 {
     [Header("UI References")]
-    public GameObject hostPanel;
-    public GameObject clientPanel;
-    public GameObject menuPanel;
-    public GameObject shadowButton;
-    public TMP_InputField joinCodeInput;
-    public TMP_Text roomCodeText;
-    public TMP_Text playerCountText;
-    public TMP_Text logText;
+    [SerializeField] private GameObject hostPanel;
+    [SerializeField] private GameObject clientPanel;
+    [SerializeField] private GameObject menuPanel;
+    [SerializeField] private GameObject shadowButton;
+    [SerializeField] private TMP_InputField joinCodeInput;
+    [SerializeField] private TMP_Text roomCodeText;
+    [SerializeField] private TMP_Text playerCountText;
+    [SerializeField] private TMP_Text logText;
 
     private const int MaxPlayers = 6;
     private string currentRoomCode;
     private List<string> messageLog = new List<string>();
-    private bool gameStarted = false;
 
     void Start()
     {
+        if (!ValidateUIReferences()) return;
+
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.NickName = "Player" + Random.Range(1000, 9999);
 
@@ -34,6 +35,20 @@ public class PUNRoomManager : MonoBehaviourPunCallbacks
             PhotonNetwork.ConnectUsingSettings();
             Log("Connecting to Photon...");
         }
+    }
+
+    private bool ValidateUIReferences()
+    {
+        bool valid = true;
+        if (hostPanel == null) { Debug.LogError("Host Panel reference missing!"); valid = false; }
+        if (clientPanel == null) { Debug.LogError("Client Panel reference missing!"); valid = false; }
+        if (menuPanel == null) { Debug.LogError("Menu Panel reference missing!"); valid = false; }
+        if (shadowButton == null) { Debug.LogError("Shadow Button reference missing!"); valid = false; }
+        if (joinCodeInput == null) { Debug.LogError("Join Code Input reference missing!"); valid = false; }
+        if (roomCodeText == null) { Debug.LogError("Room Code Text reference missing!"); valid = false; }
+        if (playerCountText == null) { Debug.LogError("Player Count Text reference missing!"); valid = false; }
+        if (logText == null) { Debug.LogError("Log Text reference missing!"); valid = false; }
+        return valid;
     }
 
     public override void OnConnectedToMaster()
@@ -109,7 +124,6 @@ public class PUNRoomManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom != null)
         {
             PhotonNetwork.CurrentRoom.IsOpen = false; // Prevent more players from joining
-            gameStarted = true;
             Log("Game started. Room is now closed to new players.");
         }
     }
@@ -181,30 +195,31 @@ public class PUNRoomManager : MonoBehaviourPunCallbacks
 
     public void ShowHostPanel()
     {
-        hostPanel.SetActive(true);
-        clientPanel.SetActive(false);
-        menuPanel.SetActive(false);
+        if (hostPanel != null) hostPanel.SetActive(true);
+        if (clientPanel != null) clientPanel.SetActive(false);
+        if (menuPanel != null) menuPanel.SetActive(false);
     }
 
     public void ShowClientPanel()
     {
-        hostPanel.SetActive(false);
-        clientPanel.SetActive(true);
-        menuPanel.SetActive(false);
+        if (hostPanel != null) hostPanel.SetActive(false);
+        if (clientPanel != null) clientPanel.SetActive(true);
+        if (menuPanel != null) menuPanel.SetActive(false);
     }
 
     private void ShowMenuPanel()
     {
-        hostPanel.SetActive(false);
-        clientPanel.SetActive(false);
-        menuPanel.SetActive(true);
+        if (hostPanel != null) hostPanel.SetActive(false);
+        if (clientPanel != null) clientPanel.SetActive(false);
+        if (menuPanel != null) menuPanel.SetActive(true);
     }
+
 
     private void Log(string message)
     {
         Debug.Log("[PUNRoomManager] " + message);
         messageLog.Add(message);
         if (logText != null)
-            logText.text = string.Join("\n", messageLog);
+            logText.text = string.Join("\n", messageLog.TakeLast(5).ToArray()); // Show only last 5 messages
     }
 }

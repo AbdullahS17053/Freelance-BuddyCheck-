@@ -10,51 +10,81 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
     [Header("Profile Settings")]
     public string defaultUsername = "Player";
     public int defaultAvatarIndex = 0;
+    [SerializeField] private int maxAvatarIndex = 5; 
 
-    public Image[] pfp;
-    public TextMeshProUGUI[] names;
+    [Header("UI References")]
+    [SerializeField] private Image[] pfp;
+    [SerializeField] private TextMeshProUGUI[] names;
 
     void Awake()
     {
         LoadLocalProfile();
         SetPhotonNickname();
+        UpdateUI();
+        UpdateNetworkAvatar();
     }
 
     public void UpdatePfp(int index)
     {
-        defaultAvatarIndex = index;
+        // Clamp the index to valid range
+        defaultAvatarIndex = Mathf.Clamp(index, 0, maxAvatarIndex);
         SaveProfile(defaultUsername, defaultAvatarIndex);
+        UpdateUI();
+        UpdateNetworkAvatar();
     }
-    public void UpdatePfpLocal(Sprite pfp_)
+
+    private void UpdateNetworkAvatar()
     {
-        foreach(Image PFP in pfp)
+        Hashtable props = new Hashtable();
+        props["avatarIndex"] = defaultAvatarIndex;
+        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+
+        // Force immediate UI update for all clients
+        if (PlayerListUI.instance != null)
         {
-            PFP.sprite = pfp_;
-        }
-    }
-    public void UpdateUsername(TMP_InputField name_)
-    {
-        defaultUsername = name_.text;
-        UpdateUsernameLocal(defaultUsername);
-        SaveProfile(defaultUsername, defaultAvatarIndex);
-    }
-    public void UpdateUsernameLocal(string usn)
-    {
-        foreach (TextMeshProUGUI texts in names)
-        {
-            texts.text = usn;
+            PlayerListUI.instance.RefreshPlayerList();
         }
     }
 
-    // 🚀 Call this when player chooses their name and avatar
-    public void SaveProfile(string username, int avatarIndex)
+    private void UpdateUI()
+    {
+        string username = PlayerPrefs.GetString("username", defaultUsername);
+        int avatarIndex = PlayerPrefs.GetInt("avatarIndex", defaultAvatarIndex);
+
+        foreach (Image img in pfp)
+        {
+            if (img != null && PlayerListUI.instance != null)
+            {
+                img.sprite = PlayerListUI.instance.GetAvatarSprite(avatarIndex);
+            }
+        }
+
+        foreach (TextMeshProUGUI text in names)
+        {
+            if (text != null) text.text = username;
+        }
+    }
+
+    public void UpdateUsername(TMP_InputField nameField)
+    {
+        if (nameField == null) return;
+
+        defaultUsername = nameField.text;
+        SaveProfile(defaultUsername, defaultAvatarIndex);
+        UpdateUI();
+
+        // Update Photon nickname in real-time
+        PhotonNetwork.NickName = defaultUsername;
+        if (PlayerListUI.instance != null) PlayerListUI.instance.RefreshPlayerList();
+    }
+
+    private void SaveProfile(string username, int avatarIndex)
     {
         PlayerPrefs.SetString("username", username);
         PlayerPrefs.SetInt("avatarIndex", avatarIndex);
         PlayerPrefs.Save();
     }
 
-    // 🌱 Loads saved data or uses default values
     private void LoadLocalProfile()
     {
         if (!PlayerPrefs.HasKey("username"))
@@ -64,29 +94,26 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
             PlayerPrefs.SetInt("avatarIndex", defaultAvatarIndex);
     }
 
-    // 🧠 Tells Photon about your username
     private void SetPhotonNickname()
     {
         string username = PlayerPrefs.GetString("username", defaultUsername);
         PhotonNetwork.NickName = username;
     }
 
-    // 🌐 Called when you join a room
     public override void OnJoinedRoom()
     {
+
         int avatarIndex = PlayerPrefs.GetInt("avatarIndex", defaultAvatarIndex);
 
-        // 🎈 Send your avatar index to others via custom properties
-        Hashtable props = new Hashtable
-        {
-            { "avatarIndex", avatarIndex }
-        };
-
-        PhotonNetwork.NickName = defaultUsername;
-        PhotonNetwork.ConnectUsingSettings();
+        Hashtable props = new Hashtable { { "avatarIndex", avatarIndex } };
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-        Debug.Log($"[LocalProfile] Set avatar index to {avatarIndex}");
+
+        UpdateNetworkAvatar();
     }
 
-    
+    private Sprite GetAvatarSprite(int index)
+    {
+        // Implementation depends on your avatar system
+        return PlayerListUI.instance.avatarSprites[index];
+    }
 }

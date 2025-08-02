@@ -358,6 +358,7 @@ GameObject:
   - component: {fileID: 3412910904443200240}
   - component: {fileID: 6752847382825981742}
   - component: {fileID: 7250044695052830781}
+  - component: {fileID: 6393065483928796447}
   - component: {fileID: 3782791293584273573}
   m_Layer: 0
   m_Name: Board Rank
@@ -427,6 +428,25 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6393065483928796447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4521567550718009036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9831f312bef04d5489ab29aa59cb98ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  avatarImage: {fileID: 1690763034154634573}
+  rankText: {fileID: 2326821952426990219}
+  nameText: {fileID: 185824231261279356}
+  guessText: {fileID: 454080517969053393}
+  hintText: {fileID: 0}
+  hostBadge: {fileID: 0}
+  hostColor: {r: 1, g: 0.9680523, b: 0.5990566, a: 1}
 --- !u!114 &3782791293584273573
 MonoBehaviour:
   m_ObjectHideFlags: 0
