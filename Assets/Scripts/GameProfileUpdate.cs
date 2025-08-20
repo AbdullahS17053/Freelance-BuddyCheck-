@@ -20,8 +20,8 @@ public class GameProfileUpdate : MonoBehaviour
     private AnimationCurve appearCurve =
         AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    [SerializeField] private ParticleSystem confetti;
-    [SerializeField] private ParticleSystem clouds;
+    [SerializeField] private GameObject confetti;
+    [SerializeField] private GameObject clouds;
     [SerializeField] private Slider scoreMeter;
 
     private CanvasGroup canvasGroup;
@@ -65,6 +65,7 @@ public class GameProfileUpdate : MonoBehaviour
 
     public void showAnswers()
     {
+        scoreMeter.gameObject.SetActive(false);
         if (guessedAnswer)
         {
             guessedAnswer.SetActive(true);
@@ -106,8 +107,12 @@ public class GameProfileUpdate : MonoBehaviour
         {
             guessedAnswer.SetActive(false);
         }
-        scoreMeter.transform.DOScale(new Vector3(1f, 1f, 1f), 0.5f);
+        scoreMeter.gameObject.SetActive(true);
+        scoreMeter.transform.DOScale(new Vector3(1.5f, 1.5f, 1.5f), 0.5f);
         scoreMeter.value = Mathf.Round(scoreMeter.maxValue / 2);
+        confetti.SetActive(false);
+        clouds.SetActive(false);
+
         if (canvasGroup) canvasGroup.alpha = 0;
     }
 
@@ -121,9 +126,9 @@ public class GameProfileUpdate : MonoBehaviour
             }
             else
             {
-                scoreMeter.transform.DOScale(new Vector3(1.2f, 1.2f, 1.2f), 0.5f);
+                scoreMeter.transform.DOScale(new Vector3(2f, 2f, 2f), 0.5f);
             }
-                confetti.Play();
+                confetti.SetActive(true);
         }
         else
         {
@@ -133,7 +138,7 @@ public class GameProfileUpdate : MonoBehaviour
 
                 scoreMeter.transform.DOScale(new Vector3(1f, 1f, 1f), 0.5f);
             }
-                clouds.Play();
+                clouds.SetActive(true);
         }
     }
 }
