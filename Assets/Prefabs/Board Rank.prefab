@@ -717,10 +717,12 @@ MonoBehaviour:
   avatarImage: {fileID: 1690763034154634573}
   rankText: {fileID: 2326821952426990219}
   nameText: {fileID: 185824231261279356}
-  guessText: {fileID: 454080517969053393}
-  hintText: {fileID: 0}
+  perceText: {fileID: 2801266863590564098}
+  subText: {fileID: 2804913408363034850}
+  scoreText: {fileID: 454080517969053393}
   hostBadge: {fileID: 0}
-  hostColor: {r: 1, g: 0.9680523, b: 0.5990566, a: 1}
+  hostColor: {r: 0.33962262, g: 0.31298554, b: 0, a: 1}
+  defaultColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &3782791293584273573
 MonoBehaviour:
   m_ObjectHideFlags: 0

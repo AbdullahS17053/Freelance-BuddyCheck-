@@ -7,17 +7,22 @@ using TMPro;
 
 public class LocalPlayer : MonoBehaviourPunCallbacks
 {
+    public static LocalPlayer Instance;
+
     [Header("Profile Settings")]
     public string defaultUsername = "Player";
     public int defaultAvatarIndex = 0;
-    [SerializeField] private int maxAvatarIndex = 7; 
+    [SerializeField] private int maxAvatarIndex = 7;
 
     [Header("UI References")]
     [SerializeField] private Image[] pfp;
     [SerializeField] private TextMeshProUGUI[] names;
+    [HideInInspector] public TMP_InputField nameField;
 
     void Awake()
     {
+        Instance = this;
+
         LoadLocalProfile();
         SetPhotonNickname();
         UpdateUI();
@@ -26,7 +31,6 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
 
     public void UpdatePfp(int index)
     {
-        // Clamp the index to valid range
         defaultAvatarIndex = Mathf.Clamp(index, 0, maxAvatarIndex);
         SaveProfile(defaultUsername, defaultAvatarIndex);
         UpdateUI();
@@ -39,7 +43,6 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
         props["avatarIndex"] = defaultAvatarIndex;
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
 
-        // Force immediate UI update for all clients
         if (PlayerListUI.instance != null)
         {
             PlayerListUI.instance.RefreshPlayerList();
@@ -65,15 +68,15 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
         }
     }
 
-    public void UpdateUsername(TMP_InputField nameField)
+    public void UpdateUsername(TMP_InputField nameField_)
     {
-        if (nameField == null) return;
+        if (nameField_ == null) return;
 
-        defaultUsername = nameField.text;
+        nameField = nameField_;
+
+        defaultUsername = nameField_.text;
         SaveProfile(defaultUsername, defaultAvatarIndex);
         UpdateUI();
-
-        // Update Photon nickname in real-time
         PhotonNetwork.NickName = defaultUsername;
         if (PlayerListUI.instance != null) PlayerListUI.instance.RefreshPlayerList();
     }
@@ -102,18 +105,9 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-
         int avatarIndex = PlayerPrefs.GetInt("avatarIndex", defaultAvatarIndex);
-
         Hashtable props = new Hashtable { { "avatarIndex", avatarIndex } };
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-
         UpdateNetworkAvatar();
-    }
-
-    private Sprite GetAvatarSprite(int index)
-    {
-        // Implementation depends on your avatar system
-        return PlayerListUI.instance.avatarSprites[index];
     }
 }

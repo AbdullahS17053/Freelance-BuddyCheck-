@@ -34,7 +34,6 @@ public class PlayerListUI : MonoBehaviourPunCallbacks
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
     {
-        // Only refresh if avatar index changed
         if (changedProps.ContainsKey("avatarIndex"))
         {
             RefreshPlayerList();
@@ -49,7 +48,6 @@ public class PlayerListUI : MonoBehaviourPunCallbacks
             return;
         }
 
-        // Clear existing slots
         foreach (Transform child in playerListContainer)
         {
             Destroy(child.gameObject);
@@ -58,7 +56,6 @@ public class PlayerListUI : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.CurrentRoom == null) return;
 
-        // Create slots for all players
         foreach (Player player in PhotonNetwork.PlayerList)
         {
             CreatePlayerSlot(player);
@@ -68,22 +65,11 @@ public class PlayerListUI : MonoBehaviourPunCallbacks
     private void CreatePlayerSlot(Player player)
     {
         GameObject slot = Instantiate(playerSlotPrefab, playerListContainer);
-
-        // Get UI components
         TMP_Text nameText = slot.transform.Find("UsernameText")?.GetComponent<TMP_Text>();
         Image avatarImage = slot.transform.Find("Mask/AvatarImage")?.GetComponent<Image>();
 
-        // Set player name
-        if (nameText != null)
-        {
-            nameText.text = player.NickName ?? "Unknown Player";
-        }
-
-        // Set avatar
-        if (avatarImage != null)
-        {
-            avatarImage.sprite = GetPlayerAvatar(player);
-        }
+        if (nameText != null) nameText.text = player.NickName ?? "Unknown Player";
+        if (avatarImage != null) avatarImage.sprite = GetPlayerAvatar(player);
 
         playerSlots[player.ActorNumber] = slot;
     }
@@ -91,14 +77,11 @@ public class PlayerListUI : MonoBehaviourPunCallbacks
     private Sprite GetPlayerAvatar(Player player)
     {
         int avatarIndex = 0;
-
-        // Get avatar index from player properties
         if (player.CustomProperties.TryGetValue("avatarIndex", out object indexObj))
         {
             avatarIndex = (int)indexObj;
         }
 
-        // Return appropriate sprite
         if (avatarSprites != null && avatarIndex >= 0 && avatarIndex < avatarSprites.Length)
         {
             return avatarSprites[avatarIndex];
@@ -115,6 +98,7 @@ public class PlayerListUI : MonoBehaviourPunCallbacks
             return defaultAvatar;
         }
 
+        // Add bounds checking
         index = Mathf.Clamp(index, 0, avatarSprites.Length - 1);
         return avatarSprites[index];
     }
