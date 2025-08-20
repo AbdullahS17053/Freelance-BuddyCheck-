@@ -115,11 +115,6 @@ public class LeaderboardEntry : MonoBehaviour
                     subText.text = $"Mr. Nobuddy";
                     break;
             }
-
-
-            rankText.text = $"#{rank}";
-            rankText.color = isHost ? hostColor : defaultColor;
-            rankText.gameObject.SetActive(true);
         }
 
         // Set player name

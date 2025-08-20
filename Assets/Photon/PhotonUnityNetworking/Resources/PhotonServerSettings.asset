@@ -51,6 +51,8 @@ MonoBehaviour:
   - FinalizeGuesses
   - SyncPlayerGuess
   - ShowOverallLeaderboardRPC
+  - RequestRoundsSync
+  - SyncTotalRounds
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

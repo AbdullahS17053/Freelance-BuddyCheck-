@@ -108,8 +108,6 @@ public class GameProfileUpdate : MonoBehaviour
             guessedAnswer.SetActive(false);
         }
         scoreMeter.gameObject.SetActive(true);
-        scoreMeter.transform.DOScale(new Vector3(1.5f, 1.5f, 1.5f), 0.5f);
-        scoreMeter.value = Mathf.Round(scoreMeter.maxValue / 2);
         confetti.SetActive(false);
         clouds.SetActive(false);
 
@@ -136,9 +134,20 @@ public class GameProfileUpdate : MonoBehaviour
             {
                 scoreMeter.value--;
 
-                scoreMeter.transform.DOScale(new Vector3(1f, 1f, 1f), 0.5f);
+                scoreMeter.transform.DOScale(new Vector3(1.5f, 1.5f, 1.5f), 0.5f);
             }
                 clouds.SetActive(true);
         }
+    }
+
+    public void ResetAll()
+    {
+
+        scoreMeter.gameObject.SetActive(true);
+        scoreMeter.transform.DOScale(new Vector3(1.5f, 1.5f, 1.5f), 0.5f);
+        scoreMeter.value = Mathf.Round(scoreMeter.maxValue / 2);
+
+        confetti.SetActive(false);
+        clouds.SetActive(false);
     }
 }

@@ -65,14 +65,32 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     public void updateRounds(TMP_InputField num)
     {
         roundField = num;
-        int numm = Convert.ToInt32(num);
 
-        if(numm > 20)
+        int numm;
+        if (!int.TryParse(num.text, out numm))
+        {
+            numm = 2;
+        }
+
+        if (numm > 20)
         {
             numm = 20;
         }
 
         totalRounds = numm;
+
+        // Sync the rounds value with all clients
+        if (PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("SyncTotalRounds", RpcTarget.All, totalRounds);
+        }
+    }
+
+    [PunRPC]
+    private void SyncTotalRounds(int rounds)
+    {
+        totalRounds = rounds;
+        roundText.text = $"Round: {currentRound}/{totalRounds}";
     }
     public bool CheckHostInputs()
     {
@@ -240,6 +258,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
 
         gameplayPanel.SetActive(true);
+
+        // Update round text with current values
         roundText.text = $"Round: {currentRound}/{totalRounds}";
 
         UpdatePlayerProfiles();
@@ -346,7 +366,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         // Show guesses on player profiles
         ShowPlayerAnswers();
 
-        if (currentRound >= totalRounds)
+        if (currentRound > totalRounds)
         {
             CalculateTotalScores();
 
@@ -394,6 +414,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private void NextRound()
     {
         currentRound++;
+
+        // Update round text
+        roundText.text = $"Round: {currentRound}/{totalRounds}";
+
         StartRound();
     }
 
@@ -431,20 +455,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
                     playerTotalScores[player.Key] += points;
                     playerRoundPoints[player.Key].Add(points);
 
-                    //  Trigger UI effect
-                    if (activeProfiles.TryGetValue(player.Key, out GameProfileUpdate profile))
-                    {
-                        profile.Correct(points > 0);
-                    }
                 }
                 else
                 {
                     playerRoundPoints[player.Key].Add(0);
 
-                    if (activeProfiles.TryGetValue(player.Key, out GameProfileUpdate profile))
-                    {
-                        profile.Correct(false);
-                    }
                 }
             }
 
@@ -452,20 +467,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             if (playerRoundPoints.ContainsKey(hostPlayerName))
             {
                 playerRoundPoints[hostPlayerName].Add(0);
-            }
-        }
-
-        // Debug output to verify scoring
-        Debug.Log("Final Scores:");
-        foreach (var score in playerTotalScores)
-        {
-            Debug.Log($"{score.Key}: {score.Value} points");
-
-            // Optional: Log round-by-round points
-            if (playerRoundPoints.ContainsKey(score.Key))
-            {
-                string roundPoints = string.Join(", ", playerRoundPoints[score.Key]);
-                Debug.Log($"{score.Key} round points: [{roundPoints}]");
             }
         }
     }
@@ -477,18 +478,39 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             hostProfile.numberGuessed(hostNumber.ToString());
             hostProfile.showAnswers();
+
+            // Host never earns points
+            hostProfile.Correct(false);
         }
 
-        // Update players' answers
+        // Update players' answers + scoring
         foreach (var guess in playerGuesses)
         {
             if (activeProfiles.TryGetValue(guess.Key, out GameProfileUpdate profile))
             {
                 profile.numberGuessed(guess.Value.ToString());
                 profile.showAnswers();
+
+                // Scoring logic here
+                int difference = Mathf.Abs(guess.Value - hostNumber);
+                int points = 0;
+
+                if (difference == 0) points = 3;
+                else if (difference == 1) points = 2;
+                else if (difference == 2) points = 1;
+
+                // Update totals
+                if (!playerTotalScores.ContainsKey(guess.Key))
+                    playerTotalScores[guess.Key] = 0;
+
+                playerTotalScores[guess.Key] += points;
+
+                // Trigger UI
+                profile.Correct(points > 0);
             }
         }
     }
+
 
     private void StartNextRound()
     {
@@ -614,6 +636,22 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         playersPanel.gameObject.SetActive(true);
         UpdatePlayerProfiles();
+
+        // Request the current rounds value from the master client
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("RequestRoundsSync", RpcTarget.MasterClient);
+        }
+    }
+
+    [PunRPC]
+    private void RequestRoundsSync()
+    {
+        // Master client sends the current rounds value to the requesting client
+        if (PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("SyncTotalRounds", RpcTarget.Others, totalRounds);
+        }
     }
 
     public override void OnLeftRoom()

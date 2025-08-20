@@ -1,6 +1,6 @@
 #if UNITY_BURST && UNITY_MATHEMATICS && UNITY_COLLECTIONS
 
-using Unity.Burst;
+//using Unity.Burst;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -137,7 +137,7 @@ namespace AssetKits.ParticleImage.Jobs
         public float constantMax;
         public ParticleSystemCurveMode mode;
         
-        [BurstDiscard]
+        //[BurstDiscard]
         public float Evaluate(float time, float lerp)
         {
             switch (mode)

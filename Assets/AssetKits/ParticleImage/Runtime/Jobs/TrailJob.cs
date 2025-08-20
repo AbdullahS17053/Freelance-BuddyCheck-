@@ -1,5 +1,5 @@
 #if UNITY_BURST && UNITY_MATHEMATICS && UNITY_COLLECTIONS
-using Unity.Burst;
+//using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace AssetKits.ParticleImage.Jobs
 {
-    [BurstCompile]
+    //[BurstCompile]
     public struct TrailJob : IJobParallelFor
     {
         public NativeArray<ParticleData> particles;

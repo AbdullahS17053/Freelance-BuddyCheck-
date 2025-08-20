@@ -100,7 +100,7 @@ public class PUNRoomManager : MonoBehaviourPunCallbacks
     /// <summary>Join a room using code entered in the input field.</summary>
     public void JoinRoomFromInput()
     {
-        if (!GameplayManager.instance.CheckHostInputs() || string.IsNullOrEmpty(joinCodeInput.text)) { return; }
+        if (!GameplayManager.instance.CheckClientInputs()) { return; }
 
         string code = joinCodeInput.text.Trim().ToUpper();
         if (string.IsNullOrEmpty(code) || code.Length < 3)
