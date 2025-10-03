@@ -366,23 +366,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         // Show guesses on player profiles
         ShowPlayerAnswers();
 
-        if (currentRound > totalRounds)
-        {
-            CalculateTotalScores();
 
-            // Only master sends leaderboard data
-            if (PhotonNetwork.IsMasterClient)
-            {
-                // Prepare data to send to all clients
-                var scoreData = PrepareScoreData();
-                photonView.RPC("ShowOverallLeaderboardRPC", RpcTarget.All, scoreData);
-            }
-        }
-        else
-        {
-            // Move to next round after 5 seconds
-            Invoke("NextRound", 5f);
-        }
+        Invoke("NextRound", 5f);
+
+        
     }
     private object[] PrepareScoreData()
     {
@@ -413,12 +400,31 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     }
     private void NextRound()
     {
-        currentRound++;
 
-        // Update round text
-        roundText.text = $"Round: {currentRound}/{totalRounds}";
+        if (currentRound >= totalRounds)
+        {
+            CalculateTotalScores();
 
-        StartRound();
+            // Only master sends leaderboard data
+            if (PhotonNetwork.IsMasterClient)
+            {
+                // Prepare data to send to all clients
+                var scoreData = PrepareScoreData();
+                photonView.RPC("ShowOverallLeaderboardRPC", RpcTarget.All, scoreData);
+            }
+
+
+        }
+        else
+        {
+
+            currentRound++;
+
+            // Update round text
+            roundText.text = $"Round: {currentRound}/{totalRounds}";
+
+            StartRound();
+        }
     }
 
     private void CalculateTotalScores()
