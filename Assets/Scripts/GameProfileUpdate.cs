@@ -13,6 +13,10 @@ public class GameProfileUpdate : MonoBehaviour
     public TextMeshProUGUI playerName;
     public TextMeshProUGUI guessedNumber;
 
+    [Header("Chat Indicator")]
+    public GameObject chatIndicator;
+    public TMP_Text lastMessageText;
+
     [Header("Animation")]
     [SerializeField] private float appearDelay = 0.1f;
     [SerializeField] private float appearDuration = 0.5f;
@@ -32,6 +36,19 @@ public class GameProfileUpdate : MonoBehaviour
 
         // Start hidden
         if (canvasGroup) canvasGroup.alpha = 0;
+    }
+
+    public void SetChatActivity(bool isActive, string lastMessage = "")
+    {
+        if (chatIndicator != null)
+            chatIndicator.SetActive(isActive);
+
+        if (lastMessageText != null && !string.IsNullOrEmpty(lastMessage))
+        {
+            // Show abbreviated last message
+            lastMessageText.text = lastMessage.Length > 15 ?
+                lastMessage.Substring(0, 15) + "..." : lastMessage;
+        }
     }
 
     public void updatePlayer(int playerPFP, string pName, bool host)

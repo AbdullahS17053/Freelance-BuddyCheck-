@@ -2908,6 +2908,8 @@ MonoBehaviour:
   pfp: {fileID: 405470451}
   playerName: {fileID: 44609069}
   guessedNumber: {fileID: 1458006544}
+  chatIndicator: {fileID: 0}
+  lastMessageText: {fileID: 0}
   appearDelay: 0.5
   appearDuration: 0.5
   appearCurve:
@@ -8939,6 +8941,8 @@ MonoBehaviour:
   pfp: {fileID: 1076728591}
   playerName: {fileID: 356575415}
   guessedNumber: {fileID: 402113788}
+  chatIndicator: {fileID: 0}
+  lastMessageText: {fileID: 0}
   appearDelay: 0.5
   appearDuration: 0.5
   appearCurve:
@@ -12645,6 +12649,8 @@ MonoBehaviour:
   pfp: {fileID: 256395982}
   playerName: {fileID: 76148154}
   guessedNumber: {fileID: 1887036545}
+  chatIndicator: {fileID: 0}
+  lastMessageText: {fileID: 0}
   appearDelay: 0.5
   appearDuration: 0.5
   appearCurve:
@@ -16191,8 +16197,14 @@ MonoBehaviour:
   gameplayPanel: {fileID: 194246898}
   leaderboardPanel: {fileID: 2717031542213863106}
   playersPanel: {fileID: 1538616442}
+  chatPanel: {fileID: 1806090216}
+  chatInputField: {fileID: 856084130}
+  sendChatButton: {fileID: 918544446}
+  chatContent: {fileID: 526931354}
+  chatMessagePrefab: {fileID: 0}
+  chatScrollRect: {fileID: 0}
   hostNameText: {fileID: 305143021}
-  AnswerText: {fileID: 1645744109}
+  answerText: {fileID: 0}
   hostHintText: {fileID: 276050374}
   hostHintInput: {fileID: 488174988}
   startGameButton: {fileID: 221533696}
@@ -20000,6 +20012,8 @@ MonoBehaviour:
   pfp: {fileID: 1881228541}
   playerName: {fileID: 1648169439}
   guessedNumber: {fileID: 1683674734}
+  chatIndicator: {fileID: 0}
+  lastMessageText: {fileID: 0}
   appearDelay: 0.5
   appearDuration: 0.5
   appearCurve:
@@ -27143,6 +27157,8 @@ MonoBehaviour:
   pfp: {fileID: 714323395}
   playerName: {fileID: 1136334335}
   guessedNumber: {fileID: 1479543665}
+  chatIndicator: {fileID: 0}
+  lastMessageText: {fileID: 0}
   appearDelay: 0.5
   appearDuration: 0.5
   appearCurve:
@@ -27741,6 +27757,7 @@ GameObject:
   - component: {fileID: 1806090217}
   - component: {fileID: 1806090219}
   - component: {fileID: 1806090218}
+  - component: {fileID: 1806090220}
   m_Layer: 5
   m_Name: Chat
   m_TagString: Untagged
@@ -27812,6 +27829,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1806090216}
   m_CullTransparentMesh: 1
+--- !u!114 &1806090220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806090216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8239f862dd4e2049862a2a6a7c2a765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  messageText: {fileID: 526931355}
+  senderText: {fileID: 526931355}
+  timeText: {fileID: 526931355}
+  backgroundImage: {fileID: 0}
+  localPlayerColor: {r: 0.2, g: 0.6, b: 1, a: 0.3}
+  otherPlayerColor: {r: 0.3, g: 0.3, b: 0.3, a: 0.3}
+  hostPlayerColor: {r: 1, g: 0.8, b: 0.2, a: 0.3}
 --- !u!1 &1806621314
 GameObject:
   m_ObjectHideFlags: 0
@@ -31729,6 +31765,8 @@ MonoBehaviour:
   pfp: {fileID: 177634617}
   playerName: {fileID: 1552469159}
   guessedNumber: {fileID: 907122124}
+  chatIndicator: {fileID: 0}
+  lastMessageText: {fileID: 0}
   appearDelay: 0.5
   appearDuration: 0.5
   appearCurve:
@@ -32264,6 +32302,8 @@ MonoBehaviour:
   pfp: {fileID: 534795729}
   playerName: {fileID: 1056875716}
   guessedNumber: {fileID: 502547699}
+  chatIndicator: {fileID: 0}
+  lastMessageText: {fileID: 0}
   appearDelay: 0.5
   appearDuration: 0.5
   appearCurve:
