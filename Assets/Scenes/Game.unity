@@ -16197,20 +16197,43 @@ MonoBehaviour:
   gameplayPanel: {fileID: 194246898}
   leaderboardPanel: {fileID: 2717031542213863106}
   playersPanel: {fileID: 1538616442}
-  chatPanel: {fileID: 1806090216}
   chatInputField: {fileID: 856084130}
   sendChatButton: {fileID: 918544446}
-  chatContent: {fileID: 526931354}
-  chatMessagePrefab: {fileID: 0}
-  chatScrollRect: {fileID: 0}
+  chatDisplayText:
+  - {fileID: 526931355}
+  - {fileID: 1805130831}
   hostNameText: {fileID: 305143021}
-  answerText: {fileID: 0}
+  answerText: {fileID: 1350535083}
   hostHintText: {fileID: 276050374}
   hostHintInput: {fileID: 488174988}
   startGameButton: {fileID: 221533696}
   roundText: {fileID: 2145797436}
   playerGuessInput: {fileID: 28193802}
   voteButton: {fileID: 1894722716}
+  bad: {fileID: 113188044}
+  good: {fileID: 367316368}
+  categories:
+  - categories:
+    - {fileID: 11400000, guid: 992da9c462a680546ab679f578763634, type: 2}
+    - {fileID: 11400000, guid: e2ce043f737307f45af77dbc8a199588, type: 2}
+    - {fileID: 11400000, guid: 1c5e8e4d8f8b77c49850d305c8eb2211, type: 2}
+    - {fileID: 11400000, guid: 5096fd981c8902a43919cca9f85f8bc5, type: 2}
+    - {fileID: 11400000, guid: 64ea4989918112346980bcb11c9ad816, type: 2}
+    - {fileID: 11400000, guid: d6829484091862648b50ea5eca5bb5a4, type: 2}
+    - {fileID: 11400000, guid: d9cc0ae5ffc454244b7173933d574afa, type: 2}
+    - {fileID: 11400000, guid: 4b39056c9611af64791da7e1835cfa4b, type: 2}
+    - {fileID: 11400000, guid: 0d92adcf2434d6044bfdf61825d53faf, type: 2}
+    - {fileID: 11400000, guid: 8878c101226dd9e4c87f62ed8fbf73d2, type: 2}
+    - {fileID: 11400000, guid: 38860706063efec4ca68d5146bf94c7c, type: 2}
+    - {fileID: 11400000, guid: e161d22fc2cc1894ca1f4bce32d40241, type: 2}
+    - {fileID: 11400000, guid: 92a8d2c3a3043e645b75362f6cbae8a5, type: 2}
+    - {fileID: 11400000, guid: 511ffade3a07a9542ad356b11303f0ac, type: 2}
+    - {fileID: 11400000, guid: 3f4544b22896952438cc7cf6981f99de, type: 2}
+    - {fileID: 11400000, guid: 07e02b6d9da6814428fc10c29aea55a8, type: 2}
+    - {fileID: 11400000, guid: 2d874f14a43593447b7fe4845e432489, type: 2}
+    - {fileID: 11400000, guid: 6d62305a36e89044291bd483c95ea913, type: 2}
+    - {fileID: 11400000, guid: 0a1837c457e82234c91ca8ed8140b8ad, type: 2}
+    - {fileID: 11400000, guid: 993aff30bdd562f47af72af9e0551bbb, type: 2}
   leaderboardContainer: {fileID: 2717031541809741045}
   leaderboardEntryPrefab: {fileID: 4521567550718009036, guid: 3ee1a5f130f9feb4cbdf002e49c1934f, type: 3}
   winnerLog: {fileID: 703133551}
@@ -16650,7 +16673,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 918544445}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 907076931}
+        m_TargetAssemblyTypeName: GameplayManager, Assembly-CSharp
+        m_MethodName: SendChatMessage
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!222 &918544447
 CanvasRenderer:
   m_ObjectHideFlags: 0

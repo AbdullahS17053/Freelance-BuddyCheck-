@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
+  m_Name: 6
+  m_EditorClassIdentifier: 
+  bad: Bad surprise
+  good: Nice surprise
+  example: Your friend (who is always late) is not coming to late..
+  bad2: "Schlechte \xDCberraschung"
+  good2: "Sch\xF6ne \xDCberraschung"
+  example2: "Der Freund (der immer zu sp\xF6t ist) kommt p\xFCnktlic"

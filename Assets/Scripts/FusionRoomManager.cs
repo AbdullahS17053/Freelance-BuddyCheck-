@@ -81,8 +81,6 @@ public class PUNRoomManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if (!GameplayManager.instance.CheckHostInputs()) { return; }
-
         if (!PhotonNetwork.IsConnectedAndReady)
         {
             Log("Not connected to Photon yet. Please wait...");
@@ -123,11 +121,11 @@ public class PUNRoomManager : MonoBehaviourPunCallbacks
     /// <summary>Attempt to join a specific room by code.</summary>
     public void JoinRoom(string inputCode)
     {
-        if (!GameplayManager.instance.CheckClientInputs())
+        /*if (!GameplayManager.instance.CheckClientInputs())
         {
             Log("Please enter your name first.");
             return;
-        }
+        }*/
 
         currentRoomCode = inputCode.ToUpper();
         roomCodeText.text = $"Joining Room: {currentRoomCode}";

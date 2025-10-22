@@ -1,4 +1,4 @@
-using Photon.Pun;
+﻿using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine;
@@ -34,8 +34,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [Header("Simple Chat System")]
     [SerializeField] private TMP_InputField chatInputField;
     [SerializeField] private Button sendChatButton;
-    [SerializeField] private TMP_Text chatDisplayText; // Single text area for all chat
-    [SerializeField] private ScrollRect chatScrollRect;
+    [SerializeField] private TMP_Text[] chatDisplayText;
 
     [Header("Host UI")]
     [SerializeField] private TMP_Text hostNameText;
@@ -48,6 +47,18 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [Header("Player UI")]
     [SerializeField] private TMP_InputField playerGuessInput;
     [SerializeField] private Button voteButton;
+
+    [Header("Gameplay Quiz")]
+    [SerializeField] private TextMeshProUGUI[] bad;
+    [SerializeField] private TextMeshProUGUI[] good;
+    [SerializeField] private TextMeshProUGUI[] example;
+    [SerializeField] private CategoryCatalog[] categories;
+    private int categoryID;
+    [System.Serializable]
+    public class CategoryCatalog
+    {
+        public Categories[] categories;
+    }
 
     [Header("Leaderboard UI")]
     [SerializeField] private GameObject leaderboardContainer;
@@ -145,6 +156,31 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (sendChatButton != null)
             sendChatButton.interactable = false;
     }
+    /// <summary>
+    /// Question Display Categories
+    /// </summary>
+    /// 
+
+
+    public void NewCategory()
+    {
+        categoryID = Random.Range(0, categories[0].categories.Length);
+
+        photonView.RPC("NewCategoryAll", RpcTarget.All, categoryID);
+    }
+
+    [PunRPC]
+    private void NewCategoryAll(int ID)
+    {
+        categoryID = ID;
+
+        for (int i = 0; i < bad.Length; i++)
+        {
+            bad[i].text = categories[0].categories[ID].bad;
+            good[i].text = categories[0].categories[ID].good;
+            example[i].text = categories[0].categories[ID].example;
+        }
+    }
 
     // Simple Chat System Methods
     public void SendChatMessage()
@@ -183,15 +219,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         if (chatDisplayText != null)
         {
-            // Join all messages with newlines
-            chatDisplayText.text = string.Join("\n", chatMessages);
-        }
-
-        // Scroll to bottom
-        if (chatScrollRect != null)
-        {
-            Canvas.ForceUpdateCanvases();
-            chatScrollRect.verticalNormalizedPosition = 0f;
+            for(int i = 0; i < chatDisplayText.Length; i++)
+            {
+                chatDisplayText[i].text = string.Join("\n", chatMessages);
+            }
         }
     }
 
@@ -199,10 +230,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     public void SetChatActive(bool active)
     {
         if (chatInputField != null)
-            chatInputField.interactable = active && isVotingPhase;
+            chatInputField.interactable = active;
 
         if (sendChatButton != null)
-            sendChatButton.interactable = active && isVotingPhase;
+            sendChatButton.interactable = active;
 
         if (!active && chatInputField != null)
         {
@@ -910,6 +941,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             }
         }
     }
+
 
     private bool ValidateUIReferences()
     {
