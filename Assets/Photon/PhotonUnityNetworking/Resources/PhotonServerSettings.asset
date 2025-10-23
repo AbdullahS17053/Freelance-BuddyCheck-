@@ -54,6 +54,15 @@ MonoBehaviour:
   - RequestRoundsSync
   - SyncTotalRounds
   - ReceiveChatMessageRPC
+  - NewCategoryAll
+  - BroadcastHostAnswer
+  - FinalizeRoundRPC
+  - SetHostRPC
+  - StartVotingPhaseRPC
+  - SubmitPlayerGuessRPC
+  - SyncGameStateRPC
+  - SyncPlayerGuessRPC
+  - ShowLeaderboardRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

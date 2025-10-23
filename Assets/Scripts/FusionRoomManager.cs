@@ -75,11 +75,11 @@ public class PUNRoomManager : MonoBehaviourPunCallbacks
     /// <summary>Create a new room with a random code (only if connected).</summary>
     public void CreateRoom()
     {
-        if (!GameplayManager.instance.CheckHostInputs())
+        /*if (!GameplayManager.instance.CheckHostInputs())
         {
             Log("Please enter your name and rounds first.");
             return;
-        }
+        }*/
 
         if (!PhotonNetwork.IsConnectedAndReady)
         {
@@ -104,7 +104,7 @@ public class PUNRoomManager : MonoBehaviourPunCallbacks
     /// <summary>Join a room using code entered in the input field.</summary>
     public void JoinRoomFromInput()
     {
-        if (!GameplayManager.instance.CheckClientInputs()) { return; }
+        /// if (!GameplayManager.instance.CheckClientInputs()) { return; }
 
         string code = joinCodeInput.text.Trim().ToUpper();
         if (string.IsNullOrEmpty(code) || code.Length < 3)

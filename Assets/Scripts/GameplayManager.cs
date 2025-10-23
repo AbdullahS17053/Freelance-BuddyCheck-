@@ -7,17 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ExitGames.Client.Photon;
 using System;
-using Random = UnityEngine.Random;
-
-// Add this at the top of the class
-[System.Serializable]
-public class PlayerScoreData
-{
-    public string playerName;
-    public int score;
-    public bool isHost;
-    public int avatarIndex;
-}
 
 public class GameplayManager : MonoBehaviourPunCallbacks
 {
@@ -38,27 +27,18 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     [Header("Host UI")]
     [SerializeField] private TMP_Text hostNameText;
-    [SerializeField] private TMP_Text answerText;
-    [SerializeField] private TMP_Text hostHintText;
-    [SerializeField] private TMP_InputField hostHintInput;
-    [SerializeField] private Button startGameButton;
-    [SerializeField] private TMP_Text roundText;
+    [SerializeField] private TMP_InputField hostAnswerInput;
+    [SerializeField] private Button submitHostAnswerButton;
+    [SerializeField] private TMP_Text hostStatusText;
 
     [Header("Player UI")]
     [SerializeField] private TMP_InputField playerGuessInput;
     [SerializeField] private Button voteButton;
+    [SerializeField] private TMP_Text playerStatusText;
 
-    [Header("Gameplay Quiz")]
-    [SerializeField] private TextMeshProUGUI[] bad;
-    [SerializeField] private TextMeshProUGUI[] good;
-    [SerializeField] private TextMeshProUGUI[] example;
-    [SerializeField] private CategoryCatalog[] categories;
-    private int categoryID;
-    [System.Serializable]
-    public class CategoryCatalog
-    {
-        public Categories[] categories;
-    }
+    [Header("Game State UI")]
+    [SerializeField] private TMP_Text roundText;
+    [SerializeField] private TMP_Text gamePhaseText;
 
     [Header("Leaderboard UI")]
     [SerializeField] private GameObject leaderboardContainer;
@@ -67,36 +47,48 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [SerializeField] private Button replayButton;
 
     // Game State
-    private string hostPlayerName;
-    private int hostNumber = -1;
-    private string hostHint;
+    private string currentHostPlayerName;
+    private int currentHostAnswer = -1;
     private bool isLocalHost = false;
     private bool isVotingPhase = false;
     private bool gameActive = false;
     private bool isRestarting = false;
 
     // Round Tracking
-    private int currentRound = 1;
+    private int currentRound = 0;
     public int totalRounds = 2;
-    private TMP_InputField roundField;
 
     // Simple Chat System
     private List<string> chatMessages = new List<string>();
     private const int MAX_CHAT_LINES = 5;
 
-    // Player Data
+    // Player Data - FIXED: Proper initialization and access
     private Dictionary<string, List<int>> playerRoundGuesses = new Dictionary<string, List<int>>();
     private Dictionary<string, int> playerTotalScores = new Dictionary<string, int>();
-    private List<int> hostRoundNumbers = new List<int>();
-    private List<string> hostRoundHints = new List<string>();
-    private Dictionary<string, int> playerGuesses = new Dictionary<string, int>();
+    private List<int> hostRoundAnswers = new List<int>();
+    private Dictionary<string, int> currentRoundGuesses = new Dictionary<string, int>();
 
     [Header("Player Profiles")]
     [SerializeField] private GameProfileUpdate[] playerProfiles;
-    [SerializeField] private Transform profilesContainer;
 
     private Dictionary<string, GameProfileUpdate> activeProfiles = new Dictionary<string, GameProfileUpdate>();
     private List<Player> sortedPlayers = new List<Player>();
+
+    // Synchronization properties
+    private const string GAME_PHASE_KEY = "GamePhase";
+    private const string CURRENT_HOST_KEY = "CurrentHost";
+    private const string CURRENT_ROUND_KEY = "CurrentRound";
+    private const string TOTAL_ROUNDS_KEY = "TotalRounds";
+
+    public enum GamePhase
+    {
+        WaitingForHost,
+        Voting,
+        ShowingResults,
+        GameOver
+    }
+
+    private GamePhase currentGamePhase = GamePhase.WaitingForHost;
 
     private void Awake()
     {
@@ -119,7 +111,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         // Button listeners
         voteButton.onClick.AddListener(SubmitVote);
-        startGameButton.onClick.AddListener(SubmitHostHint);
+        submitHostAnswerButton.onClick.AddListener(SubmitHostAnswer);
         replayButton.onClick.AddListener(RequestRestartGame);
 
         // Simple chat system listeners
@@ -128,11 +120,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         // Initial UI state
         replayButton.gameObject.SetActive(false);
-        voteButton.interactable = true;
-        playerGuessInput.interactable = true;
+        ResetUIForNewRound();
 
         ClearLeaderboard();
-        roundText.text = $"Round: {currentRound}/{totalRounds}";
 
         // Initialize chat
         InitializeChat();
@@ -143,6 +133,77 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             profile.gameObject.SetActive(false);
             profile.hideAnswers();
         }
+
+        // Sync with room state if joining mid-game
+        if (PhotonNetwork.InRoom)
+        {
+            SyncWithRoomState();
+        }
+    }
+
+    private void SyncWithRoomState()
+    {
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(CURRENT_HOST_KEY, out object hostObj))
+        {
+            currentHostPlayerName = (string)hostObj;
+        }
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(GAME_PHASE_KEY, out object phaseObj))
+        {
+            currentGamePhase = (GamePhase)phaseObj;
+        }
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(CURRENT_ROUND_KEY, out object roundObj))
+        {
+            currentRound = (int)roundObj;
+        }
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(TOTAL_ROUNDS_KEY, out object totalRoundsObj))
+        {
+            totalRounds = (int)totalRoundsObj;
+        }
+
+        UpdateGamePhaseUI();
+        UpdatePlayerProfiles();
+
+        if (roundText != null)
+            roundText.text = $"Round: {currentRound}/{totalRounds}";
+    }
+
+    private void UpdateGamePhaseUI()
+    {
+        if (gamePhaseText != null)
+        {
+            gamePhaseText.text = $"Phase: {currentGamePhase}";
+        }
+
+        switch (currentGamePhase)
+        {
+            case GamePhase.WaitingForHost:
+                SetChatActive(false);
+                break;
+            case GamePhase.Voting:
+                SetChatActive(true);
+                break;
+            case GamePhase.ShowingResults:
+            case GamePhase.GameOver:
+                SetChatActive(false);
+                break;
+        }
+    }
+
+    private void SetGamePhase(GamePhase phase)
+    {
+        currentGamePhase = phase;
+
+        // Update room properties for synchronization
+        if (PhotonNetwork.IsMasterClient)
+        {
+            var props = new Hashtable
+            {
+                [GAME_PHASE_KEY] = phase
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+        }
+
+        UpdateGamePhaseUI();
     }
 
     private void InitializeChat()
@@ -151,35 +212,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         UpdateChatDisplay();
 
         if (chatInputField != null)
-            chatInputField.interactable = false; // Start disabled until voting phase
+            chatInputField.interactable = false;
 
         if (sendChatButton != null)
             sendChatButton.interactable = false;
-    }
-    /// <summary>
-    /// Question Display Categories
-    /// </summary>
-    /// 
-
-
-    public void NewCategory()
-    {
-        categoryID = Random.Range(0, categories[0].categories.Length);
-
-        photonView.RPC("NewCategoryAll", RpcTarget.All, categoryID);
-    }
-
-    [PunRPC]
-    private void NewCategoryAll(int ID)
-    {
-        categoryID = ID;
-
-        for (int i = 0; i < bad.Length; i++)
-        {
-            bad[i].text = categories[0].categories[ID].bad;
-            good[i].text = categories[0].categories[ID].good;
-            example[i].text = categories[0].categories[ID].example;
-        }
     }
 
     // Simple Chat System Methods
@@ -188,25 +224,27 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         string message = chatInputField.text.Trim();
         if (string.IsNullOrEmpty(message)) return;
 
-        // Send via RPC to all players
         photonView.RPC("ReceiveChatMessageRPC", RpcTarget.All, PhotonNetwork.NickName, message);
         chatInputField.text = "";
-        chatInputField.ActivateInputField(); // Keep focus on input
     }
 
     [PunRPC]
     private void ReceiveChatMessageRPC(string sender, string message)
     {
         AddChatMessage(sender, message);
+
+        // Update chat indicator on player profile
+        if (activeProfiles.TryGetValue(sender, out GameProfileUpdate profile))
+        {
+            profile.SetChatActivity(true, message);
+        }
     }
 
     private void AddChatMessage(string sender, string message)
     {
-        // Format: "name: message"
         string formattedMessage = $"{sender}: {message}";
         chatMessages.Add(formattedMessage);
 
-        // Keep only last 5 messages
         while (chatMessages.Count > MAX_CHAT_LINES)
         {
             chatMessages.RemoveAt(0);
@@ -219,14 +257,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         if (chatDisplayText != null)
         {
-            for(int i = 0; i < chatDisplayText.Length; i++)
+            for (int i = 0; i < chatDisplayText.Length; i++)
             {
                 chatDisplayText[i].text = string.Join("\n", chatMessages);
             }
         }
     }
 
-    // Enable/disable chat based on game phase
     public void SetChatActive(bool active)
     {
         if (chatInputField != null)
@@ -251,101 +288,81 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
     }
 
-    public void updateRounds(TMP_InputField num)
-    {
-        roundField = num;
-
-        int numm;
-        if (!int.TryParse(num.text, out numm))
-        {
-            numm = 2;
-        }
-
-        if (numm > 20)
-        {
-            numm = 20;
-        }
-
-        totalRounds = numm;
-
-        // Sync the rounds value with all clients
-        if (PhotonNetwork.IsMasterClient)
-        {
-            photonView.RPC("SyncTotalRounds", RpcTarget.All, totalRounds);
-        }
-    }
-
-    [PunRPC]
-    private void SyncTotalRounds(int rounds)
-    {
-        totalRounds = rounds;
-        if (roundText != null)
-            roundText.text = $"Round: {currentRound}/{totalRounds}";
-    }
-
-    public bool CheckHostInputs()
-    {
-        if (roundField == null || LocalPlayer.Instance == null || LocalPlayer.Instance.nameField == null)
-            return false;
-
-        if (string.IsNullOrEmpty(roundField.text) || string.IsNullOrEmpty(LocalPlayer.Instance.nameField.text))
-        {
-            return false;
-        }
-        else
-        {
-            roundField.text = string.Empty;
-            LocalPlayer.Instance.nameField.text = string.Empty;
-            return true;
-        }
-    }
-
-    public bool CheckClientInputs()
-    {
-        if (LocalPlayer.Instance == null || LocalPlayer.Instance.nameField == null)
-            return false;
-
-        if (string.IsNullOrEmpty(LocalPlayer.Instance.nameField.text))
-        {
-            return false;
-        }
-        else
-        {
-            LocalPlayer.Instance.nameField.text = string.Empty;
-            return true;
-        }
-    }
-
     public void StartGame()
     {
         if (PhotonNetwork.IsMasterClient && !gameActive)
         {
             gameActive = true;
+            currentRound = 0;
+
+            // Sync total rounds with all clients
+            if (PhotonNetwork.IsMasterClient)
+            {
+                var props = new Hashtable
+                {
+                    [TOTAL_ROUNDS_KEY] = totalRounds
+                };
+                PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+            }
+
             InitializePlayerTracking();
-            StartRound();
+            StartNewRound();
         }
     }
 
-    private void StartRound()
+    private void StartNewRound()
     {
-        playerGuesses.Clear();
-        ResetRoundState();
+        currentRound++;
+        currentRoundGuesses.Clear();
+
+        // Update room properties
+        if (PhotonNetwork.IsMasterClient)
+        {
+            var props = new Hashtable
+            {
+                [CURRENT_ROUND_KEY] = currentRound
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+        }
+
+        ResetUIForNewRound();
         HideAllAnswers();
         ChooseRandomHost();
+    }
+
+    private void ResetUIForNewRound()
+    {
+        if (roundText != null)
+            roundText.text = $"Round: {currentRound}/{totalRounds}";
+
+        if (hostStatusText != null)
+            hostStatusText.text = "Waiting for host answer...";
+
+        if (playerStatusText != null)
+            playerStatusText.text = "Waiting for voting...";
+
+        // Reset all player profiles
+        foreach (var profile in playerProfiles)
+        {
+            if (profile.gameObject.activeSelf)
+            {
+                profile.hideAnswers();
+                profile.SetChatActivity(false);
+            }
+        }
     }
 
     private void InitializePlayerTracking()
     {
         playerRoundGuesses.Clear();
         playerTotalScores.Clear();
-        hostRoundNumbers.Clear();
-        hostRoundHints.Clear();
+        hostRoundAnswers.Clear();
 
         foreach (Player player in PhotonNetwork.PlayerList)
         {
             string nick = player.NickName;
             playerRoundGuesses[nick] = new List<int>();
-            playerTotalScores[nick] = 0;
+            playerTotalScores[nick] = 0; // FIXED: Initialize scores to 0
         }
     }
 
@@ -354,93 +371,116 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         List<Player> players = PhotonNetwork.PlayerList.ToList();
         if (players.Count == 0) return;
 
-        Player selectedHost = players[Random.Range(0, players.Count)];
-
-        // Only master client sets the host number
-        if (PhotonNetwork.IsMasterClient)
-        {
-            int newHostNumber = Random.Range(0, 11);
-            photonView.RPC("SetHost", RpcTarget.All, selectedHost.NickName, newHostNumber);
-        }
-        else
-        {
-            photonView.RPC("SetHost", RpcTarget.All, selectedHost.NickName, -1);
-        }
+        Player selectedHost = players[UnityEngine.Random.Range(0, players.Count)];
+        photonView.RPC("SetHostRPC", RpcTarget.All, selectedHost.NickName);
     }
 
     [PunRPC]
-    private void SetHost(string hostName, int hostNum)
+    private void SetHostRPC(string hostName)
+    {
+        currentHostPlayerName = hostName;
+        isLocalHost = (PhotonNetwork.NickName == hostName);
+
+        // Update room properties
+        if (PhotonNetwork.IsMasterClient)
+        {
+            var props = new Hashtable
+            {
+                [CURRENT_HOST_KEY] = hostName
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+        }
+
+        UpdateHostUI();
+        UpdatePlayerProfiles();
+        SetGamePhase(GamePhase.WaitingForHost);
+    }
+
+    private void UpdateHostUI()
     {
         // Always reset host panel first
         if (hostPanel != null)
             hostPanel.SetActive(false);
 
-        isLocalHost = false;
-
-        hostPlayerName = hostName;
         if (hostNameText != null)
-            hostNameText.text = $"{hostName}'s guess";
+            hostNameText.text = $"{currentHostPlayerName}'s Round";
 
-        // Only set number if we're the new host
-        if (PhotonNetwork.NickName == hostName)
+        if (isLocalHost)
         {
-            isLocalHost = true;
-
-            // Use number from master if available, otherwise generate locally
-            hostNumber = hostNum > -1 ? hostNum : Random.Range(0, 11);
-            if (answerText != null)
-                answerText.text = hostNumber.ToString();
-
+            // Current player is the host
             if (hostPanel != null)
                 hostPanel.SetActive(true);
+
+            if (hostStatusText != null)
+                hostStatusText.text = "Enter your answer number";
+
+            if (hostAnswerInput != null)
+            {
+                hostAnswerInput.text = "";
+                hostAnswerInput.interactable = true;
+            }
+        }
+        else
+        {
+            // Current player is not host
+            if (playerStatusText != null)
+                playerStatusText.text = $"Waiting for {currentHostPlayerName} to submit answer";
         }
 
         if (gameplayPanel != null)
             gameplayPanel.SetActive(true);
-
-        // Update round text with current values
-        if (roundText != null)
-            roundText.text = $"Round: {currentRound}/{totalRounds}";
-
-        UpdatePlayerProfiles();
     }
 
-    public void SubmitHostHint()
+    public void SubmitHostAnswer()
     {
-        if (string.IsNullOrWhiteSpace(hostHintInput.text))
+        if (!isLocalHost) return;
+
+        if (!int.TryParse(hostAnswerInput.text, out int answer))
         {
-            Debug.LogError("Hint cannot be empty.");
+            if (hostStatusText != null)
+                hostStatusText.text = "Please enter a valid number!";
             return;
         }
 
-        hostHint = hostHintInput.text;
+        currentHostAnswer = answer;
 
-        // Only host should broadcast the hint
-        if (isLocalHost)
-        {
-            photonView.RPC("BroadcastHostHint", RpcTarget.All, hostHint, hostNumber);
-        }
+        if (hostAnswerInput != null)
+            hostAnswerInput.interactable = false;
+
+        if (hostStatusText != null)
+            hostStatusText.text = "Answer submitted!";
+
+        photonView.RPC("StartVotingPhaseRPC", RpcTarget.All, currentHostAnswer);
     }
 
     [PunRPC]
-    private void BroadcastHostHint(string hint, int number)
+    private void StartVotingPhaseRPC(int hostAnswer)
     {
-        hostHint = hint;
-        hostNumber = number;
+        currentHostAnswer = hostAnswer;
+        isVotingPhase = true;
+        SetGamePhase(GamePhase.Voting);
 
-        if (hostHintText != null)
-            hostHintText.text = hostHint;
-
-        // Deactivate host panel for everyone
+        // Disable host panel for everyone
         if (hostPanel != null)
             hostPanel.SetActive(false);
 
-        // Enable chat for voting phase
-        SetChatActive(true);
-
-        // Disable voting for host only
-        if (PhotonNetwork.NickName == hostPlayerName)
+        // Enable voting for non-host players
+        if (!isLocalHost)
         {
+            if (playerGuessInput != null)
+            {
+                playerGuessInput.interactable = true;
+                playerGuessInput.text = "";
+            }
+            if (voteButton != null)
+                voteButton.interactable = true;
+
+            if (playerStatusText != null)
+                playerStatusText.text = "Enter your guess!";
+        }
+        else
+        {
+            // Host cannot vote
             if (playerGuessInput != null)
             {
                 playerGuessInput.interactable = false;
@@ -449,17 +489,21 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             if (voteButton != null)
                 voteButton.interactable = false;
 
-            SetChatActive(false); // Host can't chat during voting
+            if (playerStatusText != null)
+                playerStatusText.text = "Wait for players to vote";
         }
 
-        isVotingPhase = true;
+        SetChatActive(true);
     }
 
     public void SubmitVote()
     {
-        if (!int.TryParse(playerGuessInput.text, out int guessedNumber) || guessedNumber < 0 || guessedNumber > 10)
+        if (isLocalHost) return;
+
+        if (!int.TryParse(playerGuessInput.text, out int guessedNumber))
         {
-            Debug.LogError("Invalid guess. Must be 0-10.");
+            if (playerStatusText != null)
+                playerStatusText.text = "Please enter a valid number!";
             return;
         }
 
@@ -469,42 +513,49 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (voteButton != null)
             voteButton.interactable = false;
 
-        SetChatActive(false); // Disable chat after voting
+        if (playerStatusText != null)
+            playerStatusText.text = "Vote submitted!";
 
-        photonView.RPC("SubmitPlayerGuess", RpcTarget.MasterClient, PhotonNetwork.NickName, guessedNumber);
+        SetChatActive(false);
+
+        photonView.RPC("SubmitPlayerGuessRPC", RpcTarget.MasterClient, PhotonNetwork.NickName, guessedNumber);
     }
 
     [PunRPC]
-    private void SubmitPlayerGuess(string playerName, int guess)
+    private void SubmitPlayerGuessRPC(string playerName, int guess)
     {
-        if (playerGuesses.ContainsKey(playerName)) return;
+        if (currentRoundGuesses.ContainsKey(playerName)) return;
 
-        playerGuesses[playerName] = guess;
-        photonView.RPC("SyncPlayerGuess", RpcTarget.Others, playerName, guess);
+        currentRoundGuesses[playerName] = guess;
+        photonView.RPC("SyncPlayerGuessRPC", RpcTarget.Others, playerName, guess);
 
-        if (PhotonNetwork.IsMasterClient &&
-            playerGuesses.Count >= PhotonNetwork.CurrentRoom.PlayerCount - 1)
+        // Check if all players have voted (excluding host)
+        int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount - 1;
+        if (currentRoundGuesses.Count >= expectedVotes)
         {
-            photonView.RPC("FinalizeGuesses", RpcTarget.All);
+            photonView.RPC("FinalizeRoundRPC", RpcTarget.All, currentHostAnswer);
         }
     }
 
     [PunRPC]
-    private void SyncPlayerGuess(string playerName, int guess)
+    private void SyncPlayerGuessRPC(string playerName, int guess)
     {
-        if (!playerGuesses.ContainsKey(playerName))
+        if (!currentRoundGuesses.ContainsKey(playerName))
         {
-            playerGuesses[playerName] = guess;
+            currentRoundGuesses[playerName] = guess;
         }
     }
 
     [PunRPC]
-    private void FinalizeGuesses()
+    private void FinalizeRoundRPC(int hostAnswer)
     {
-        hostRoundNumbers.Add(hostNumber);
-        hostRoundHints.Add(hostHint);
+        currentHostAnswer = hostAnswer;
+        hostRoundAnswers.Add(hostAnswer);
+        isVotingPhase = false;
+        SetGamePhase(GamePhase.ShowingResults);
 
-        foreach (var guess in playerGuesses)
+        // Record guesses for scoring
+        foreach (var guess in currentRoundGuesses)
         {
             if (playerRoundGuesses.ContainsKey(guess.Key))
             {
@@ -512,142 +563,97 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             }
         }
 
-        // Show guesses on player profiles
         ShowPlayerAnswers();
+        CalculateRoundScores();
 
-        Invoke("NextRound", 5f);
+        if (playerStatusText != null)
+            playerStatusText.text = "Round complete!";
+
+        Invoke("ProceedToNextPhase", 3f);
     }
 
-    private void NextRound()
+    private void ProceedToNextPhase()
     {
         if (currentRound >= totalRounds)
         {
-            CalculateTotalScores();
-
-            // Only master sends leaderboard data
-            if (PhotonNetwork.IsMasterClient)
-            {
-                // Prepare data to send to all clients
-                var scoreData = PrepareScoreData();
-                photonView.RPC("ShowOverallLeaderboardRPC", RpcTarget.All, scoreData);
-            }
+            ShowOverallLeaderboard();
         }
         else
         {
-            currentRound++;
-
-            // Update round text
-            if (roundText != null)
-                roundText.text = $"Round: {currentRound}/{totalRounds}";
-
-            StartRound();
+            StartNewRound();
         }
     }
 
-    private object[] PrepareScoreData()
+    private void CalculateRoundScores()
     {
-        var sortedPlayers = playerTotalScores
-            .OrderByDescending(p => p.Value)
-            .ToList();
-
-        List<object> data = new List<object>();
-
-        foreach (var playerScore in sortedPlayers)
+        // FIXED: Safe dictionary access with TryGetValue
+        foreach (var guess in currentRoundGuesses)
         {
-            Player player = PhotonNetwork.PlayerList.FirstOrDefault(p => p.NickName == playerScore.Key);
-            int avatarIndex = 0;
+            string playerName = guess.Key;
+            int playerGuess = guess.Value;
 
-            if (player != null && player.CustomProperties.TryGetValue("avatarIndex", out object indexObj))
+            // FIXED: Use TryGetValue to avoid KeyNotFoundException
+            if (!playerTotalScores.TryGetValue(playerName, out int currentScore))
             {
-                avatarIndex = (int)indexObj;
+                // Initialize if not present
+                currentScore = 0;
+                playerTotalScores[playerName] = currentScore;
             }
 
-            // Add data in fixed order: name, score, isHost, avatarIndex
-            data.Add(playerScore.Key);
-            data.Add(playerScore.Value);
-            data.Add(playerScore.Key == hostPlayerName);
-            data.Add(avatarIndex);
-        }
+            int difference = Mathf.Abs(playerGuess - currentHostAnswer);
+            int points = 0;
 
-        return data.ToArray();
-    }
+            if (difference == 0) points = 3;
+            else if (difference == 1) points = 2;
+            else if (difference == 2) points = 1;
 
-    [PunRPC]
-    private void ShowOverallLeaderboardRPC(object[] scoreData)
-    {
-        ShowOverallLeaderboard(scoreData);
-    }
-
-    private void CalculateTotalScores()
-    {
-        // Reset scores
-        foreach (var player in playerTotalScores.Keys.ToList())
-        {
-            playerTotalScores[player] = 0;
-        }
-
-        // Calculate scores for each round
-        for (int round = 0; round < hostRoundNumbers.Count; round++)
-        {
-            int hostNumber = hostRoundNumbers[round];
-
-            foreach (var player in playerRoundGuesses)
-            {
-                if (player.Value.Count > round)
-                {
-                    int guess = player.Value[round];
-                    int difference = Mathf.Abs(guess - hostNumber);
-                    int points = 0;
-
-                    if (difference == 0) points = 3;
-                    else if (difference == 1) points = 2;
-                    else if (difference == 2) points = 1;
-
-                    playerTotalScores[player.Key] += points;
-                }
-            }
+            playerTotalScores[playerName] = currentScore + points;
         }
     }
 
     private void ShowPlayerAnswers()
     {
-        // Update host's answer
-        if (activeProfiles.TryGetValue(hostPlayerName, out GameProfileUpdate hostProfile))
+        // Show host answer
+        if (activeProfiles.TryGetValue(currentHostPlayerName, out GameProfileUpdate hostProfile))
         {
-            hostProfile.numberGuessed(hostNumber.ToString());
+            hostProfile.numberGuessed(currentHostAnswer.ToString());
             hostProfile.showAnswers();
-            hostProfile.Correct(false); // Host never earns points
         }
 
-        // Update players' answers + scoring
-        foreach (var guess in playerGuesses)
+        // Show player answers with scoring
+        foreach (var guess in currentRoundGuesses)
         {
             if (activeProfiles.TryGetValue(guess.Key, out GameProfileUpdate profile))
             {
                 profile.numberGuessed(guess.Value.ToString());
                 profile.showAnswers();
 
-                // Scoring logic here
-                int difference = Mathf.Abs(guess.Value - hostNumber);
-                int points = 0;
-
-                if (difference == 0) points = 3;
-                else if (difference == 1) points = 2;
-                else if (difference == 2) points = 1;
-
-                // Update totals
-                if (!playerTotalScores.ContainsKey(guess.Key))
-                    playerTotalScores[guess.Key] = 0;
-
-                playerTotalScores[guess.Key] += points;
-
-                // Trigger UI
-                profile.Correct(points > 0);
+                int difference = Mathf.Abs(guess.Value - currentHostAnswer);
+                bool isCorrect = difference <= 2; // Within 2 points is "correct"
+                profile.Correct(isCorrect);
             }
         }
     }
 
-    private void ShowOverallLeaderboard(object[] scoreData)
+    private void ShowOverallLeaderboard()
+    {
+        SetGamePhase(GamePhase.GameOver);
+
+        // FIXED: Use RPC to ensure all clients show leaderboard simultaneously
+        if (PhotonNetwork.IsMasterClient)
+        {
+            var leaderboardData = PrepareLeaderboardData();
+            photonView.RPC("ShowLeaderboardRPC", RpcTarget.All, leaderboardData);
+        }
+    }
+    private void ForceUIUpdate()
+    {
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(leaderboardContainer.transform as RectTransform);
+    }
+
+    [PunRPC]
+    private void ShowLeaderboardRPC(object[] leaderboardData)
     {
         if (leaderboardPanel != null)
             leaderboardPanel.SetActive(true);
@@ -657,46 +663,77 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         ClearLeaderboard();
 
-        // Calculate total of all players' scores
+        // Parse leaderboard data
         int allPlayersScore = 0;
-        for (int i = 1; i < scoreData.Length; i += 4)
+        var playerDataList = new List<(string name, int score, bool isHost, int avatarIndex)>();
+
+        for (int i = 0; i < leaderboardData.Length; i += 4)
         {
-            allPlayersScore += (int)scoreData[i];
+            string playerName = (string)leaderboardData[i];
+            int score = (int)leaderboardData[i + 1];
+            bool isHost = (bool)leaderboardData[i + 2];
+            int avatarIndex = (int)leaderboardData[i + 3];
+
+            playerDataList.Add((playerName, score, isHost, avatarIndex));
+            allPlayersScore += score;
         }
 
-        // Parse player data
-        for (int i = 0; i < scoreData.Length; i += 4)
-        {
-            string playerName = (string)scoreData[i];
-            int score = (int)scoreData[i + 1];
-            bool isHost = (bool)scoreData[i + 2];
-            int avatarIndex = (int)scoreData[i + 3];
+        // Sort by score and display
+        var sortedPlayers = playerDataList.OrderByDescending(p => p.score).ToList();
 
-            int rank = (i / 4) + 1;
+        for (int i = 0; i < sortedPlayers.Count; i++)
+        {
+            var playerData = sortedPlayers[i];
 
             if (leaderboardContainer != null && leaderboardEntryPrefab != null)
             {
                 GameObject entryObj = Instantiate(leaderboardEntryPrefab, leaderboardContainer.transform);
-                LeaderboardEntry entryUm = entryObj.GetComponent<LeaderboardEntry>();
+                LeaderboardEntry entry = entryObj.GetComponent<LeaderboardEntry>();
 
-                if (entryUm != null)
+                if (entry != null)
                 {
-                    entryUm.SetForOverall(
-                        rank,
-                        playerName,
-                        score,
+                    entry.SetForOverall(
+                        i + 1,
+                        playerData.name,
+                        playerData.score,
                         allPlayersScore,
-                        isHost
+                        playerData.isHost
                     );
 
                     if (PlayerListUI.instance != null)
-                        entryUm.SetAvatar(PlayerListUI.instance.GetAvatarSprite(avatarIndex));
+                        entry.SetAvatar(PlayerListUI.instance.GetAvatarSprite(playerData.avatarIndex));
                 }
             }
         }
 
         if (replayButton != null)
-            replayButton.gameObject.SetActive(true);
+            replayButton.gameObject.SetActive(PhotonNetwork.IsMasterClient);
+
+        ForceUIUpdate();
+    }
+
+    private object[] PrepareLeaderboardData()
+    {
+        var data = new List<object>();
+
+        foreach (var playerScore in playerTotalScores)
+        {
+            Player player = PhotonNetwork.PlayerList.FirstOrDefault(p => p.NickName == playerScore.Key);
+            int avatarIndex = 0;
+            bool isHost = (playerScore.Key == currentHostPlayerName);
+
+            if (player != null && player.CustomProperties.TryGetValue("avatarIndex", out object indexObj))
+            {
+                avatarIndex = (int)indexObj;
+            }
+
+            data.Add(playerScore.Key);
+            data.Add(playerScore.Value);
+            data.Add(isHost);
+            data.Add(avatarIndex);
+        }
+
+        return data.ToArray();
     }
 
     private void ClearLeaderboard()
@@ -720,24 +757,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (isRestarting) return;
         isRestarting = true;
 
-        playerGuesses.Clear();
-        currentRound = 1;
-        ResetGameState();
-        InitializePlayerTracking();
-
-        if (gameActive && PhotonNetwork.IsMasterClient)
-            Invoke("ActuallyRestartGame", 0.5f);
-    }
-
-    private void ActuallyRestartGame()
-    {
+        // Reset game state
+        currentRound = 0;
+        currentRoundGuesses.Clear();
+        gameActive = true;
         isRestarting = false;
-        ChooseRandomHost();
-    }
-
-    private void ResetRoundState()
-    {
-        isVotingPhase = false;
 
         if (leaderboardPanel != null)
             leaderboardPanel.SetActive(false);
@@ -745,55 +769,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (gameplayPanel != null)
             gameplayPanel.SetActive(true);
 
-        if (hostPanel != null)
-            hostPanel.SetActive(false);
-
-        isLocalHost = false;
-
-        if (hostHintInput != null)
-            hostHintInput.text = "";
-
-        if (playerGuessInput != null)
-        {
-            playerGuessInput.text = "";
-            playerGuessInput.interactable = true;
-        }
-
-        if (voteButton != null)
-            voteButton.interactable = true;
-
-        if (hostHintText != null)
-            hostHintText.text = "";
-
-        if (winnerLog != null)
-            winnerLog.text = "";
-
-        if (roundText != null)
-            roundText.text = $"Round: {currentRound}/{totalRounds}";
-
-        // Reset chat
-        SetChatActive(false);
-        chatMessages.Clear();
-        UpdateChatDisplay();
-
-        HideAllAnswers();
-    }
-
-    private void ResetGameState()
-    {
-        ResetRoundState();
-
-        if (replayButton != null)
-            replayButton.gameObject.SetActive(false);
-
-        if (roundText != null)
-            roundText.text = $"Round: {currentRound}/{totalRounds}";
-
-        // Reset host status
-        isLocalHost = false;
-
-        if (hostPanel != null)
-            hostPanel.SetActive(false);
+        InitializePlayerTracking();
+        StartNewRound();
     }
 
     public override void OnJoinedRoom()
@@ -802,22 +779,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             playersPanel.gameObject.SetActive(true);
 
         UpdatePlayerProfiles();
-
-        // Request the current rounds value from the master client
-        if (!PhotonNetwork.IsMasterClient)
-        {
-            photonView.RPC("RequestRoundsSync", RpcTarget.MasterClient);
-        }
-    }
-
-    [PunRPC]
-    private void RequestRoundsSync()
-    {
-        // Master client sends the current rounds value to the requesting client
-        if (PhotonNetwork.IsMasterClient)
-        {
-            photonView.RPC("SyncTotalRounds", RpcTarget.Others, totalRounds);
-        }
+        SyncWithRoomState();
     }
 
     public override void OnLeftRoom()
@@ -828,18 +790,50 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (playersPanel != null)
             playersPanel.gameObject.SetActive(false);
 
-        UpdatePlayerProfiles();
+        // Reset local state
+        gameActive = false;
+        isLocalHost = false;
+        currentRound = 0;
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         UpdatePlayerProfiles();
+
+        // Sync game state with new player
+        if (PhotonNetwork.IsMasterClient && gameActive)
+        {
+            var gameStateData = new object[]
+            {
+                currentHostPlayerName,
+                currentRound,
+                (int)currentGamePhase,
+                totalRounds
+            };
+            photonView.RPC("SyncGameStateRPC", newPlayer, gameStateData);
+        }
+    }
+
+    [PunRPC]
+    private void SyncGameStateRPC(object[] gameStateData)
+    {
+        currentHostPlayerName = (string)gameStateData[0];
+        currentRound = (int)gameStateData[1];
+        currentGamePhase = (GamePhase)gameStateData[2];
+        totalRounds = (int)gameStateData[3];
+
+        isLocalHost = (PhotonNetwork.NickName == currentHostPlayerName);
+
+        UpdateGamePhaseUI();
+        UpdatePlayerProfiles();
+
+        if (roundText != null)
+            roundText.text = $"Round: {currentRound}/{totalRounds}";
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        if (playerGuesses.ContainsKey(otherPlayer.NickName))
-            playerGuesses.Remove(otherPlayer.NickName);
+        currentRoundGuesses.Remove(otherPlayer.NickName);
 
         if (PhotonNetwork.CurrentRoom == null) return;
 
@@ -847,14 +841,49 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             CancelMatch();
         }
-        else if (otherPlayer.NickName == hostPlayerName && !isRestarting && PhotonNetwork.IsMasterClient)
+        else if (otherPlayer.NickName == currentHostPlayerName && gameActive && PhotonNetwork.IsMasterClient)
         {
+            // Host left, choose new host
             ChooseRandomHost();
         }
-        else if (PhotonNetwork.IsMasterClient && isVotingPhase &&
-                 playerGuesses.Count >= PhotonNetwork.CurrentRoom.PlayerCount - 1)
+        else if (PhotonNetwork.IsMasterClient && isVotingPhase)
         {
-            photonView.RPC("FinalizeGuesses", RpcTarget.All);
+            // Check if we can finalize round after player left
+            int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount - 1;
+            if (currentRoundGuesses.Count >= expectedVotes)
+            {
+                photonView.RPC("FinalizeRoundRPC", RpcTarget.All, currentHostAnswer);
+            }
+        }
+
+        UpdatePlayerProfiles();
+    }
+
+    public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
+    {
+        // Sync room property changes
+        if (propertiesThatChanged.ContainsKey(CURRENT_HOST_KEY))
+        {
+            currentHostPlayerName = (string)propertiesThatChanged[CURRENT_HOST_KEY];
+            isLocalHost = (PhotonNetwork.NickName == currentHostPlayerName);
+            UpdateHostUI();
+        }
+        if (propertiesThatChanged.ContainsKey(GAME_PHASE_KEY))
+        {
+            currentGamePhase = (GamePhase)propertiesThatChanged[GAME_PHASE_KEY];
+            UpdateGamePhaseUI();
+        }
+        if (propertiesThatChanged.ContainsKey(CURRENT_ROUND_KEY))
+        {
+            currentRound = (int)propertiesThatChanged[CURRENT_ROUND_KEY];
+            if (roundText != null)
+                roundText.text = $"Round: {currentRound}/{totalRounds}";
+        }
+        if (propertiesThatChanged.ContainsKey(TOTAL_ROUNDS_KEY))
+        {
+            totalRounds = (int)propertiesThatChanged[TOTAL_ROUNDS_KEY];
+            if (roundText != null)
+                roundText.text = $"Round: {currentRound}/{totalRounds}";
         }
 
         UpdatePlayerProfiles();
@@ -883,15 +912,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     private void UpdatePlayerProfiles()
     {
-        // Clear existing active profiles
         activeProfiles.Clear();
 
         if (PhotonNetwork.PlayerList == null) return;
 
-        // Sort players by actor number for consistent ordering
         sortedPlayers = PhotonNetwork.PlayerList.OrderBy(p => p.ActorNumber).ToList();
 
-        // Activate and assign profiles
         for (int i = 0; i < sortedPlayers.Count; i++)
         {
             if (i < playerProfiles.Length)
@@ -902,15 +928,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
                 profile.gameObject.SetActive(true);
                 activeProfiles[player.NickName] = profile;
 
-                // Update profile data
                 UpdateSingleProfile(player);
-
-                // Set position in container
                 profile.transform.SetSiblingIndex(i);
             }
         }
 
-        // Deactivate unused profiles
         for (int i = sortedPlayers.Count; i < playerProfiles.Length; i++)
         {
             playerProfiles[i].gameObject.SetActive(false);
@@ -925,8 +947,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             if (player.CustomProperties.TryGetValue("avatarIndex", out object indexObj))
                 avatarIndex = (int)indexObj;
 
-            // Use the current global host name
-            bool isHost = (player.NickName == hostPlayerName);
+            bool isHost = (player.NickName == currentHostPlayerName);
             profile.updatePlayer(avatarIndex, player.NickName, isHost);
         }
     }
@@ -942,25 +963,21 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
     }
 
-
     private bool ValidateUIReferences()
     {
         bool valid = true;
         if (hostPanel == null) { Debug.LogError("Host Panel reference missing!"); valid = false; }
         if (gameplayPanel == null) { Debug.LogError("Gameplay Panel reference missing!"); valid = false; }
         if (hostNameText == null) { Debug.LogError("Host Name Text reference missing!"); valid = false; }
-        if (answerText == null) { Debug.LogError("Answer Text reference missing!"); valid = false; }
-        if (hostHintText == null) { Debug.LogError("Host Hint Text reference missing!"); valid = false; }
-        if (hostHintInput == null) { Debug.LogError("Host Hint Input reference missing!"); valid = false; }
-        if (startGameButton == null) { Debug.LogError("Start Game Button reference missing!"); valid = false; }
+        if (hostAnswerInput == null) { Debug.LogError("Host Answer Input reference missing!"); valid = false; }
+        if (submitHostAnswerButton == null) { Debug.LogError("Submit Host Answer Button reference missing!"); valid = false; }
         if (playerGuessInput == null) { Debug.LogError("Player Guess Input reference missing!"); valid = false; }
         if (voteButton == null) { Debug.LogError("Vote Button reference missing!"); valid = false; }
         if (leaderboardEntryPrefab == null) { Debug.LogError("Leaderboard Entry Prefab reference missing!"); valid = false; }
         if (winnerLog == null) { Debug.LogError("Winner Log reference missing!"); valid = false; }
         if (replayButton == null) { Debug.LogError("Replay Button reference missing!"); valid = false; }
-        if (roundText == null) { Debug.LogError("Round Text reference missing!"); valid = false; }
+        if (roundText != null) { } // Just check if it exists, don't error if null
 
-        // Simple chat validation
         if (chatInputField == null) { Debug.LogError("Chat Input Field reference missing!"); valid = false; }
         if (sendChatButton == null) { Debug.LogError("Send Chat Button reference missing!"); valid = false; }
         if (chatDisplayText == null) { Debug.LogError("Chat Display Text reference missing!"); valid = false; }
