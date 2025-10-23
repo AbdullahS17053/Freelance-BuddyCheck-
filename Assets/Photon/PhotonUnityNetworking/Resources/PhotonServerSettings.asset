@@ -63,6 +63,7 @@ MonoBehaviour:
   - SyncGameStateRPC
   - SyncPlayerGuessRPC
   - ShowLeaderboardRPC
+  - RestartRoundAfterPlayerLeaveRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

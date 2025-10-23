@@ -18,16 +18,14 @@ public class GameProfileUpdate : MonoBehaviour
     public TMP_Text lastMessageText;
 
     [Header("Animation")]
-    [SerializeField] private float appearDelay = 0.1f;
     [SerializeField] private float appearDuration = 0.5f;
-    [SerializeField] private AnimationCurve appearCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-
     [SerializeField] private GameObject confetti;
     [SerializeField] private GameObject clouds;
     [SerializeField] private Slider scoreMeter;
 
     private CanvasGroup canvasGroup;
     private Coroutine chatIndicatorCoroutine;
+    private Coroutine autoHideParticlesCoroutine;
 
     void Awake()
     {
@@ -37,6 +35,20 @@ public class GameProfileUpdate : MonoBehaviour
         // Initialize chat indicator as hidden
         if (chatIndicator != null)
             chatIndicator.SetActive(false);
+
+        // Ensure particles are off at start
+        if (confetti != null)
+        {
+            confetti.SetActive(false);
+            ParticleSystem confettiPS = confetti.GetComponent<ParticleSystem>();
+            if (confettiPS != null) confettiPS.Stop();
+        }
+        if (clouds != null)
+        {
+            clouds.SetActive(false);
+            ParticleSystem cloudsPS = clouds.GetComponent<ParticleSystem>();
+            if (cloudsPS != null) cloudsPS.Stop();
+        }
     }
 
     public void SetChatActivity(bool isActive, string lastMessage = "")
@@ -70,55 +82,39 @@ public class GameProfileUpdate : MonoBehaviour
     public void updatePlayer(int playerPFP, string pName, bool host)
     {
         if (PlayerListUI.instance && pfp)
-        {
             pfp.sprite = PlayerListUI.instance.GetAvatarSprite(playerPFP);
-        }
 
         if (playerName)
-        {
             playerName.text = pName;
-        }
 
         if (hostCrown)
-        {
             hostCrown.SetActive(host);
-        }
     }
 
     public void numberGuessed(string number)
     {
         if (guessedNumber)
-        {
             guessedNumber.text = number;
-        }
     }
 
     public void showAnswers()
     {
         scoreMeter.gameObject.SetActive(false);
         if (guessedAnswer)
-        {
             guessedAnswer.SetActive(true);
-        }
 
         if (gameObject.activeInHierarchy)
-        {
             StartCoroutine(AnimateAppearance());
-        }
     }
 
     private IEnumerator AnimateAppearance()
     {
-        if (!canvasGroup || !gameObject.activeInHierarchy) yield break;
-
-        yield return new WaitForSeconds(appearDelay);
+        if (!canvasGroup) yield break;
 
         float elapsed = 0;
         while (elapsed < appearDuration)
         {
-            float t = elapsed / appearDuration;
-            float curveValue = appearCurve.Evaluate(t);
-            canvasGroup.alpha = Mathf.Lerp(0, 1, curveValue);
+            canvasGroup.alpha = Mathf.Lerp(0, 1, elapsed / appearDuration);
             elapsed += Time.deltaTime;
             yield return null;
         }
@@ -129,13 +125,12 @@ public class GameProfileUpdate : MonoBehaviour
     public void hideAnswers()
     {
         if (guessedAnswer)
-        {
             guessedAnswer.SetActive(false);
-        }
+
         scoreMeter.gameObject.SetActive(true);
 
-        if (confetti) confetti.SetActive(false);
-        if (clouds) clouds.SetActive(false);
+        // Stop and hide particles
+        StopAllParticles();
 
         if (canvasGroup) canvasGroup.alpha = 0;
 
@@ -144,42 +139,92 @@ public class GameProfileUpdate : MonoBehaviour
             chatIndicator.SetActive(false);
     }
 
+    private void StopAllParticles()
+    {
+        // Stop any running auto-hide coroutine
+        if (autoHideParticlesCoroutine != null)
+        {
+            StopCoroutine(autoHideParticlesCoroutine);
+            autoHideParticlesCoroutine = null;
+        }
+
+        // Stop and hide confetti
+        if (confetti != null)
+        {
+            ParticleSystem ps = confetti.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+            confetti.SetActive(false);
+        }
+
+        // Stop and hide clouds
+        if (clouds != null)
+        {
+            ParticleSystem ps = clouds.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+            clouds.SetActive(false);
+        }
+    }
+
     public void Correct(bool correct)
     {
+        // Stop any previous particles first
+        StopAllParticles();
+
         if (correct)
         {
             if (scoreMeter.value < scoreMeter.maxValue)
-            {
                 scoreMeter.value++;
-            }
-            else
+
+            // Show confetti
+            if (confetti != null)
             {
-                scoreMeter.transform.DOScale(new Vector3(2f, 2f, 2f), 0.5f);
+                confetti.SetActive(true);
+                ParticleSystem ps = confetti.GetComponent<ParticleSystem>();
+                if (ps != null)
+                {
+                    ps.Play();
+                }
+
+                // Auto-hide particles after 2 seconds
+                autoHideParticlesCoroutine = StartCoroutine(AutoHideParticlesAfterDelay(2f));
             }
-            if (confetti) confetti.SetActive(true);
-            if (clouds) clouds.SetActive(false);
         }
         else
         {
             if (scoreMeter.value > scoreMeter.minValue)
-            {
                 scoreMeter.value--;
-                scoreMeter.transform.DOScale(new Vector3(1.5f, 1.5f, 1.5f), 0.5f);
+
+            // Show clouds
+            if (clouds != null)
+            {
+                clouds.SetActive(true);
+                ParticleSystem ps = clouds.GetComponent<ParticleSystem>();
+                if (ps != null)
+                {
+                    ps.Play();
+                }
+
+                // Auto-hide particles after 2 seconds
+                autoHideParticlesCoroutine = StartCoroutine(AutoHideParticlesAfterDelay(2f));
             }
-            if (clouds) clouds.SetActive(true);
-            if (confetti) confetti.SetActive(false);
         }
     }
 
-    public void ResetAll()
+    private IEnumerator AutoHideParticlesAfterDelay(float delay)
     {
-        scoreMeter.gameObject.SetActive(true);
-        scoreMeter.transform.DOScale(Vector3.one, 0.5f);
-        scoreMeter.value = Mathf.Round(scoreMeter.maxValue / 2);
+        yield return new WaitForSeconds(delay);
+        StopAllParticles();
+    }
 
-        if (confetti) confetti.SetActive(false);
-        if (clouds) clouds.SetActive(false);
-
-        if (chatIndicator) chatIndicator.SetActive(false);
+    void OnDisable()
+    {
+        // Ensure particles are stopped when object is disabled
+        StopAllParticles();
     }
 }
