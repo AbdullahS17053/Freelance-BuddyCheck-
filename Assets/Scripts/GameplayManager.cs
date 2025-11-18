@@ -1,12 +1,12 @@
-﻿using Photon.Pun;
+﻿using ExitGames.Client.Photon;
+using Photon.Pun;
 using Photon.Realtime;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
-using System.Linq;
-using ExitGames.Client.Photon;
-using System;
 
 public class GameplayManager : MonoBehaviourPunCallbacks
 {
@@ -16,6 +16,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     [Header("UI Panels")]
     [SerializeField] private GameObject hostPanel;
+    [SerializeField] private GameObject hintPanel;
     [SerializeField] private GameObject gameplayPanel;
     [SerializeField] private GameObject leaderboardPanel;
     [SerializeField] private GameObject playersPanel;
@@ -26,9 +27,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [SerializeField] private TMP_Text[] chatDisplayText;
 
     [Header("Host UI")]
-    [SerializeField] private TMP_Text hostNameText;
     [SerializeField] private TMP_InputField hostAnswerInput;
     [SerializeField] private Button submitHostAnswerButton;
+
+    [Header("Hint UI")]
+    [SerializeField] private TMP_Text hintNameText;
+    [SerializeField] private TMP_InputField hintAnswerInput;
+    [SerializeField] private Button submitHintAnswerButton;
 
     [Header("Player UI")]
     [SerializeField] private TMP_InputField playerGuessInput;
@@ -46,7 +51,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [SerializeField] private TextMeshProUGUI[] bad;
     [SerializeField] private TextMeshProUGUI[] good;
     [SerializeField] private TextMeshProUGUI[] example;
+    [SerializeField] private TextMeshProUGUI[] hint;
+    [SerializeField] private TextMeshProUGUI[] username;
     [SerializeField] private CategoryCatalog[] categories;
+    public List<Categories> hintCatories;
+    private int hintCategoryID;
     private int categoryID;
     [System.Serializable]
     public class CategoryCatalog
@@ -64,6 +73,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private bool gameActive = false;
 
     // Round Tracking
+    private int hintRoundEach = 0;
+    private int hintRound = 0;
     private int currentRound = 0;
     public int totalRounds = 2;
     private TMP_InputField roundsInputField; // To track rounds input
@@ -73,6 +84,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private const int MAX_CHAT_LINES = 8;
 
     // Player Data
+    private Dictionary<string, bool> playersReadyForRounds = new Dictionary<string, bool>();
+    [SerializeField] private GameObject waitingForPlayersPanel; // assign in inspector
+
     private Dictionary<string, int> playerTotalScores = new Dictionary<string, int>();
     private Dictionary<string, int> currentRoundGuesses = new Dictionary<string, int>();
     private Dictionary<string, GameProfileUpdate> activeProfiles = new Dictionary<string, GameProfileUpdate>();
@@ -81,6 +95,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private const string CURRENT_HOST_KEY = "CurrentHost";
     private const string CURRENT_ROUND_KEY = "CurrentRound";
     private const string TOTAL_ROUNDS_KEY = "TotalRounds";
+    private const string EACH_ROUNDS_KEY = "EachRounds";
 
     private void Awake()
     {
@@ -101,6 +116,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         // Button listeners
         voteButton.onClick.AddListener(SubmitVote);
         submitHostAnswerButton.onClick.AddListener(SubmitHostAnswer);
+        submitHintAnswerButton.onClick.AddListener(SubmitHint);
         replayButton.onClick.AddListener(RequestRestartGame);
         sendChatButton.onClick.AddListener(SendChatMessage);
 
@@ -144,7 +160,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (int.TryParse(roundsInput.text, out int rounds))
         {
-            totalRounds = Mathf.Clamp(rounds, 1, 20); // Limit between 1-20 rounds
+            totalRounds = rounds; // Limit between 1-20 rounds
 
             // Sync with all clients if master
             if (PhotonNetwork.IsMasterClient)
@@ -152,6 +168,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
                 var props = new Hashtable { [TOTAL_ROUNDS_KEY] = totalRounds };
                 PhotonNetwork.CurrentRoom.SetCustomProperties(props);
             }
+
+            roundsInput.text = string.Empty;
 
             UpdateRoundText();
         }
@@ -169,25 +187,168 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     /// </summary>
     /// 
 
+    public void HintNewCategory()
+    {
+        hintCategoryID = UnityEngine.Random.Range(0, categories[0].categories.Length);
+
+        foreach (TextMeshProUGUI text in bad)
+        {
+            text.text = categories[0].categories[hintCategoryID].bad;
+        }
+        foreach (TextMeshProUGUI text in example)
+        {
+            text.text = categories[0].categories[hintCategoryID].example;
+        }
+        foreach (TextMeshProUGUI text in good)
+        {
+            text.text = categories[0].categories[hintCategoryID].good;
+        }
+
+        // photonView.RPC("HintNewCategoryAll", RpcTarget.All, hintCategoryID);
+    }
     public void NewCategory()
     {
-        categoryID = UnityEngine.Random.Range(0, categories[0].categories.Length);
+        categoryID = UnityEngine.Random.Range(0, hintCatories.Count);
 
-        photonView.RPC("NewCategoryAll", RpcTarget.All, categoryID);
+        photonView.RPC("GameNewCategoryAll", RpcTarget.All, categoryID);
     }
 
     [PunRPC]
-    private void NewCategoryAll(int ID)
+    private void HintNewCategoryAll(int ID)
+    {
+        hintCategoryID = ID;
+
+        foreach(TextMeshProUGUI text in bad)
+        {
+            text.text = hintCatories[ID].bad;
+        }
+        foreach(TextMeshProUGUI text in example)
+        {
+            text.text = hintCatories[ID].example;
+        }
+        foreach(TextMeshProUGUI text in good)
+        {
+            text.text = hintCatories[ID].good;
+        }
+    }
+    [PunRPC]
+    private void GameNewCategoryAll(int ID)
     {
         categoryID = ID;
 
-        for (int i = 0; i < bad.Length; i++)
+        foreach (TextMeshProUGUI text in bad)
         {
-            bad[i].text = categories[0].categories[ID].bad;
-            good[i].text = categories[0].categories[ID].good;
-            example[i].text = categories[0].categories[ID].example;
+            text.text = hintCatories[ID].bad;
+        }
+        foreach (TextMeshProUGUI text in example)
+        {
+            text.text = hintCatories[ID].example;
+        }
+        foreach (TextMeshProUGUI text in good)
+        {
+            text.text = hintCatories[ID].good;
+        }
+        foreach (TextMeshProUGUI text in username)
+        {
+            text.text = hintCatories[ID].player;
+        }
+        foreach (TextMeshProUGUI text in hint)
+        {
+            text.text = hintCatories[ID].hint;
         }
     }
+    public void SubmitHint()
+    {
+        hintRound++;
+
+        // Add hint to all clients
+        photonView.RPC("AddHintList", RpcTarget.All,
+            hintCategoryID,
+            categories[0].categories[hintCategoryID].hint,
+            categories[0].categories[hintCategoryID].player);
+
+        // Mark this player as ready
+        photonView.RPC("PlayerReadyForRoundsRPC", RpcTarget.MasterClient, PhotonNetwork.NickName);
+
+        hintAnswerInput.text = "";
+
+        HintNewCategory();
+
+        if (hintRound >= hintRoundEach)
+        {
+            hintRound = 0;
+            hintPanel.SetActive(false);
+        }
+    }
+
+    #region Readiness
+    [PunRPC]
+    private void PlayerReadyForRoundsRPC(string playerName)
+    {
+        if (!playersReadyForRounds.ContainsKey(playerName))
+            playersReadyForRounds[playerName] = true;
+
+        CheckAllPlayersReady();
+    }
+    private void CheckAllPlayersReady()
+    {
+        // Everyone in the room?
+        foreach (Player player in PhotonNetwork.PlayerList)
+        {
+            if (!playersReadyForRounds.ContainsKey(player.NickName) || !playersReadyForRounds[player.NickName])
+            {
+                // Still waiting for some players
+                waitingForPlayersPanel.SetActive(true);
+                return;
+            }
+        }
+
+        // All players ready, hide waiting panel
+        waitingForPlayersPanel.SetActive(false);
+
+        // Start the rounds if master client
+        if (PhotonNetwork.IsMasterClient)
+        {
+            gameActive = true;
+            currentRound = 0;
+            InitializePlayerTracking();
+            StartNewRound();
+
+            // Reset ready tracker for next hint phase
+            playersReadyForRounds.Clear();
+        }
+    }
+
+
+    #endregion
+
+    public void RemoveHint()
+    {
+        photonView.RPC("RemoveHintList", RpcTarget.All, categoryID);
+    }
+    [PunRPC]
+    private void AddHintList(int ID, string hint, string player)
+    {
+        Categories newCat = new Categories();
+        newCat.bad = categories[0].categories[ID].bad;
+        newCat.good = categories[0].categories[ID].good;
+        newCat.example = categories[0].categories[ID].example;
+
+        newCat.hint = hint;
+        newCat.player = player;
+
+        hintCatories.Add(newCat);
+    }
+
+    [PunRPC]
+    private void RemoveHintList(int ID)
+    {
+        categoryID = ID;
+
+        hintCatories.RemoveAt(ID);
+    }
+
+    #region Chat System
 
     // Simple Chat System Methods
     public void SendChatMessage()
@@ -258,6 +419,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
     }
 
+#endregion
+
     private void SyncWithRoomState()
     {
         if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(CURRENT_HOST_KEY, out object hostObj))
@@ -274,6 +437,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             totalRounds = (int)totalRoundsObj;
         }
 
+        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(EACH_ROUNDS_KEY, out object eachRoundsObj))
+        {
+            hintRoundEach = (int)eachRoundsObj;
+        }
+
         UpdatePlayerProfiles();
         UpdateRoundText();
     }
@@ -286,13 +454,24 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void StartGame()
     {
-        if (PhotonNetwork.IsMasterClient && !gameActive)
+        if (PhotonNetwork.IsMasterClient)
         {
-            gameActive = true;
-            currentRound = 0;
-            InitializePlayerTracking();
-            StartNewRound();
+            hintRoundEach = Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount / totalRounds);
+            var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         }
+
+        photonView.RPC("HintCollection", RpcTarget.All);
+        // Hint System Added
+        //StartNewRound();
+    }
+
+    [PunRPC]
+    private void HintCollection()
+    {
+        hintPanel.SetActive(true);
+
+        HintNewCategory();
     }
 
     private void StartNewRound()
@@ -384,9 +563,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (hostPanel != null)
             hostPanel.SetActive(false);
 
-        if (hostNameText != null)
-            hostNameText.text = $"{currentHostPlayerName}'s Round";
-
         if (isLocalHost)
         {
             // Current player is the host
@@ -416,6 +592,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             hostAnswerInput.interactable = false;
 
         photonView.RPC("StartVotingPhaseRPC", RpcTarget.All, currentHostAnswer);
+
     }
 
     [PunRPC]
@@ -465,6 +642,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             voteButton.interactable = false;
 
         photonView.RPC("SubmitPlayerGuessRPC", RpcTarget.MasterClient, PhotonNetwork.NickName, guessedNumber);
+        RemoveHint();
     }
 
     [PunRPC]
@@ -667,7 +845,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         UpdateChatDisplay();
 
         InitializePlayerTracking();
-        StartNewRound();
+        StartGame();
     }
 
     public override void OnJoinedRoom()
@@ -797,6 +975,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             totalRounds = (int)propertiesThatChanged[TOTAL_ROUNDS_KEY];
             UpdateRoundText();
         }
+        if (propertiesThatChanged.ContainsKey(EACH_ROUNDS_KEY))
+        {
+            hintRoundEach = (int)propertiesThatChanged[EACH_ROUNDS_KEY];
+            Debug.Log("Synced hintRoundEach = " + hintRoundEach);
+        }
 
         UpdatePlayerProfiles();
     }
@@ -862,6 +1045,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void OpenWebpageIntroVideo()
     {
-        Application.OpenURL("https://drive.google.com/file/d/1bobCLbFbLqbYDcIjoj-Y87e8YZcMeNDb/views");
+        UnityEngine.Application.OpenURL("https://drive.google.com/file/d/1bobCLbFbLqbYDcIjoj-Y87e8YZcMeNDb/views");
     }
 }

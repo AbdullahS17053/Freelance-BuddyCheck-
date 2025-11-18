@@ -64,6 +64,14 @@ MonoBehaviour:
   - SyncPlayerGuessRPC
   - ShowLeaderboardRPC
   - RestartRoundAfterPlayerLeaveRPC
+  - StartHostPhaseRPC
+  - SubmitHintRPC
+  - AddHintList
+  - GameNewCategoryAll
+  - HintNewCategoryAll
+  - RemoveHintList
+  - HintCollection
+  - PlayerReadyForRoundsRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -75,10 +75,27 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
         nameField = nameField_;
 
         defaultUsername = nameField_.text;
+        nameField_.text = string.Empty;
         SaveProfile(defaultUsername, defaultAvatarIndex);
         UpdateUI();
         PhotonNetwork.NickName = defaultUsername;
         if (PlayerListUI.instance != null) PlayerListUI.instance.RefreshPlayerList();
+    }
+
+    public void JoinRandomRoom(TMP_InputField nameField_)
+    {
+        if (nameField_ == null) return;
+
+        nameField = nameField_;
+
+        defaultUsername = nameField_.text;
+        nameField_.text = string.Empty;
+        SaveProfile(defaultUsername, defaultAvatarIndex);
+        UpdateUI();
+        PhotonNetwork.NickName = defaultUsername;
+        if (PlayerListUI.instance != null) PlayerListUI.instance.RefreshPlayerList();
+
+        PhotonNetwork.JoinRandomRoom();
     }
 
     private void SaveProfile(string username, int avatarIndex)
