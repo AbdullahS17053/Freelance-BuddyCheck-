@@ -22,9 +22,11 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private TMP_Text playerCountText;
     [SerializeField] private TMP_Text logText;
 
+
     private const int MaxPlayers = 6;
     private string currentRoomCode;
     private List<string> messageLog = new List<string>();
+
 
     void Start()
     {

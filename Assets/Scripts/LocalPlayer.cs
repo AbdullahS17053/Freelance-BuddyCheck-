@@ -70,12 +70,19 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
 
     public void UpdateUsername(TMP_InputField nameField_)
     {
-        if (nameField_ == null) return;
+        if (nameField_ == null)
+        {
+            defaultUsername = "Player" + UnityEngine.Random.Range(0, 9) + UnityEngine.Random.Range(0, 9);
+        }
+        else
+        {
+            nameField = nameField_;
 
-        nameField = nameField_;
+            defaultUsername = nameField_.text;
+            nameField_.text = string.Empty;
+        }
 
-        defaultUsername = nameField_.text;
-        nameField_.text = string.Empty;
+
         SaveProfile(defaultUsername, defaultAvatarIndex);
         UpdateUI();
         PhotonNetwork.NickName = defaultUsername;
@@ -84,12 +91,18 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
 
     public void JoinRandomRoom(TMP_InputField nameField_)
     {
-        if (nameField_ == null) return;
+        if (nameField_ == null)
+        {
+            defaultUsername = "Player" + UnityEngine.Random.Range(0, 9) + UnityEngine.Random.Range(0, 9);
+        }
+        else
+        {
+            nameField = nameField_;
 
-        nameField = nameField_;
+            defaultUsername = nameField_.text;
+            nameField_.text = string.Empty;
+        }
 
-        defaultUsername = nameField_.text;
-        nameField_.text = string.Empty;
         SaveProfile(defaultUsername, defaultAvatarIndex);
         UpdateUI();
         PhotonNetwork.NickName = defaultUsername;
