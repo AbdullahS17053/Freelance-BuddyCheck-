@@ -1,9 +1,9 @@
-﻿using UnityEngine;
+﻿using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
-using ExitGames.Client.Photon;
-using UnityEngine.UI;
 using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class LocalPlayer : MonoBehaviourPunCallbacks
 {
@@ -23,121 +23,118 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
     {
         Instance = this;
 
-        LoadLocalProfile();
-        SetPhotonNickname();
-        UpdateUI();
-        UpdateNetworkAvatar();
+        LoadLocalProfile();     // Load saved profile
+        ApplyProfileToPhoton(); // Set nickname + avatar to Photon
+        UpdateUI();             // Update local UI
     }
 
-    public void UpdatePfp(int index)
+    // -------------------------------
+    // PROFILE LOADING & SAVING
+    // -------------------------------
+    private void LoadLocalProfile()
     {
-        defaultAvatarIndex = Mathf.Clamp(index, 0, maxAvatarIndex);
-        SaveProfile(defaultUsername, defaultAvatarIndex);
-        UpdateUI();
-        UpdateNetworkAvatar();
+        defaultUsername = PlayerPrefs.GetString("username", defaultUsername);
+        defaultAvatarIndex = PlayerPrefs.GetInt("avatarIndex", defaultAvatarIndex);
     }
 
-    private void UpdateNetworkAvatar()
+    private void SaveProfile()
     {
+        PlayerPrefs.SetString("username", defaultUsername);
+        PlayerPrefs.SetInt("avatarIndex", defaultAvatarIndex);
+        PlayerPrefs.Save();
+    }
+
+    private void ApplyProfileToPhoton()
+    {
+        PhotonNetwork.NickName = defaultUsername;
+
         Hashtable props = new Hashtable();
         props["avatarIndex"] = defaultAvatarIndex;
         PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-
-        if (PlayerListUI.instance != null)
-        {
-            PlayerListUI.instance.RefreshPlayerList();
-        }
     }
 
+    // -------------------------------
+    // CHANGE AVATAR
+    // -------------------------------
+    public void UpdatePfp(int index)
+    {
+        defaultAvatarIndex = Mathf.Clamp(index, 0, maxAvatarIndex);
+
+        SaveProfile();
+        ApplyProfileToPhoton();
+        UpdateUI();
+
+        if (PlayerListUI.instance != null)
+            PlayerListUI.instance.RefreshPlayerList();
+    }
+
+    // -------------------------------
+    // CHANGE USERNAME
+    // -------------------------------
+    public void UpdateUsername(TMP_InputField field)
+    {
+        string input = field.text.Trim();
+
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            if (PlayerPrefs.HasKey("username"))
+            {
+                defaultUsername = PlayerPrefs.GetString("username", defaultUsername);
+            }
+            else
+            {
+                defaultUsername = "Player" + Random.Range(10, 99);
+            }
+        }
+        else
+        {
+            defaultUsername = input;
+            field.text = ""; // Clear input field
+        }
+
+        SaveProfile();
+        ApplyProfileToPhoton();
+        UpdateUI();
+
+        if (PlayerListUI.instance != null)
+            PlayerListUI.instance.RefreshPlayerList();
+    }
+
+    // -------------------------------
+    // JOIN RANDOM ROOM (Auto-save name first)
+    // -------------------------------
+    public void JoinRandomRoom(TMP_InputField field)
+    {
+        UpdateUsername(field); // Reuse the username update logic
+        PhotonNetwork.JoinRandomRoom();
+    }
+
+    // -------------------------------
+    // UI UPDATES
+    // -------------------------------
     private void UpdateUI()
     {
-        string username = PlayerPrefs.GetString("username", defaultUsername);
-        int avatarIndex = PlayerPrefs.GetInt("avatarIndex", defaultAvatarIndex);
-
+        // Update images
         foreach (Image img in pfp)
         {
             if (img != null && PlayerListUI.instance != null)
             {
-                img.sprite = PlayerListUI.instance.GetAvatarSprite(avatarIndex);
+                img.sprite = PlayerListUI.instance.GetAvatarSprite(defaultAvatarIndex);
             }
         }
 
-        foreach (TextMeshProUGUI text in names)
+        // Update text
+        foreach (TextMeshProUGUI txt in names)
         {
-            if (text != null) text.text = username;
+            if (txt != null)
+                txt.text = defaultUsername;
         }
-    }
-
-    public void UpdateUsername(TMP_InputField nameField_)
-    {
-        if (nameField_ == null)
-        {
-            defaultUsername = "Player" + UnityEngine.Random.Range(0, 9) + UnityEngine.Random.Range(0, 9);
-        }
-        else
-        {
-            nameField = nameField_;
-
-            defaultUsername = nameField_.text;
-            nameField_.text = string.Empty;
-        }
-
-
-        SaveProfile(defaultUsername, defaultAvatarIndex);
-        UpdateUI();
-        PhotonNetwork.NickName = defaultUsername;
-        if (PlayerListUI.instance != null) PlayerListUI.instance.RefreshPlayerList();
-    }
-
-    public void JoinRandomRoom(TMP_InputField nameField_)
-    {
-        if (nameField_ == null)
-        {
-            defaultUsername = "Player" + UnityEngine.Random.Range(0, 9) + UnityEngine.Random.Range(0, 9);
-        }
-        else
-        {
-            nameField = nameField_;
-
-            defaultUsername = nameField_.text;
-            nameField_.text = string.Empty;
-        }
-
-        SaveProfile(defaultUsername, defaultAvatarIndex);
-        UpdateUI();
-        PhotonNetwork.NickName = defaultUsername;
-        if (PlayerListUI.instance != null) PlayerListUI.instance.RefreshPlayerList();
-
-        PhotonNetwork.JoinRandomRoom();
-    }
-
-    private void SaveProfile(string username, int avatarIndex)
-    {
-        PlayerPrefs.SetString("username", username);
-        PlayerPrefs.SetInt("avatarIndex", avatarIndex);
-        PlayerPrefs.Save();
-    }
-
-    private void LoadLocalProfile()
-    {
-        if (!PlayerPrefs.HasKey("username"))
-            PlayerPrefs.SetString("username", defaultUsername);
-
-        if (!PlayerPrefs.HasKey("avatarIndex"))
-            PlayerPrefs.SetInt("avatarIndex", defaultAvatarIndex);
-    }
-
-    private void SetPhotonNickname()
-    {
-        string username = PlayerPrefs.GetString("username", defaultUsername);
-        PhotonNetwork.NickName = username;
     }
 
     public override void OnJoinedRoom()
     {
-        int avatarIndex = PlayerPrefs.GetInt("avatarIndex", defaultAvatarIndex);
-        Hashtable props = new Hashtable { { "avatarIndex", avatarIndex } };
-        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
-        UpdateNetworkAvatar();
+        ApplyProfileToPhoton();
+        if (PlayerListUI.instance != null)
+            PlayerListUI.instance.RefreshPlayerList();
     }
 }

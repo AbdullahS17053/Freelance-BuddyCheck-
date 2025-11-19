@@ -1,12 +1,10 @@
-﻿
-using Photon.Pun;
+﻿using Photon.Pun;
 using Photon.Realtime;
-using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using System.Linq;
 
 public class FusionRoomManager : MonoBehaviourPunCallbacks
 {
@@ -14,27 +12,75 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject hostPanel;
     [SerializeField] private GameObject clientPanel;
     [SerializeField] private GameObject menuPanel;
+    [SerializeField] private GameObject roomFullPanel;
+    [SerializeField] private GameObject roomNotFoundPanel;
+    [SerializeField] private GameObject playerDisconnectedPanel;
     [SerializeField] private Button shadowGameButton;
+
+    [Header("Connection UI")]
+    [SerializeField] private GameObject connectingPanel;
+    [SerializeField] private GameObject reconnectPanel;
+    [SerializeField] private Button[] reconnectButton;
 
     [Header("Room Info UI")]
     [SerializeField] private TMP_InputField joinCodeInput;
-    [SerializeField] private TMP_Text roomCodeText;
+    [SerializeField] private TMP_Text[] roomCodeText;
     [SerializeField] private TMP_Text playerCountText;
     [SerializeField] private TMP_Text logText;
 
-
-    private const int MaxPlayers = 6;
+    private const int MaxPlayers = 7;
     private string currentRoomCode;
-    private List<string> messageLog = new List<string>();
-
 
     void Start()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.NickName = "Player" + Random.Range(1000, 9999);
 
+        connectingPanel?.SetActive(true);
+        reconnectPanel?.SetActive(false);
+
         if (!PhotonNetwork.IsConnected)
             PhotonNetwork.ConnectUsingSettings();
+
+        foreach (Button btn in reconnectButton)
+        {
+            if (btn != null)
+                btn.onClick.AddListener(TryReconnect);
+        }
+    }
+
+    private void TryReconnect()
+    {
+        playerDisconnectedPanel?.SetActive(false);
+        reconnectPanel?.SetActive(false);
+
+        if (!PhotonNetwork.IsConnected)
+        {
+            PhotonNetwork.ConnectUsingSettings();
+            connectingPanel?.SetActive(true);
+        }
+    }
+
+    public override void OnConnectedToMaster()
+    {
+        connectingPanel?.SetActive(false);
+        reconnectPanel?.SetActive(false);
+
+        MusicManager.instance.LobbyMusic();
+        PhotonNetwork.JoinLobby();
+    }
+
+    
+
+    public void StartGame()
+    {
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom != null)
+        {
+            PhotonNetwork.CurrentRoom.IsOpen = false;
+
+            if (GameplayManager.instance != null)
+                GameplayManager.instance.StartGame();
+        }
     }
 
     public void CreateRoom()
@@ -42,7 +88,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         if (!PhotonNetwork.IsConnectedAndReady) return;
 
         currentRoomCode = GenerateRoomCode();
-        roomCodeText.text = currentRoomCode;
+        foreach (var t in roomCodeText) t.text = currentRoomCode;
 
         RoomOptions options = new RoomOptions
         {
@@ -57,7 +103,11 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public void JoinRoomFromInput()
     {
         string code = joinCodeInput.text.Trim().ToUpper();
-        if (string.IsNullOrEmpty(code) || code.Length < 3) return;
+        if (string.IsNullOrEmpty(code) || code.Length < 3)
+        {
+            roomNotFoundPanel.SetActive(true);
+            return;
+        }
 
         joinCodeInput.text = string.Empty;
         JoinRoom(code);
@@ -66,7 +116,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public void JoinRoom(string inputCode)
     {
         currentRoomCode = inputCode.ToUpper();
-        roomCodeText.text = $"Joining: {currentRoomCode}";
+
         PhotonNetwork.JoinRoom(currentRoomCode);
     }
 
@@ -76,33 +126,37 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             PhotonNetwork.LeaveRoom();
     }
 
-    public void StartGame()
-    {
-        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom != null)
-        {
-            PhotonNetwork.CurrentRoom.IsOpen = false;
-
-            // Start the actual game
-            if (GameplayManager.instance != null)
-            {
-                GameplayManager.instance.StartGame();
-            }
-        }
-    }
-
-    public override void OnConnectedToMaster()
-    {
-        PhotonNetwork.JoinLobby();
-    }
-
     public override void OnJoinedRoom()
     {
+        MusicManager.instance.GameMusic();
+        foreach (var t in roomCodeText) t.text = PhotonNetwork.CurrentRoom.Name;
+
         UpdatePlayerCount();
 
         if (PhotonNetwork.IsMasterClient)
             ShowHostPanel();
         else
             ShowClientPanel();
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string msg)
+    {
+        Debug.Log($"Join room failed: {returnCode} - {msg}");
+
+
+        if (returnCode == ErrorCode.GameFull)
+        {
+            roomFullPanel.SetActive(true);
+        }
+        else
+        {
+            roomNotFoundPanel.SetActive(true);
+        }
+    }
+
+    public override void OnCreatedRoom()
+    {
+        UpdatePlayerCount();
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
@@ -113,13 +167,43 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         UpdatePlayerCount();
+
+        // If the game was ongoing, show player disconnected panel
+        if (GameplayManager.instance != null && GameplayManager.instance.gameObject.activeInHierarchy)
+        {
+            playerDisconnectedPanel?.SetActive(true);
+            LeaveRoom(); // Take local player back to lobby
+        }
     }
 
     public override void OnLeftRoom()
     {
-        roomCodeText.text = "Not in a room";
-        playerCountText.text = "Players: 0/6";
+        MusicManager.instance.LobbyMusic();
         ShowMenuPanel();
+    }
+    public override void OnDisconnected(DisconnectCause cause) { 
+        Debug.LogWarning("Photon disconnected: " + cause); 
+        connectingPanel.SetActive(false); 
+        playerDisconnectedPanel.SetActive(true); 
+    }
+
+    private void UpdatePlayerCount()
+    {
+        int count = PhotonNetwork.CurrentRoom?.PlayerCount ?? 0;
+        playerCountText.text = $"Players: {count}/{MaxPlayers}";
+
+        // Auto-close room when full
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom != null)
+        {
+            PhotonNetwork.CurrentRoom.IsOpen = count < MaxPlayers;
+            PhotonNetwork.CurrentRoom.IsVisible = count < MaxPlayers;
+        }
+
+        if (shadowGameButton != null)
+        {
+            bool canStartGame = PhotonNetwork.IsMasterClient && count >= 2;
+            shadowGameButton.gameObject.SetActive(!canStartGame);
+        }
     }
 
     private string GenerateRoomCode()
@@ -131,26 +215,12 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         return code;
     }
 
-    private void UpdatePlayerCount()
-    {
-        int count = PhotonNetwork.CurrentRoom?.PlayerCount ?? 0;
-        playerCountText.text = $"Players: {count}/{MaxPlayers}";
-
-        // FIX: Enable start button when there are 2 or more players AND we are the host
-        if (shadowGameButton != null)
-        {
-            // Only enable if we're the master client AND there are at least 2 players
-            bool canStartGame = PhotonNetwork.IsMasterClient && count >= 2;
-            shadowGameButton.gameObject.SetActive(!canStartGame);
-        }
-    }
-
     public void ShowHostPanel()
     {
         SetPanelActive(hostPanel, true);
         SetPanelActive(clientPanel, false);
         SetPanelActive(menuPanel, false);
-        UpdatePlayerCount(); // Update button state when showing host panel
+        UpdatePlayerCount();
     }
 
     public void ShowClientPanel()
@@ -172,12 +242,9 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         if (panel != null) panel.SetActive(active);
     }
 
-    private void Log(string message)
+    private string LogMessage(string message)
     {
         Debug.Log("[PUNRoomManager] " + message);
-        messageLog.Add(message);
-
-        if (logText != null)
-            logText.text = string.Join("\n", messageLog.TakeLast(5).ToArray());
+        return message;
     }
 }

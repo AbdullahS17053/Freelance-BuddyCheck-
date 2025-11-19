@@ -79,7 +79,7 @@ public class GameProfileUpdate : MonoBehaviour
             chatIndicator.SetActive(false);
     }
 
-    public void updatePlayer(int playerPFP, string pName, bool host)
+    public void updatePlayer(int playerPFP, string pName)
     {
         if (PlayerListUI.instance && pfp)
             pfp.sprite = PlayerListUI.instance.GetAvatarSprite(playerPFP);
@@ -87,8 +87,9 @@ public class GameProfileUpdate : MonoBehaviour
         if (playerName)
             playerName.text = pName;
 
+        /*
         if (hostCrown)
-            hostCrown.SetActive(host);
+            hostCrown.SetActive(host);*/
     }
 
     public void numberGuessed(string number)
@@ -173,47 +174,52 @@ public class GameProfileUpdate : MonoBehaviour
 
     public void Correct(bool correct)
     {
-        // Stop any previous particles first
+        // Stop any previous particle effects
         StopAllParticles();
+
+        if (scoreMeter == null) return;
 
         if (correct)
         {
-            if (scoreMeter.value < scoreMeter.maxValue)
-                scoreMeter.value++;
+            if(scoreMeter.value < 10)
+            {
+                // Increment meter
+                scoreMeter.value = Mathf.Min(scoreMeter.value + 1, scoreMeter.maxValue);
+            }
 
             // Show confetti
             if (confetti != null)
             {
                 confetti.SetActive(true);
                 ParticleSystem ps = confetti.GetComponent<ParticleSystem>();
-                if (ps != null)
-                {
-                    ps.Play();
-                }
+                if (ps != null) ps.Play();
 
-                // Auto-hide particles after 2 seconds
                 autoHideParticlesCoroutine = StartCoroutine(AutoHideParticlesAfterDelay(2f));
             }
         }
         else
         {
-            if (scoreMeter.value > scoreMeter.minValue)
-                scoreMeter.value--;
+            if(scoreMeter.value > 0)
+            {
+                // Decrement meter
+                scoreMeter.value = Mathf.Max(scoreMeter.value - 1, scoreMeter.minValue);
+            }
 
             // Show clouds
             if (clouds != null)
             {
                 clouds.SetActive(true);
                 ParticleSystem ps = clouds.GetComponent<ParticleSystem>();
-                if (ps != null)
-                {
-                    ps.Play();
-                }
+                if (ps != null) ps.Play();
 
-                // Auto-hide particles after 2 seconds
                 autoHideParticlesCoroutine = StartCoroutine(AutoHideParticlesAfterDelay(2f));
             }
         }
+    }
+
+    public void ResetSlider()
+    {
+        scoreMeter.value = 5;
     }
 
     private IEnumerator AutoHideParticlesAfterDelay(float delay)

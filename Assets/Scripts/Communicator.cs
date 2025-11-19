@@ -11,7 +11,7 @@ public class Communicator : MonoBehaviour
     {
         Instance = this;
     }
-    public void GameStarts(int playerCount, int[] playerPFP, string[] pName, bool[] host)
+    public void GameStarts(int playerCount, int[] playerPFP, string[] pName)
     {
         foreach(var player in gameplayProfiles)
         {
@@ -21,7 +21,7 @@ public class Communicator : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             gameplayProfiles[i].gameObject.SetActive(true);
-            gameplayProfiles[i].updatePlayer(playerPFP[i], pName[i], host[i]);
+            gameplayProfiles[i].updatePlayer(playerPFP[i], pName[i]);
         }
     }
 
