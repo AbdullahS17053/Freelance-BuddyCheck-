@@ -19999,7 +19999,7 @@ MonoBehaviour:
   gameplayPanel: {fileID: 194246898}
   leaderboardPanel: {fileID: 2717031542213863106}
   playersPanel: {fileID: 1538616442}
-  messagePanel: {fileID: 0}
+  messagePanel: {fileID: 1367565116}
   chatInputField: {fileID: 856084130}
   sendChatButton: {fileID: 918544446}
   chatDisplayText:

@@ -582,18 +582,21 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
         ClearLeaderboard();
 
-        for (int i = 0; i < leaderboardData.Length; i += 3)
+        // STEP BY 4 (because each player has 4 values)
+        for (int i = 0; i < leaderboardData.Length; i += 4)
         {
             string playerName = (string)leaderboardData[i];
             int score = (int)leaderboardData[i + 1];
             int avatarIndex = (int)leaderboardData[i + 2];
+            int totalScoreAllPlayers = (int)leaderboardData[i + 3];
 
             GameObject entryObj = Instantiate(leaderboardEntryPrefab, leaderboardContainer.transform);
             LeaderboardEntry entry = entryObj.GetComponent<LeaderboardEntry>();
 
             if (entry != null)
             {
-                entry.SetForOverall(i / 3 + 1, playerName, score, 0, false); // no host flag anymore
+                int rank = (i / 4) + 1;
+                entry.SetForOverall(rank, playerName, score, totalScoreAllPlayers, false);
 
                 if (PlayerListUI.instance != null)
                     entry.SetAvatar(PlayerListUI.instance.GetAvatarSprite(avatarIndex));
@@ -607,6 +610,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         List<object> data = new List<object>();
         var sortedScores = playerTotalScores.OrderByDescending(p => p.Value).ToList();
 
+        int totalScoreAllPlayers = playerTotalScores.Values.Sum(); // total of all players
+
         foreach (var playerScore in sortedScores)
         {
             Player player = PhotonNetwork.PlayerList.FirstOrDefault(p => p.NickName == playerScore.Key);
@@ -615,14 +620,15 @@ public class GameplayManager : MonoBehaviourPunCallbacks
                                 ? (int)idx
                                 : 0;
 
-
             data.Add(playerScore.Key);
             data.Add(playerScore.Value);
             data.Add(avatarIndex);
+            data.Add(totalScoreAllPlayers); // <-- Add total score here
         }
 
         return data.ToArray();
     }
+
 
     private void ClearLeaderboard()
     {
