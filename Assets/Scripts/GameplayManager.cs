@@ -137,7 +137,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         voteButton.onClick.AddListener(SubmitVote);
         submitHintAnswerButton.onClick.AddListener(SubmitHint);
         replayButton.onClick.AddListener(RequestRestartGame);
-        sendChatButton.onClick.AddListener(SendChatMessage);
+        sendChatButton.onClick.AddListener(() => SendChatMessage());
 
         chatInputField.onSubmit.AddListener(delegate { SendChatMessage(); });
 
@@ -464,6 +464,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         }
 
+        SendChatMessage(PhotonNetwork.NickName + " voted");
+
         photonView.RPC("SubmitPlayerGuessRPC", RpcTarget.All, PhotonNetwork.NickName, guessedNumber);
         RemoveHint();
     }
@@ -710,9 +712,20 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     #region CHAT SYSTEM
     // -----------------------------------------------------------
 
-    public void SendChatMessage()
+    public void SendChatMessage(string msg = null)
     {
-        string message = chatInputField.text.Trim();
+        string message;
+
+        if (msg != null)
+        {
+            //message = "<color=FF3200>msg</color>";
+            message = chatInputField.text.Trim();
+        }
+        else
+        {
+            message = chatInputField.text.Trim();
+        }
+
         if (string.IsNullOrEmpty(message)) return;
 
         photonView.RPC("ReceiveChatMessageRPC", RpcTarget.All, PhotonNetwork.NickName, message);
