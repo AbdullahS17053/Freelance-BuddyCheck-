@@ -24,6 +24,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject gameplayPanel;
     [SerializeField] private GameObject leaderboardPanel;
     [SerializeField] private GameObject playersPanel;
+    [SerializeField] private GameObject messagePanel;
 
     [Header("Simple Chat System")]
     [SerializeField] private TMP_InputField chatInputField;
@@ -140,7 +141,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         chatInputField.onSubmit.AddListener(delegate { SendChatMessage(); });
 
-        replayButton.gameObject.SetActive(false);
 
         ResetUIForNewRound();
         ClearLeaderboard();
@@ -306,8 +306,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void NewCategory()
     {
-        categoryID = UnityEngine.Random.Range(0, hintCatories.Count);
-        photonView.RPC("GameNewCategoryAll", RpcTarget.All, categoryID);
+        if (PhotonNetwork.IsMasterClient)
+        {
+            categoryID = UnityEngine.Random.Range(0, hintCatories.Count);
+            photonView.RPC("GameNewCategoryAll", RpcTarget.All, categoryID);
+        }
     }
 
     [PunRPC]
@@ -596,8 +599,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
                     entry.SetAvatar(PlayerListUI.instance.GetAvatarSprite(avatarIndex));
             }
         }
-
-        replayButton.gameObject.SetActive(PhotonNetwork.IsMasterClient);
     }
 
 
@@ -861,26 +862,20 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
+        Debug.Log($"{otherPlayer.NickName} left. Ending game for everyone.");
 
-        currentRoundGuesses.Remove(otherPlayer.NickName);
-        playerTotalScores.Remove(otherPlayer.NickName);
-
-        readyForHints.Remove(otherPlayer.NickName);
-
-        if (PhotonNetwork.CurrentRoom == null) return;
-
-        UpdatePlayerProfiles();
-
-        if (PhotonNetwork.CurrentRoom.PlayerCount <= 1)
+        if (PhotonNetwork.IsMasterClient)
         {
-            CancelMatch();
-            return;
+            photonView.RPC("EndGameForAllRPC", RpcTarget.All);
         }
+    }
 
-        if (gameActive && PhotonNetwork.IsMasterClient)
-        {
-            photonView.RPC("RestartRoundAfterPlayerLeaveRPC", RpcTarget.All);
-        }
+    [PunRPC]
+    private void EndGameForAllRPC()
+    {
+        messagePanel.SetActive(true);
+
+        CancelMatch();
     }
 
     [PunRPC]
@@ -993,8 +988,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void RequestRestartGame()
     {
+        PhotonNetwork.LeaveRoom();
+
+        /*  ---- Game Restarts Another Round
         if (PhotonNetwork.IsMasterClient)
             photonView.RPC("RestartGameRPC", RpcTarget.All);
+        */
     }
     private void ResetRoundState()
     {
