@@ -182,7 +182,8 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         ShowMenuPanel();
     }
     public override void OnDisconnected(DisconnectCause cause) { 
-        Debug.LogWarning("Photon disconnected: " + cause); 
+        Debug.LogWarning("Photon disconnected: " + cause);
+        ShowMenuPanel();
         connectingPanel.SetActive(false); 
         playerDisconnectedPanel.SetActive(true); 
     }

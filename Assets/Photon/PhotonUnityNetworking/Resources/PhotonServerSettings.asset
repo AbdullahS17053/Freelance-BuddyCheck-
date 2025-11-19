@@ -75,6 +75,10 @@ MonoBehaviour:
   - EnableVotingRPC
   - PlayerReadyForHintsRPC
   - ResetReadyForHintsRPC
+  - UpdateReadyForHintsRPC
+  - SetWaitingPanelRPC
+  - UpdateReadyHintRPC
+  - VotingDone
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -87,8 +87,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     private int tempScore;
     private int hintRoundEach = 0;
+    private int voting = 0;
     private int hintRound = 0;
-    private int currentRound = 0;
+    private int currentRound = -1;
     public int totalRounds = 2;
     private TMP_InputField roundsInputField;
 
@@ -103,6 +104,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private Dictionary<string, int> currentRoundGuesses = new Dictionary<string, int>();
     private Dictionary<string, GameProfileUpdate> activeProfiles = new Dictionary<string, GameProfileUpdate>();
 
+    private const string VOTING = "Voting";
     private const string CURRENT_ROUND_KEY = "CurrentRound";
     private const string TOTAL_ROUNDS_KEY = "TotalRounds";
     private const string EACH_ROUNDS_KEY = "EachRounds";
@@ -196,6 +198,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+
+            voting = 0;
+            var props2 = new Hashtable { [VOTING] = voting };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props2);
         }
 
         HintCollection(); // Local for master
@@ -207,6 +213,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("New Hint Round of " + hintRoundEach);
 
+        if (PhotonNetwork.IsMasterClient)
+        {
+            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount);
+
+            var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+        }
         // Reset ready states so match can start after hints
         readyForHints.Clear();
         foreach (Player p in PhotonNetwork.PlayerList)
@@ -218,7 +231,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         HintNewCategory();
     }
 
-
+    [PunRPC]
+    private void RPC_StartNewRound(int newRound)
+    {
+        currentRound = newRound;
+        UpdateRoundText();
+    }
     private void StartNewRound()
     {
         ResetRoundState();
@@ -226,6 +244,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient)
         {
             currentRound++;
+            photonView.RPC("RPC_StartNewRound", RpcTarget.All, currentRound);
+
             var props = new Hashtable { [CURRENT_ROUND_KEY] = currentRound };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         }
@@ -255,7 +275,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     private void ProceedToNextPhase()
     {
-        if (currentRound >= totalRounds) ShowOverallLeaderboard();
+        if (currentRound >= totalRounds + 1) ShowOverallLeaderboard();
         else StartNewRound();
     }
 
@@ -311,6 +331,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         foreach (var t in good) t.text = hintCatories[ID].good;
         foreach (var t in username) t.text = hintCatories[ID].player;
         foreach (var t in hint) t.text = hintCatories[ID].hint;
+        foreach (var t in scores) t.text = hintCatories[ID].score.ToString();
+
+        currentHostAnswer = hintCatories[ID].score;
 
         Debug.Log(hintCatories[ID].bad + " " + hintCatories[ID].good + " " + hintCatories[ID].example + " " + hintCatories[ID].player + " " + hintCatories[ID].hint);
     }
@@ -331,12 +354,30 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (hintRound >= hintRoundEach)
         {
+            if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(VOTING, out object vote))
+                voting = (int)vote;
+
+            voting++;
+
+            var props2 = new Hashtable { [VOTING] = voting };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props2);
+
             hintRound = 0;
             hintPanel.SetActive(false);
             gameplayPanel.SetActive(true);
+            waitingForPlayersPanel.SetActive(true);
 
-            // Player finished all their hints — tell master we're ready for the next phase
-            photonView.RPC("PlayerReadyForHintsRPC", RpcTarget.MasterClient, PhotonNetwork.NickName);
+
+            if (voting >= PhotonNetwork.CurrentRoom.PlayerCount)
+            {
+                voting = 0;
+
+                var props1 = new Hashtable { [VOTING] = voting };
+                PhotonNetwork.CurrentRoom.SetCustomProperties(props1);
+
+                photonView.RPC("VotingDone", RpcTarget.All);
+            }
+
         }
     }
 
@@ -369,55 +410,14 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     #region PLAYER READY SYSTEM
 
-    // RPC called on MasterClient only when a player finishes their hint submissions
-    [PunRPC]
-    private void PlayerReadyForHintsRPC(string playerName)
-    {
-        if (!readyForHints.ContainsKey(playerName))
-            readyForHints[playerName] = true;
-        else
-            readyForHints[playerName] = true;
-
-        CheckAllPlayersReadyHints();
-    }
-
-    private void CheckAllPlayersReadyHints()
-    {
-        // Make sure every player has an entry
-        foreach (Player p in PhotonNetwork.PlayerList)
-        {
-            if (!readyForHints.ContainsKey(p.NickName))
-                readyForHints[p.NickName] = false;
-        }
-
-        // Check if all are ready
-        bool allReady = readyForHints.Values.All(r => r);
-
-        // Update waiting panel
-        waitingForPlayersPanel.SetActive(!allReady);
-
-        if (!allReady) return;
-
-        // All ready → reset ready flags for next round
-        photonView.RPC("ResetReadyForHintsRPC", RpcTarget.All);
-
-        if (PhotonNetwork.IsMasterClient)
-        {
-            gameActive = true;
-            currentRound = 0;
-            InitializePlayerTracking();
-            StartNewRound();
-        }
-    }
-
-
 
     [PunRPC]
-    private void ResetReadyForHintsRPC()
+    private void VotingDone()
     {
-        readyForHints.Clear();
         waitingForPlayersPanel.SetActive(false);
+        Invoke("ProceedToNextPhase", 3f);
     }
+
 
     #endregion
 
@@ -465,7 +465,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         playerGuessInput.interactable = false;
         voteButton.interactable = false;
 
-        photonView.RPC("SubmitPlayerGuessRPC", RpcTarget.MasterClient, PhotonNetwork.NickName, guessedNumber);
+        photonView.RPC("SubmitPlayerGuessRPC", RpcTarget.All, PhotonNetwork.NickName, guessedNumber);
         RemoveHint();
     }
 
@@ -818,7 +818,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hostPanel.SetActive(false);
 
         gameActive = false;
-        currentRound = 0;
+        currentRound = -1;
 
         playerTotalScores.Clear();
         currentRoundGuesses.Clear();
@@ -870,7 +870,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         playerTotalScores.Remove(otherPlayer.NickName);
 
         readyForHints.Remove(otherPlayer.NickName);
-        CheckAllPlayersReadyHints();
 
         if (PhotonNetwork.CurrentRoom == null) return;
 
@@ -885,12 +884,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (gameActive && PhotonNetwork.IsMasterClient)
         {
             photonView.RPC("RestartRoundAfterPlayerLeaveRPC", RpcTarget.All);
-        }
-        else
-        {
-            // If we're master and still in hint waiting, re-evaluate readiness.
-            if (PhotonNetwork.IsMasterClient)
-                CheckAllPlayersReadyHints();
         }
     }
 
@@ -924,6 +917,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             hintRoundEach = (int)propertiesThatChanged[EACH_ROUNDS_KEY];
             Debug.Log("Updated hintRoundEach = " + hintRoundEach);
+        }
+        if (propertiesThatChanged.ContainsKey(VOTING))
+        {
+            voting = (int)propertiesThatChanged[VOTING];
+            Debug.Log("Updated voting = " + voting);
         }
 
         UpdatePlayerProfiles();
@@ -1023,7 +1021,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private void RestartGameRPC()
     {
         gameActive = true;
-        currentRound = 0;
+        currentRound = -1;
         currentRoundGuesses.Clear();
 
         leaderboardPanel.SetActive(false);
