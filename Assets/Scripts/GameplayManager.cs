@@ -89,7 +89,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private int hintRoundEach = 0;
     private int voting = 0;
     private int hintRound = 0;
-    private int currentRound = -1;
+    private int currentRound = 1;
     public int totalRounds = 2;
     private TMP_InputField roundsInputField;
 
@@ -230,24 +230,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintPanel.SetActive(true);
         HintNewCategory();
     }
-
-    [PunRPC]
-    private void RPC_StartNewRound(int newRound)
-    {
-        currentRound = newRound;
-        UpdateRoundText();
-    }
     private void StartNewRound()
     {
         ResetRoundState();
 
         if (PhotonNetwork.IsMasterClient)
         {
-            currentRound++;
-            photonView.RPC("RPC_StartNewRound", RpcTarget.All, currentRound);
-
-            var props = new Hashtable { [CURRENT_ROUND_KEY] = currentRound };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+            
         }
         else
         {
@@ -415,7 +404,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private void VotingDone()
     {
         waitingForPlayersPanel.SetActive(false);
-        Invoke("ProceedToNextPhase", 3f);
+        StartNewRound();
     }
 
 
@@ -464,6 +453,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         playerGuessInput.interactable = false;
         voteButton.interactable = false;
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            currentRound++;
+            var props = new Hashtable { [CURRENT_ROUND_KEY] = currentRound };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+        }
 
         photonView.RPC("SubmitPlayerGuessRPC", RpcTarget.All, PhotonNetwork.NickName, guessedNumber);
         RemoveHint();
@@ -818,7 +814,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hostPanel.SetActive(false);
 
         gameActive = false;
-        currentRound = -1;
+        currentRound = 1;
 
         playerTotalScores.Clear();
         currentRoundGuesses.Clear();
@@ -1021,7 +1017,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private void RestartGameRPC()
     {
         gameActive = true;
-        currentRound = -1;
+        currentRound = 1;
         currentRoundGuesses.Clear();
 
         leaderboardPanel.SetActive(false);
