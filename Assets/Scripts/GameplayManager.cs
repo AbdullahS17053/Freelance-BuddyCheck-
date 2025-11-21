@@ -338,7 +338,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             hintCategoryID,
             tempScore,
             hintAnswerInput.text,
-            PhotonNetwork.NickName + "'s Hint :");
+            PhotonNetwork.NickName);
 
         hintAnswerInput.text = "";
         ToggleExampleButton(false);
@@ -442,8 +442,18 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (hostPanel) hostPanel.SetActive(false);
 
-        playerGuessInput.interactable = true;
-        voteButton.interactable = true;
+        // 🛑 Disable voting if YOU are the hint giver
+        if (hintStoredCatories[categoryID].player == PhotonNetwork.NickName)
+        {
+            playerGuessInput.interactable = false;
+            voteButton.interactable = false;
+            SetChatActive(true);
+        }
+        else
+        {
+            playerGuessInput.interactable = true;
+            voteButton.interactable = true;
+        }
 
         SetChatActive(true);
     }
@@ -481,7 +491,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         photonView.RPC("SyncPlayerGuessRPC", RpcTarget.Others, playerName, guess);
 
-        int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount;
+        int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount - 1;
         if (currentRoundGuesses.Count >= expectedVotes)
         {
             photonView.RPC("FinalizeRoundRPC", RpcTarget.All);
