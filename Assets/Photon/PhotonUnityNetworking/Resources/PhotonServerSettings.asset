@@ -81,6 +81,9 @@ MonoBehaviour:
   - VotingDone
   - EndGameForAllRPC
   - SyncRoundData
+  - UpdatePlayerCountAdd
+  - ReceivePlayerInfo
+  - SendMyInfoToNewPlayer
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

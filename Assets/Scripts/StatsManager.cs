@@ -2,8 +2,10 @@
 using Photon.Pun;
 using Photon.Realtime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class StatsManager : MonoBehaviourPunCallbacks
 {
@@ -69,9 +71,12 @@ public class StatsManager : MonoBehaviourPunCallbacks
     private void SyncAllPlayersInfo()
     {
         allPlayersInfo.Clear();
+
         foreach (var p in PhotonNetwork.PlayerList)
         {
-            int id = (int)p.CustomProperties["myID"];
+            if (!p.CustomProperties.TryGetValue("myID", out object idObj)) continue;
+
+            int id = (int)idObj;
             string name = p.NickName;
             int avatar = 0;
             if (p.CustomProperties.TryGetValue("avatarIndex", out object idx))
@@ -79,13 +84,58 @@ public class StatsManager : MonoBehaviourPunCallbacks
 
             allPlayersInfo[id] = new PlayerInfo { playerName = name, avatarIndex = avatar };
         }
+
+        Debug.Log("Synced all player info: " + string.Join(", ", allPlayersInfo.Keys));
     }
+
+    // Called on the new player after joining
+    public override void OnJoinedRoom()
+    {
+        Hashtable props = new Hashtable
+        {
+            ["myID"] = myID,
+            ["avatarIndex"] = LocalPlayer.Instance.defaultAvatarIndex
+        };
+        PhotonNetwork.LocalPlayer.SetCustomProperties(props);
+
+        // Ask all other players to send their info
+        photonView.RPC("SendMyInfoToNewPlayer", RpcTarget.Others, PhotonNetwork.LocalPlayer.ActorNumber);
+    }
+
+    // RPC called on all existing players
+    [PunRPC]
+    private void SendMyInfoToNewPlayer(int newPlayerActorNumber)
+    {
+        // Use your own custom properties, not NickName
+        Hashtable myProps = PhotonNetwork.LocalPlayer.CustomProperties;
+        if (!myProps.TryGetValue("myID", out object idObj)) return;
+        int id = (int)idObj;
+
+        int avatar = myProps.ContainsKey("avatarIndex") ? (int)myProps["avatarIndex"] : 0;
+        string name = PhotonNetwork.LocalPlayer.NickName; // only this client’s NickName
+
+        photonView.RPC("ReceivePlayerInfo", PhotonNetwork.CurrentRoom.GetPlayer(newPlayerActorNumber),
+            id, name, avatar);
+    }
+
+
+    [PunRPC]
+    private void ReceivePlayerInfo(int playerID, string name, int avatar)
+    {
+        allPlayersInfo[playerID] = new StatsManager.PlayerInfo
+        {
+            playerName = name,
+            avatarIndex = avatar
+        };
+
+        Debug.Log($"Received info for player {playerID}: {name}");
+        SyncAllPlayersInfo();
+    }
+
 
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        var props = new Hashtable { ["myID"] = myID };
-        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         SyncAllPlayersInfo();
     }
 
@@ -201,8 +251,8 @@ public class StatsManager : MonoBehaviourPunCallbacks
                     avatarIndex = hinterInfo.avatarIndex
                 };
 
-
                 PlayerStatistics.instance.UpdateAtoB(fs2);
+
             }
         }
 
