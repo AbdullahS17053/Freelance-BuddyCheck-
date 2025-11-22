@@ -181,12 +181,12 @@ public class PlayerStatistics : MonoBehaviour
                 lastPlayed[i].text = f.lastPlayed;
 
                 // ensure UI is visible
-                names[i].transform.parent.gameObject.SetActive(true);
+                names[i].transform.parent.gameObject.transform.parent.gameObject.SetActive(true);
             }
             else
             {
                 // hide empty rows
-                names[i].transform.parent.gameObject.SetActive(false);
+                names[i].transform.parent.gameObject.transform.parent.gameObject.SetActive(false);
             }
         }
     }

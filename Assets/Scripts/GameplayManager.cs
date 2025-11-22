@@ -322,7 +322,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         foreach (var t in bad) t.text = hintCatories[ID].bad;
         foreach (var t in example) t.text = hintCatories[ID].example;
         foreach (var t in good) t.text = hintCatories[ID].good;
-        foreach (var t in username) t.text = hintCatories[ID].player;
+        foreach (var t in username) t.text = hintCatories[ID].player + "'s hint:";
         foreach (var t in hint) t.text = hintCatories[ID].hint;
         foreach (var t in scores) t.text = hintCatories[ID].score.ToString();
 
@@ -445,7 +445,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (hostPanel) hostPanel.SetActive(false);
 
         // 🛑 Disable voting if YOU are the hint giver
-        if (hintStoredCatories[categoryID].player == PhotonNetwork.NickName)
+        if (hintStoredCatories[categoryID].playerID == StatsManager.instance.myID)
         {
             playerGuessInput.interactable = false;
             voteButton.interactable = false;

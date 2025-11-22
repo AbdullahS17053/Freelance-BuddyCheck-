@@ -50,9 +50,6 @@ public class StatsManager : MonoBehaviourPunCallbacks
         {
             myID = PlayerPrefs.GetInt("ID");
         }
-
-        var props = new Hashtable { ["myID"] = myID };
-        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
     }
     public List<int> GetAllPlayerIDsInRoom()
     {
@@ -87,6 +84,8 @@ public class StatsManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        var props = new Hashtable { ["myID"] = myID };
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         SyncAllPlayersInfo();
     }
 
