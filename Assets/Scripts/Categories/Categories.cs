@@ -9,6 +9,7 @@ public class Categories : ScriptableObject
     public string example;
     public string hint;
     public string player;
+    public int playerID;
     public int score;
 
     public string bad2;
@@ -16,5 +17,6 @@ public class Categories : ScriptableObject
     public string example2;
     public string hint2;
     public string player2;
+    public int playerID2;
     public int score2;
 }

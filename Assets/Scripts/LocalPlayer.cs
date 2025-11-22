@@ -23,7 +23,8 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
     {
         Instance = this;
 
-        LoadLocalProfile();     // Load saved profile
+
+            LoadLocalProfile();     // Load saved profile
         ApplyProfileToPhoton(); // Set nickname + avatar to Photon
         UpdateUI();             // Update local UI
     }

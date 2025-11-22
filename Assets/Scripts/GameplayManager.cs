@@ -105,6 +105,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private Dictionary<string, int> currentRoundGuesses = new Dictionary<string, int>();
     private Dictionary<string, GameProfileUpdate> activeProfiles = new Dictionary<string, GameProfileUpdate>();
 
+    public FriendStats friendStatsRound;
+
     private const string VOTING = "Voting";
     private const string CURRENT_ROUND_KEY = "CurrentRound";
     private const string TOTAL_ROUNDS_KEY = "TotalRounds";
@@ -140,7 +142,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         sendChatButton.onClick.AddListener(() => SendChatMessage());
 
         chatInputField.onSubmit.AddListener(delegate { SendChatMessage(); });
-
 
         ResetUIForNewRound();
         ClearLeaderboard();
@@ -383,6 +384,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         newCat.score = score;
         newCat.hint = hint;
         newCat.player = player;
+        newCat.playerID = StatsManager.instance.myID;
 
         categories[0].categories[ID].score = score;
 
@@ -489,6 +491,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         currentRoundGuesses[playerName] = guess;
 
+        // ---------------- StatsManager integration ----------------
+        int points = CalculatePoints(guess, currentHostAnswer); // helper function
+        int hinterID = hintStoredCatories[categoryID].playerID; // track who gave hint
+        StatsManager.instance.SubmitGuess(hinterID, points);
+        // ----------------------------------------------------------
+
         photonView.RPC("SyncPlayerGuessRPC", RpcTarget.Others, playerName, guess);
 
         int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount - 1;
@@ -497,6 +505,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             photonView.RPC("FinalizeRoundRPC", RpcTarget.All);
         }
     }
+    private int CalculatePoints(int guess, int answer)
+    {
+        int diff = Mathf.Abs(guess - answer);
+        return diff == 0 ? 3 : diff == 1 ? 2 : diff == 2 ? 1 : 0;
+    }
+
 
     [PunRPC]
     private void SyncPlayerGuessRPC(string playerName, int guess)
@@ -521,6 +535,15 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     #endregion
     // -----------------------------------------------------------
 
+
+    // -----------------------------------------------------------
+    #region Player Stats
+    // -----------------------------------------------------------
+
+
+
+    #endregion
+    // -----------------------------------------------------------
 
 
     // -----------------------------------------------------------
@@ -614,6 +637,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
                     entry.SetAvatar(PlayerListUI.instance.GetAvatarSprite(avatarIndex));
             }
         }
+
+        // Update the persistent stats
+        StatsManager.instance.UpdatePlayerStatistics();
     }
 
 
