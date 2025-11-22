@@ -90,7 +90,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private int hintRoundEach = 0;
     private int voting = 0;
     private int hintRound = 0;
-    private int currentRound = 1;
+    private int currentRound = 0;
     public int totalRounds = 2;
     private TMP_InputField roundsInputField;
 
@@ -108,7 +108,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     public FriendStats friendStatsRound;
 
     private const string VOTING = "Voting";
-    private const string CURRENT_ROUND_KEY = "CurrentRound";
     private const string TOTAL_ROUNDS_KEY = "TotalRounds";
     private const string EACH_ROUNDS_KEY = "EachRounds";
 
@@ -235,28 +234,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         ResetRoundState();
 
-        if (PhotonNetwork.IsMasterClient)
-        {
-            
-        }
-        else
-        {
-            if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(CURRENT_ROUND_KEY, out object r))
-                currentRound = (int)r;
-            // else keep currentRound
-        }
-
         realAnswer.SetActive(false);
         currentRoundGuesses.Clear();
-
-        if (PhotonNetwork.IsMasterClient)
-        {
-            var props = new Hashtable
-            {
-                [CURRENT_ROUND_KEY] = currentRound,
-            };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
-        }
 
         NewCategory();
         ResetUIForNewRound();
@@ -265,7 +244,17 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     private void ProceedToNextPhase()
     {
-        if (currentRound >= totalRounds + 1) ShowOverallLeaderboard();
+        currentRound++;
+
+        UpdatePlayerProfiles();
+
+        CalculateRoundScores();
+        ShowPlayerAnswers();
+
+        realAnswer.SetActive(true);
+        Debug.Log("Proceeding to next phase..." + currentRound + " ||| " + totalRounds);
+
+        if (currentRound >= totalRounds) ShowOverallLeaderboard();
         else StartNewRound();
     }
 
@@ -469,13 +458,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         playerGuessInput.interactable = false;
         voteButton.interactable = false;
 
-        if (PhotonNetwork.IsMasterClient)
-        {
-            currentRound++;
-            var props = new Hashtable { [CURRENT_ROUND_KEY] = currentRound };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
-        }
-
         SendChatMessage(PhotonNetwork.NickName + " voted");
 
         photonView.RPC("SubmitPlayerGuessRPC", RpcTarget.All, PhotonNetwork.NickName, guessedNumber);
@@ -502,7 +484,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount - 1;
         if (currentRoundGuesses.Count >= expectedVotes)
         {
-            photonView.RPC("FinalizeRoundRPC", RpcTarget.All);
+            
+
+            Invoke("ProceedToNextPhase", 3f);
         }
     }
     private int CalculatePoints(int guess, int answer)
@@ -517,19 +501,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         if (!currentRoundGuesses.ContainsKey(playerName))
             currentRoundGuesses[playerName] = guess;
-    }
-
-    [PunRPC]
-    private void FinalizeRoundRPC()
-    {
-        UpdatePlayerProfiles();
-
-        CalculateRoundScores();
-        ShowPlayerAnswers();
-
-        realAnswer.SetActive(true);
-
-        Invoke("ProceedToNextPhase", 3f);
     }
 
     #endregion
@@ -846,10 +817,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     private void SyncWithRoomState()
     {
-
-        if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(CURRENT_ROUND_KEY, out object roundObj))
-            currentRound = (int)roundObj;
-
         if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(TOTAL_ROUNDS_KEY, out object totalRoundsObj))
             totalRounds = (int)totalRoundsObj;
 
@@ -870,7 +837,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hostPanel.SetActive(false);
 
         gameActive = false;
-        currentRound = 1;
+        currentRound = 0;
 
         playerTotalScores.Clear();
         currentRoundGuesses.Clear();
@@ -899,16 +866,14 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.IsMasterClient && gameActive)
         {
-            object[] data = {currentRound, totalRounds };
-            photonView.RPC("SyncGameStateRPC", newPlayer, data);
+            photonView.RPC("SyncGameStateRPC", newPlayer);
         }
     }
 
     [PunRPC]
     private void SyncGameStateRPC(object[] data)
     {
-        currentRound = (int)data[0];
-        totalRounds = (int)data[1];
+        totalRounds = (int)data[0];
 
         UpdatePlayerProfiles();
         UpdateRoundText();
@@ -947,12 +912,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
     {
-
-        if (propertiesThatChanged.ContainsKey(CURRENT_ROUND_KEY))
-        {
-            currentRound = (int)propertiesThatChanged[CURRENT_ROUND_KEY];
-            UpdateRoundText();
-        }
 
         if (propertiesThatChanged.ContainsKey(TOTAL_ROUNDS_KEY))
         {
@@ -1071,7 +1030,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private void RestartGameRPC()
     {
         gameActive = true;
-        currentRound = 1;
+        currentRound = 0;
         currentRoundGuesses.Clear();
 
         leaderboardPanel.SetActive(false);
