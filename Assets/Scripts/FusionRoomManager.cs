@@ -18,6 +18,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private Button shadowGameButton;
 
     [Header("Connection UI")]
+    [SerializeField] private GameObject loadingPanel;
     [SerializeField] private GameObject connectingPanel;
     [SerializeField] private GameObject reconnectPanel;
     [SerializeField] private Button[] reconnectButton;
@@ -89,7 +90,10 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
+
         if (!PhotonNetwork.IsConnectedAndReady) return;
+
+        loadingPanel.SetActive(true);
 
         currentRoomCode = GenerateRoomCode();
         foreach (var t in roomCodeText) t.text = currentRoomCode;
@@ -99,7 +103,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             MaxPlayers = MaxPlayers,
             IsOpen = true,
             IsVisible = false,
-            CustomRoomProperties = new ExitGames.Client.Photon.Hashtable { { "public", true } },
+            CustomRoomProperties = new ExitGames.Client.Photon.Hashtable { { "public", false } },
             CustomRoomPropertiesForLobby = new string[] { "public" }
         };
 
@@ -115,6 +119,9 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             return;
         }
 
+
+        loadingPanel.SetActive(true);
+
         joinCodeInput.text = string.Empty;
         JoinRoom(code);
     }
@@ -122,6 +129,8 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public void JoinRoom(string inputCode)
     {
         currentRoomCode = inputCode.ToUpper();
+
+        loadingPanel.SetActive(true);
 
         PhotonNetwork.JoinRoom(currentRoomCode);
     }
@@ -134,6 +143,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        loadingPanel.SetActive(false);
         MusicManager.instance.GameMusic();
         foreach (var t in roomCodeText) t.text = PhotonNetwork.CurrentRoom.Name;
 
@@ -144,9 +154,17 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         else
             ShowClientPanel();
     }
+    public override void OnJoinRandomFailed(short returnCode, string message)
+    {
+        loadingPanel.SetActive(false);
+        Debug.Log("No available room found. Creating a new room...");
+
+        roomNotFoundPanel.SetActive(true);
+    }
 
     public override void OnJoinRoomFailed(short returnCode, string msg)
     {
+        loadingPanel.SetActive(false);
         Debug.Log($"Join room failed: {returnCode} - {msg}");
 
 
@@ -167,6 +185,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        loadingPanel.SetActive(false);
         UpdatePlayerCount();
     }
 
@@ -186,7 +205,9 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         MusicManager.instance.LobbyMusic();
         ShowMenuPanel();
     }
-    public override void OnDisconnected(DisconnectCause cause) { 
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        loadingPanel.SetActive(false);
         Debug.LogWarning("Photon disconnected: " + cause);
         ShowMenuPanel();
         connectingPanel.SetActive(false); 

@@ -1177,7 +1177,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             profile.SetChatActivity(false);
         }
 
-        messagePanel.SetActive(true);
+        messagePanel.SetActive(false);
 
         gameplayPanel.SetActive(false);
         leaderboardPanel.SetActive(false);

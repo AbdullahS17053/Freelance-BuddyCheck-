@@ -29895,6 +29895,7 @@ MonoBehaviour:
   roomNotFoundPanel: {fileID: 241354489}
   playerDisconnectedPanel: {fileID: 670667908}
   shadowGameButton: {fileID: 1163575248}
+  loadingPanel: {fileID: 1729763871}
   connectingPanel: {fileID: 1729763871}
   reconnectPanel: {fileID: 1247262409}
   reconnectButton:
