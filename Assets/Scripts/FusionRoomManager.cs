@@ -28,6 +28,10 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private TMP_Text playerCountText;
     [SerializeField] private TMP_Text logText;
 
+    [SerializeField] private Toggle publicRoomToggle;
+    [SerializeField] private GameObject[] textOfToggle;
+
+
     private const int MaxPlayers = 7;
     private string currentRoomCode;
 
@@ -94,7 +98,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         {
             MaxPlayers = MaxPlayers,
             IsOpen = true,
-            IsVisible = true
+            IsVisible = false
         };
 
         PhotonNetwork.CreateRoom(currentRoomCode, options);
@@ -237,6 +241,19 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         SetPanelActive(clientPanel, false);
         SetPanelActive(menuPanel, true);
     }
+    public void OnPrivacyToggleChanged()
+    {
+        if (!PhotonNetwork.IsMasterClient || PhotonNetwork.CurrentRoom == null)
+            return;
+
+        bool makePublic = publicRoomToggle.isOn;
+
+        textOfToggle[0].SetActive(makePublic);
+        textOfToggle[1].SetActive(!makePublic);
+
+        PhotonNetwork.CurrentRoom.IsVisible = makePublic;
+    }
+
 
     private void SetPanelActive(GameObject panel, bool active)
     {
