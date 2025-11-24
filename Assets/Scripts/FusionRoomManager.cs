@@ -98,7 +98,9 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         {
             MaxPlayers = MaxPlayers,
             IsOpen = true,
-            IsVisible = false
+            IsVisible = false,
+            CustomRoomProperties = new ExitGames.Client.Photon.Hashtable { { "public", true } },
+            CustomRoomPropertiesForLobby = new string[] { "public" }
         };
 
         PhotonNetwork.CreateRoom(currentRoomCode, options);
@@ -175,8 +177,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         // If the game was ongoing, show player disconnected panel
         if (GameplayManager.instance != null && GameplayManager.instance.gameObject.activeInHierarchy)
         {
-            playerDisconnectedPanel?.SetActive(true);
-            LeaveRoom(); // Take local player back to lobby
+            //playerDisconnectedPanel?.SetActive(true);
         }
     }
 
@@ -247,12 +248,13 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             return;
 
         bool makePublic = publicRoomToggle.isOn;
+        PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "public", makePublic } });
 
+        // Update UI
         textOfToggle[0].SetActive(makePublic);
         textOfToggle[1].SetActive(!makePublic);
-
-        PhotonNetwork.CurrentRoom.IsVisible = makePublic;
     }
+
 
 
     private void SetPanelActive(GameObject panel, bool active)

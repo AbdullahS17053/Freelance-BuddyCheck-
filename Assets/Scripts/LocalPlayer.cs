@@ -1,6 +1,7 @@
 ﻿using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,6 +19,8 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
     [SerializeField] private Image[] pfp;
     [SerializeField] private TextMeshProUGUI[] names;
     [HideInInspector] public TMP_InputField nameField;
+
+    private List<RoomInfo> cachedRoomList = new List<RoomInfo>();
 
     void Awake()
     {
@@ -101,13 +104,22 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
             PlayerListUI.instance.RefreshPlayerList();
     }
 
+
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        cachedRoomList = roomList;
+    }
     // -------------------------------
     // JOIN RANDOM ROOM (Auto-save name first)
     // -------------------------------
     public void JoinRandomRoom(TMP_InputField field)
     {
-        UpdateUsername(field); // Reuse the username update logic
-        PhotonNetwork.JoinRandomRoom();
+        UpdateUsername(field);
+
+        // Define the expected custom properties
+        Hashtable expectedProps = new Hashtable { { "public", true } };
+
+        PhotonNetwork.JoinRandomRoom(expectedProps, 0);
     }
 
     // -------------------------------

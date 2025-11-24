@@ -108,7 +108,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private Dictionary<string, GameProfileUpdate> activeProfiles = new Dictionary<string, GameProfileUpdate>();
 
     public FriendStats friendStatsRound;
-
+    private FusionRoomManager roomManager;
     private const string VOTING = "Voting";
     private const string TOTAL_ROUNDS_KEY = "TotalRounds";
     private const string EACH_ROUNDS_KEY = "EachRounds";
@@ -129,6 +129,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             instance = this;
         }
         else Destroy(gameObject);
+
+        roomManager = GetComponent<FusionRoomManager>();
     }
 
     void Start()
@@ -784,8 +786,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (msg != null)
         {
-            //message = "<color=FF3200>msg</color>";
-            message = chatInputField.text.Trim();
+            message = msg;
         }
         else
         {
@@ -952,9 +953,54 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void EndGameForAllRPC()
     {
+        leaderboardPanel.SetActive(false);
+        gameplayPanel.SetActive(false);
+        playersPanel.SetActive(true);
+        hostPanel.SetActive(false);
+
+        gameActive = false;
+        currentRound = 1;
+
+        playerTotalScores.Clear();
+        currentRoundGuesses.Clear();
+        readyForHints.Clear();
+
+        hintCatories.Clear();
+        hintStoredCatories.Clear();
+
+        ResetRoundState();
+        InitializePlayerTracking();
+
+        chatMessages.Clear();
+        UpdateChatDisplay();
+
+        // Reset inputs
+        playerGuessInput.text = "";
+        playerGuessInput.interactable = true;
+        voteButton.interactable = true;
+
+        foreach (var profile in playerProfiles)
+        {
+            profile.numberGuessed("");
+            profile.hideAnswers();
+            profile.SetChatActivity(false);
+        }
+
         messagePanel.SetActive(true);
 
-        CancelMatch();
+        gameplayPanel.SetActive(false);
+        leaderboardPanel.SetActive(false);
+
+        // Show the room lobby UI again
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.CurrentRoom.IsOpen = true;
+            roomManager.ShowHostPanel();
+        }
+        else
+        {
+            roomManager.ShowClientPanel();
+        }
     }
 
     [PunRPC]
@@ -1003,14 +1049,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     public void LeaveGame()
     {
         if (PhotonNetwork.InRoom)
-            CancelMatch();
-        else
         {
-            playersPanel?.SetActive(false);
-            gameplayPanel?.SetActive(false);
-            leaderboardPanel?.SetActive(false);
-            hostPanel?.SetActive(false);
+            photonView.RPC("RestartGameRPC", RpcTarget.All);
         }
+
     }
 
     public void UpdateRounds(TMP_InputField roundsInput)
@@ -1070,7 +1112,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.NetworkClientState == ClientState.Joined)
         {
-            PhotonNetwork.LeaveRoom();
+            photonView.RPC("RestartGameRPC", RpcTarget.All);
+            //PhotonNetwork.LeaveRoom();
         }
         else
         {
@@ -1102,20 +1145,53 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void RestartGameRPC()
     {
-        gameActive = true;
-        currentRound = 1;
-        currentRoundGuesses.Clear();
-
         leaderboardPanel.SetActive(false);
-        gameplayPanel.SetActive(true);
+        gameplayPanel.SetActive(false);
+        playersPanel.SetActive(true);
+        hostPanel.SetActive(false);
+
+        gameActive = false;
+        currentRound = 1;
+
+        playerTotalScores.Clear();
+        currentRoundGuesses.Clear();
+        readyForHints.Clear();
+        hintCatories.Clear();
+        hintStoredCatories.Clear();
 
         ResetRoundState();
+        InitializePlayerTracking();
 
         chatMessages.Clear();
         UpdateChatDisplay();
 
-        InitializePlayerTracking();
-        StartGame();
+        // Reset inputs
+        playerGuessInput.text = "";
+        playerGuessInput.interactable = true;
+        voteButton.interactable = true;
+
+        foreach (var profile in playerProfiles)
+        {
+            profile.numberGuessed("");
+            profile.hideAnswers();
+            profile.SetChatActivity(false);
+        }
+
+        messagePanel.SetActive(true);
+
+        gameplayPanel.SetActive(false);
+        leaderboardPanel.SetActive(false);
+
+        // Show the room lobby UI again
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.CurrentRoom.IsOpen = true;
+            roomManager.ShowHostPanel();
+        }
+        else
+        {
+            roomManager.ShowClientPanel();
+        }
     }
 
 
