@@ -27,4 +27,9 @@ public class MusicManager : MonoBehaviour
         s.clip = c;
         s.Play();
     }
+
+    public void StartStopMusic(bool mute)
+    {
+        source.mute = mute;
+    }
 }
