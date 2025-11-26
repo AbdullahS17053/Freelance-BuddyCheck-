@@ -1,12 +1,13 @@
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
-
+using UnityEngine.Video;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UIElements;
 using Image = UnityEngine.UI.Image;
+using System.Collections;
 
 public class Menus : MonoBehaviour
 {
@@ -55,6 +56,8 @@ public class Menus : MonoBehaviour
     public string termsURL = "https://buddycheck.app/terms-and-conditions-english";
     public string privacyURL = "https://buddycheck.app/privacy-english";
     public string aboutURL = "https://buddycheck.app/impressum";
+    public VideoPlayer videoPlayer;
+
 
     private void Awake()
     {
@@ -81,6 +84,19 @@ public class Menus : MonoBehaviour
         {
             EULA.SetActive(true);
         }
+
+        videoPlayer.loopPointReached += OnVideoEnd;
+    }
+
+    void OnVideoEnd(VideoPlayer vp)
+    {
+        StartCoroutine(DisableAfterDelay(vp));
+    }
+
+    private IEnumerator DisableAfterDelay(VideoPlayer vp)
+    {
+        yield return new WaitForSeconds(1f);
+        vp.gameObject.SetActive(false);
     }
 
     public void AcceptEULA()
