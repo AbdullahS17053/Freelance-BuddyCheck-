@@ -293,9 +293,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         hintCategoryID = UnityEngine.Random.Range(0, categories[0].categories.Length);
 
-        foreach (var t in bad) t.text = categories[0].categories[hintCategoryID].bad;
-        foreach (var t in example) t.text = categories[0].categories[hintCategoryID].example;
-        foreach (var t in good) t.text = categories[0].categories[hintCategoryID].good;
+        foreach (var t in bad) t.text = categories[0].categories[hintCategoryID].bad[Menus.instance.GetLanguageIndex()];
+        foreach (var t in example) t.text = categories[0].categories[hintCategoryID].example[Menus.instance.GetLanguageIndex()];
+        foreach (var t in good) t.text = categories[0].categories[hintCategoryID].good[Menus.instance.GetLanguageIndex()];
 
         tempScore = UnityEngine.Random.Range(0, 10);
 
@@ -358,9 +358,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         categoryID = ID;
 
         // Now ID matches the sorted list correctly
-        foreach (var t in bad) t.text = hintCatories[ID].bad;
-        foreach (var t in example) t.text = hintCatories[ID].example;
-        foreach (var t in good) t.text = hintCatories[ID].good;
+        foreach (var t in bad) t.text = hintCatories[ID].bad[Menus.instance.GetLanguageIndex()];
+        foreach (var t in example) t.text = hintCatories[ID].example[Menus.instance.GetLanguageIndex()];
+        foreach (var t in good) t.text = hintCatories[ID].good[Menus.instance.GetLanguageIndex()];
         foreach (var t in username) t.text = hintCatories[ID].player + "'s hint:";
         foreach (var t in hint) t.text = hintCatories[ID].hint;
         foreach (var t in scores) t.text = hintCatories[ID].score.ToString();

@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 3
   m_EditorClassIdentifier: 
-  bad: Useless superpower
-  good: Useful superpower
-  example: Always keeping a white T-shirt clean
-  bad2: Zelten im Regen
-  good2: "N\xFCtzliche Superkraft"
-  example2: " Immer wei\xDFes T-Shirt sauber halten"
+  bad:
+  - 'Useless superpower '
+  - "Unn\xFCtze Superkraft "
+  - "Superpotencia in\xFAtil"
+  good:
+  - 'Useful superpower '
+  - "N\xFCtzliche Superkraft"
+  - "Superpoder \xFAtil"
+  example:
+  - ' Always keeping a white T-shirt clean'
+  - "Immer wei\xDFes T-Shirt sauber halten"
+  - Mantener siempre limpia una camiseta blanca
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

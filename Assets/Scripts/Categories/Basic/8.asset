@@ -12,10 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 8
   m_EditorClassIdentifier: 
-  bad: Bad Music
-  good: Favorite Song
-  example: A pop song you used to like but now find overplayed (Despacito) AYY FonSI!
-  bad2: Schlechte Musik
-  good2: Lieblingslied
-  example2: " Ein Popsong, den man fr\xFCher mochte, aber heute \xFCberspielt findet
-    (Despacito) AYY FonSI!"
+  bad:
+  - 'Bad Music '
+  - Schlechte Musik
+  - Mala musica
+  good:
+  - 'Favorite Song '
+  - Lieblingslied
+  - "Canci\xF3n favorita"
+  example:
+  - 'A pop song you used to like but now find overplayed (Despacito) AYY FonSI! '
+  - "Ein Popsong, den man fr\xFCher mochte, aber heute \xFCberspielt findet (Despacito)
+    AYY FonSI!"
+  - "Una canci\xF3n pop que te gustaba pero que ahora encuentras sobre escuchada
+    (Despacito) \xA1AYY FonSI!"
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

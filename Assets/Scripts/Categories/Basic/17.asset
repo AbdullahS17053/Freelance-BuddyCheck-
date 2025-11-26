@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 17
   m_EditorClassIdentifier: 
-  bad: Red flag
-  good: Green flag
-  example: Always available, but has no own hobbies
-  bad2: Red flag
-  good2: Green flag
-  example2: ' Immer erreichbar, aber keine eigenen Hobbys'
+  bad:
+  - 'Red flag '
+  - Red Flag
+  - Bandera roja
+  good:
+  - 'Green flag '
+  - Green Flag
+  - Bandera Verde
+  example:
+  - ' Always available, but has no own hobbies'
+  - Immer erreichbar, aber keine eigenen Hobbys
+  - Siempre disponible, pero no tiene aficiones propias.
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

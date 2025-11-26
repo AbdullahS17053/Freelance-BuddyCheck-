@@ -1,0 +1,223 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Menu_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 6c85d1c8b4db59340a69428f27bd2663, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 25466413056
+    m_Localized: Play
+    m_Metadata:
+      m_Items: []
+  - m_Id: 155074600960
+    m_Localized: Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 682927759360
+    m_Localized: Shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 770223808512
+    m_Localized: Accept to game Eula
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1199179472896
+    m_Localized: Terms of Service
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1590151520256
+    m_Localized: Touch Ok button to agree our Privacy and Terms of Conditions.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1903176622080
+    m_Localized: Sound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2004695556096
+    m_Localized: Music
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2031006425088
+    m_Localized: Languages
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2072601337856
+    m_Localized: Regions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2105677619200
+    m_Localized: About
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2132617633792
+    m_Localized: Privacy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2167459717120
+    m_Localized: Terms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3237728657408
+    m_Localized: Select Character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3464153964544
+    m_Localized: Host Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3531548041216
+    m_Localized: Join Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3573189091328
+    m_Localized: Your Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3668391403520
+    m_Localized: Enter Number of Rounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3782853959680
+    m_Localized: Room Code
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3921672839168
+    m_Localized: Join Random Room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4010407534592
+    m_Localized: Your room code is
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4211050455040
+    m_Localized: Start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4251164778496
+    m_Localized: Leave Room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4349990969344
+    m_Localized: Private
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4386540134400
+    m_Localized: Public
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4421302525952
+    m_Localized: Your Recieved Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4817202880512
+    m_Localized: Your Friend Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4928997859328
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5046547423232
+    m_Localized: Collected ___ of all points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4964745912320
+    m_Localized: Last Played
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5211538759680
+    m_Localized: Room Not Found!!!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5356405825536
+    m_Localized: Room Is Full!!!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5525100732416
+    m_Localized: Player Disconnected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5589667848192
+    m_Localized: Disconnected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5700699463680
+    m_Localized: Connecting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5818651680768
+    m_Localized: Reconnect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5968514162688
+    m_Localized: Round
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6003305914368
+    m_Localized: Enter Your Guess...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6126232576000
+    m_Localized: Vote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6164404936704
+    m_Localized: Send
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6354377547776
+    m_Localized: Waiting For Other Players' Hints...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6502847520768
+    m_Localized: Next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6574922440704
+    m_Localized: Enter Your Hint...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6679708737536
+    m_Localized: Your Number
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6818791858176
+    m_Localized: Leaderboard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6933699010560
+    m_Localized: Points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6977575624704
+    m_Localized: I Guessed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7030193168384
+    m_Localized: They Guessed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7096576417792
+    m_Localized: Continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11190993068032
+    m_Localized: My Friends
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 6
   m_EditorClassIdentifier: 
-  bad: Bad surprise
-  good: Nice surprise
-  example: Your friend (who is always late) is not coming to late..
-  bad2: "Schlechte \xDCberraschung"
-  good2: "Sch\xF6ne \xDCberraschung"
-  example2: "Der Freund (der immer zu sp\xF6t ist) kommt p\xFCnktlic"
+  bad:
+  - Bad surprise
+  - "Schlechte \xDCberraschung"
+  - Mala sorpresa
+  good:
+  - Nice surprise
+  - "Sch\xF6ne \xDCberraschung"
+  - agradable sorpresa
+  example:
+  - Your friend (who is always late) is not coming to late
+  - "Der Freund (der immer zu sp\xF6t ist) kommt p\xFCnktlich"
+  - Tu amigo (que siempre llega tarde) no llega demasiado tarde
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

@@ -1,0 +1,224 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Menu_es
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: es
+  m_SharedData: {fileID: 11400000, guid: 6c85d1c8b4db59340a69428f27bd2663, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 25466413056
+    m_Localized: Jugar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 155074600960
+    m_Localized: Ajustes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 682927759360
+    m_Localized: Comercio
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1199179472896
+    m_Localized: "t\xE9rminos de servicio"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 770223808512
+    m_Localized: Aceptar el Eula del juego
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1590151520256
+    m_Localized: "Toque el bot\xF3n Aceptar para aceptar nuestra Pol\xEDtica de privacidad
+      y T\xE9rminos y condiciones."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1903176622080
+    m_Localized: sonido
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2004695556096
+    m_Localized: "M\xFAsica"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2031006425088
+    m_Localized: Idiomas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2072601337856
+    m_Localized: Regiones
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2105677619200
+    m_Localized: Acerca de
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2132617633792
+    m_Localized: Privacidad
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2167459717120
+    m_Localized: "t\xE9rminos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3237728657408
+    m_Localized: Seleccionar personaje
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7096576417792
+    m_Localized: Continuar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7030193168384
+    m_Localized: Ellas adivinaron
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6977575624704
+    m_Localized: "Yo lo adivin\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6933699010560
+    m_Localized: Agujas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6818791858176
+    m_Localized: "Tabla de clasificaci\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6679708737536
+    m_Localized: "Tu n\xFAmero"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6574922440704
+    m_Localized: Introduce tu pista...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6502847520768
+    m_Localized: "Pr\xF3xima"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6164404936704
+    m_Localized: Enviar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6126232576000
+    m_Localized: Votar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6003305914368
+    m_Localized: Introduce tu conjetura...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5968514162688
+    m_Localized: Redonda
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6354377547776
+    m_Localized: Esperando pistas de otros jugadores...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5818651680768
+    m_Localized: Reconectar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5700699463680
+    m_Localized: Conectando
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5589667848192
+    m_Localized: Desconectada
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5525100732416
+    m_Localized: Jugadora desconectada
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5356405825536
+    m_Localized: "\xA1\xA1\xA1La habitaci\xF3n est\xE1 llena!!!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5211538759680
+    m_Localized: "\xA1\xA1\xA1Habitaci\xF3n no encontrada!!!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5046547423232
+    m_Localized: Recogidos ___ de todos los puntos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4964745912320
+    m_Localized: "Jugado por \xFAltima vez"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4928997859328
+    m_Localized: Cerca
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4817202880512
+    m_Localized: Tus puntos de amigo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4421302525952
+    m_Localized: Tus puntos recibidos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4386540134400
+    m_Localized: "P\xFAblica"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4349990969344
+    m_Localized: Privada
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4251164778496
+    m_Localized: "salir de la habitaci\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4211050455040
+    m_Localized: Comenzar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4010407534592
+    m_Localized: "El c\xF3digo de tu habitaci\xF3n es"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3921672839168
+    m_Localized: Unirse a la sala aleatoria
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3782853959680
+    m_Localized: "C\xF3digo de habitaci\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3668391403520
+    m_Localized: "Introduzca el n\xFAmero de rondas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3573189091328
+    m_Localized: Su nombre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3531548041216
+    m_Localized: Unirse al juego
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3464153964544
+    m_Localized: "Juego anfitri\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11190993068032
+    m_Localized: Mis amigas
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

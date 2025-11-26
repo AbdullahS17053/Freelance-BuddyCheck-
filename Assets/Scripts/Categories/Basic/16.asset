@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 16
   m_EditorClassIdentifier: 
-  bad: Useless Invention
-  good: Brilliant Invention
-  example: Umbrella for shoes
-  bad2: Sinnlose Erfindung
-  good2: Geniale Erfindung
-  example2: "Regenschirm f\xFCr Schuhe"
+  bad:
+  - 'Useless Invention '
+  - Sinnlose Erfindung
+  - "Invenci\xF3n in\xFAtil"
+  good:
+  - Brilliant Invention
+  - Geniale Erfindung
+  - "Invenci\xF3n brillante"
+  example:
+  - 'Umbrella for shoes '
+  - "Regenschirm f\xFCr Schuhe"
+  - paraguas para zapatos
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

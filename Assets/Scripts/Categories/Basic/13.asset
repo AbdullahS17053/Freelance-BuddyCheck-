@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 13
   m_EditorClassIdentifier: 
-  bad: Bad food
-  good: Favorite food
-  example: Supermarket sushi
-  bad2: Schlechtes Essen
-  good2: Lieblingsessen
-  example2: Sushi vom Supermarkt
+  bad:
+  - Bad food
+  - Schlechtes Essen
+  - mala comida
+  good:
+  - Favorite food
+  - Lieblingsessen
+  - comida favorita
+  example:
+  - Supermarket sushi
+  - Sushi vom Supermarkt
+  - sushi de supermercado
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

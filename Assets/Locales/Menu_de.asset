@@ -1,0 +1,224 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Menu_de
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: de
+  m_SharedData: {fileID: 11400000, guid: 6c85d1c8b4db59340a69428f27bd2663, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 25466413056
+    m_Localized: Spielen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 155074600960
+    m_Localized: Einstellungen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 682927759360
+    m_Localized: "Gesch\xE4ft"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1199179472896
+    m_Localized: Nutzungsbedingungen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 770223808512
+    m_Localized: Akzeptieren Sie die Spiel-EULA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1590151520256
+    m_Localized: "Ber\xFChren Sie die Schaltfl\xE4che \u201EOK\u201C, um unseren
+      Datenschutzbestimmungen und Nutzungsbedingungen zuzustimmen."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2167459717120
+    m_Localized: Bedingungen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2132617633792
+    m_Localized: "Privatsph\xE4re"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2105677619200
+    m_Localized: "\xFCber uns"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2072601337856
+    m_Localized: Regionen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2031006425088
+    m_Localized: Sprachen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2004695556096
+    m_Localized: Musik
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1903176622080
+    m_Localized: Klang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3237728657408
+    m_Localized: "W\xE4hlen Sie Charakter aus"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3464153964544
+    m_Localized: Host-Spiel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3531548041216
+    m_Localized: Dem Spiel beitreten
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3573189091328
+    m_Localized: Ihr Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3668391403520
+    m_Localized: Anzahl der Runden eingeben
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3782853959680
+    m_Localized: Zimmercode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3921672839168
+    m_Localized: Treten Sie Random Room bei
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4010407534592
+    m_Localized: Ihr Zimmercode lautet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4211050455040
+    m_Localized: Start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4251164778496
+    m_Localized: Verlasse den Raum
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4349990969344
+    m_Localized: Privat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4386540134400
+    m_Localized: "\xD6ffentlich"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4421302525952
+    m_Localized: Ihre erhaltenen Punkte
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4817202880512
+    m_Localized: Ihre Freundespunkte
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4928997859328
+    m_Localized: "Schlie\xDFen"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4964745912320
+    m_Localized: Zuletzt gespielt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5046547423232
+    m_Localized: Alle Punkte gesammelt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5211538759680
+    m_Localized: Zimmer nicht gefunden!!!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5356405825536
+    m_Localized: Das Zimmer ist voll!!!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5525100732416
+    m_Localized: Spielerverbindung getrennt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5589667848192
+    m_Localized: Getrennt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5700699463680
+    m_Localized: Verbinden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5818651680768
+    m_Localized: Wieder verbinden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6354377547776
+    m_Localized: Warten auf Hinweise der anderen Spieler...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5968514162688
+    m_Localized: Runden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6003305914368
+    m_Localized: Geben Sie Ihren Tipp ein...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6126232576000
+    m_Localized: Abstimmung
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6164404936704
+    m_Localized: Schicken
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6502847520768
+    m_Localized: "N\xE4chste"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6574922440704
+    m_Localized: Geben Sie Ihren Hinweis ein...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6679708737536
+    m_Localized: Ihre Nummer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6818791858176
+    m_Localized: Bestenliste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6933699010560
+    m_Localized: Punkte
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6977575624704
+    m_Localized: Ich habe es erraten
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7030193168384
+    m_Localized: Sie haben geraten
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7096576417792
+    m_Localized: Weitermachen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11190993068032
+    m_Localized: Meine Freunde
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 7
   m_EditorClassIdentifier: 
-  bad: Bad date idea
-  good: Great date idea
-  example: ' Movie date with a 4-hour film'
-  bad2: Schlechte Dateidee
-  good2: Gute Dateidee
-  example2: Kino-Date bei einem 4-Stunden-Film
+  bad:
+  - Bad date idea
+  - Schlechte Dateidee
+  - Mala idea para una cita
+  good:
+  - 'Great date idea '
+  - 'Gute Dateidee '
+  - Gran idea para una cita
+  example:
+  - Movie date with a 4-hour film
+  - Kino-Date bei einem 4-Stunden-Film
+  - "Cita de cine con una pel\xEDcula de 4 horas"
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

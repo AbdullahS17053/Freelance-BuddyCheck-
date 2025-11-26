@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 11
   m_EditorClassIdentifier: 
-  bad: Boring topics
-  good: Exciting topics
-  example: Talking about the weather during a road trip
-  bad2: "Langweilige Gespr\xE4chsthemen"
-  good2: "Spannende Gespr\xE4chsthemen"
-  example2: Wetter auf einem Roadtrip
+  bad:
+  - Boring topics
+  - "Langweilige Gespr\xE4chsthemen"
+  - Temas aburridos
+  good:
+  - Exciting topics
+  - "Spannende Gespr\xE4chsthemen "
+  - Temas interesantes
+  example:
+  - 'Talking about the weather during a road trip '
+  - Wetter auf einem Roadtrip
+  - Hablando sobre el clima durante un viaje por carretera
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

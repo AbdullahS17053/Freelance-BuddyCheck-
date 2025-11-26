@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 15
   m_EditorClassIdentifier: 
-  bad: Bad proposal location
-  good: Great proposal location
-  example: In line at an amusement park
-  bad2: "Schlechter Ort f\xFCr Heiratsantrag"
-  good2: "Guter Ort f\xFCr Heiratsantrag"
-  example2: ' In der Warteschlange im Freizeitpark'
+  bad:
+  - Bad proposal location
+  - "Schlechter Ort f\xFCr Heiratsantrag"
+  - "Mala ubicaci\xF3n de la propuesta"
+  good:
+  - Great proposal location
+  - "Guter Ort f\xFCr Heiratsantrag "
+  - "Excelente ubicaci\xF3n para la propuesta"
+  example:
+  - In line at an amusement park
+  - In der Warteschlange im Freizeitpark
+  - En la fila de un parque de atracciones
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

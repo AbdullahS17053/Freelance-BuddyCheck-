@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 9
   m_EditorClassIdentifier: 
-  bad: Villain
-  good: Hero
-  example: ' Robin Hood'
-  bad2: "B\xF6sewicht"
-  good2: Held
-  example2: ' Robin Hood'
+  bad:
+  - Villain
+  - "B\xF6sewicht"
+  - Villano
+  good:
+  - Hero
+  - 'Held '
+  - "H\xE9roe"
+  example:
+  - ' Robin Hood '
+  - ' Robin Hood'
+  - Robin Hood
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

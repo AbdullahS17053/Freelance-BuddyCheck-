@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 19
   m_EditorClassIdentifier: 
-  bad: Boring Movie/series
-  good: Favorite Movie/series
-  example: A visually beautiful film with little plot
-  bad2: Langweiliger Film/serie
-  good2: Lieblingsfilm /serie
-  example2: "Ein Film mit sch\xF6ner Optik, aber kaum Handlung"
+  bad:
+  - Boring Movie/series
+  - Langweiliger Film/serie
+  - "Pel\xEDcula/serie aburrida"
+  good:
+  - Favorite Movie/series
+  - Lieblingsfilm /serie
+  - "Pel\xEDcula/serie favorita"
+  example:
+  - ' A visually beautiful film with little plot '
+  - "Ein Film mit sch\xF6ner Optik, aber kaum Handlung"
+  - "Una pel\xEDcula visualmente hermosa con poca trama."
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

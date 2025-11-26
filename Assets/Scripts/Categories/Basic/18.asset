@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 18
   m_EditorClassIdentifier: 
-  bad: Boring sport
-  good: Favorite sport
-  example: Watching Nordic walking on TV
-  bad2: Langweilige Sportart
-  good2: Lieblingssportart
-  example2: Nordic Walking im Fernsehen schauen
+  bad:
+  - Boring sport
+  - 'Langweilige Sportart '
+  - deporte aburrido
+  good:
+  - 'Favorite sport '
+  - Lieblingssportart
+  - deporte favorito
+  example:
+  - 'Watching Nordic walking on TV '
+  - Nordic Walking im Fernsehen schauen
+  - "Viendo marcha n\xF3rdica en la televisi\xF3n"
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

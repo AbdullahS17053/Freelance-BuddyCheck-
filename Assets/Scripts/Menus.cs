@@ -1,3 +1,6 @@
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -7,9 +10,26 @@ using Image = UnityEngine.UI.Image;
 
 public class Menus : MonoBehaviour
 {
+    public static Menus instance;
+
     // Language settings
     public enum LanguageOption { English, German, Spanish }
     public LanguageOption currentLanguage = LanguageOption.English;
+    private Locale GetLocaleFromEnum(LanguageOption lang)
+    {
+        switch (lang)
+        {
+            case LanguageOption.English:
+                return LocalizationSettings.AvailableLocales.Locales.Find(l => l.Identifier.Code == "en");
+            case LanguageOption.German:
+                return LocalizationSettings.AvailableLocales.Locales.Find(l => l.Identifier.Code == "de");
+            case LanguageOption.Spanish:
+                return LocalizationSettings.AvailableLocales.Locales.Find(l => l.Identifier.Code == "es");
+            default:
+                return LocalizationSettings.AvailableLocales.Locales[0]; // fallback
+        }
+    }
+
 
     public GameObject EULA;
 
@@ -35,6 +55,19 @@ public class Menus : MonoBehaviour
     public string termsURL = "https://buddycheck.app/terms-and-conditions-english";
     public string privacyURL = "https://buddycheck.app/privacy-english";
     public string aboutURL = "https://buddycheck.app/impressum";
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     void Start()
     {
@@ -106,8 +139,20 @@ public class Menus : MonoBehaviour
     {
         currentLanguage = (LanguageOption)languageIndex;
 
+        // Set Unity Localization
+        Locale locale = GetLocaleFromEnum(currentLanguage);
+        if (locale != null)
+        {
+            LocalizationSettings.SelectedLocale = locale;
+        }
+
         SaveSettings();
     }
+    public int GetLanguageIndex()
+    {
+        return (int)currentLanguage;
+    }
+
 
     public void ToggleAudio()
     {
@@ -116,7 +161,7 @@ public class Menus : MonoBehaviour
 
     public void ToggleMusic()
     {
-        MusicManager.instance.StartStopMusic(musicToggle.isOn);
+        MusicManager.instance.StartStopMusic(!musicToggle.isOn);
     }
 
     public void SetRegion(int region)

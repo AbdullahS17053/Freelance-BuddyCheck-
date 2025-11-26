@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 10
   m_EditorClassIdentifier: 
-  bad: Bad gifts
-  good: Great gifts
-  example: Homemade voucher for a dinner togethe
-  bad2: Schlechte Geschenke
-  good2: Gute Geschenke
-  example2: "Selbstgemachter Gutschein f\xFCr ein gemeinsames Abendessen"
+  bad:
+  - Bad gifts
+  - Schlechte Geschenke
+  - Malos regalos
+  good:
+  - Great gifts
+  - 'Gute Geschenke '
+  - Grandes regalos
+  example:
+  - Homemade voucher for a dinner together
+  - "Selbstgemachter Gutschein f\xFCr ein gemeinsames Abendessen"
+  - Vale casero para una cena juntos
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

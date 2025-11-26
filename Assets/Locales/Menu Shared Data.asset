@@ -1,0 +1,228 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Menu Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: Menu
+  m_TableCollectionNameGuidString: 6c85d1c8b4db59340a69428f27bd2663
+  m_Entries:
+  - m_Id: 25466413056
+    m_Key: menu.play
+    m_Metadata:
+      m_Items: []
+  - m_Id: 155074600960
+    m_Key: menu.settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 682927759360
+    m_Key: menu.shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 770223808512
+    m_Key: eula.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1590151520256
+    m_Key: eula.description
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1199179472896
+    m_Key: btn.termsofservice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1903176622080
+    m_Key: settings.sound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2004695556096
+    m_Key: settings.music
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2031006425088
+    m_Key: settings.languages
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2072601337856
+    m_Key: settings.regions
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2105677619200
+    m_Key: settings.about
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2132617633792
+    m_Key: settings..privacy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2167459717120
+    m_Key: settings.terms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3237728657408
+    m_Key: menu.selectcharacter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3464153964544
+    m_Key: room.hostgame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3531548041216
+    m_Key: room.joingame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3573189091328
+    m_Key: room.entername
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3668391403520
+    m_Key: room.enterRounds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3782853959680
+    m_Key: room.roomCode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3921672839168
+    m_Key: room.joinRandomGame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4010407534592
+    m_Key: room.yourCode
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4211050455040
+    m_Key: room.start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4251164778496
+    m_Key: room.leave
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4349990969344
+    m_Key: room.private
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4386540134400
+    m_Key: room.public
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4421302525952
+    m_Key: stats.yourPointsRecieved
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4817202880512
+    m_Key: stats.yourFriendPoints
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4928997859328
+    m_Key: btn.close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4964745912320
+    m_Key: stats.lastPlayed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5046547423232
+    m_Key: stats.CollectedOfAllPoints
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5211538759680
+    m_Key: panel.roomNotFound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5356405825536
+    m_Key: panel.roomIsFull
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5525100732416
+    m_Key: panel.playerDisconnected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5589667848192
+    m_Key: panel.disconnected
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5700699463680
+    m_Key: panel.connecting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5818651680768
+    m_Key: panel.reconnect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6354377547776
+    m_Key: panel.waitingForHints
+    m_Metadata:
+      m_Items: []
+  - m_Id: 5968514162688
+    m_Key: game.round
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6003305914368
+    m_Key: game.EnterYourGuess
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6126232576000
+    m_Key: game.vote
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6164404936704
+    m_Key: game.send
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6502847520768
+    m_Key: game.next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6574922440704
+    m_Key: game.enterYourHint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6679708737536
+    m_Key: game.yourNumber
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6818791858176
+    m_Key: leaderboard.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6933699010560
+    m_Key: leaderboard.points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6977575624704
+    m_Key: leaderboard.IGuessed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7030193168384
+    m_Key: leaderboard.TheyGuessed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7096576417792
+    m_Key: leaderboard.continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11190993068032
+    m_Key: stats.myFriends
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 8303943407497380113
+  references:
+    version: 2
+    RefIds:
+    - rid: 8303943407497380113
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1764120375075

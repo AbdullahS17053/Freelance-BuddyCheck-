@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 14
   m_EditorClassIdentifier: 
-  bad: Bad movie ending
-  good: Great movie ending
-  example: The ending of Titanic
-  bad2: Schlechtes Filmende
-  good2: Gutes Filmende
-  example2: "Ende von \u201ETitanic"
+  bad:
+  - 'Bad movie ending '
+  - 'Schlechtes Filmende '
+  - "Mal final de pel\xEDcula"
+  good:
+  - Great movie ending
+  - Gutes Filmende
+  - "Gran final de pel\xEDcula"
+  example:
+  - The ending of Titanic
+  - "Ende von \u201ETitanic"
+  - El final del Titanic
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

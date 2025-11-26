@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 1
   m_EditorClassIdentifier: 
-  bad: Bad travel destination
-  good: Great travel destination
-  example: Maldives during rainy season
-  bad2: Schlechtes Reiseziel
-  good2: Bestes Reiseziel
-  example2: Malediven in der Regenzeit
+  bad:
+  - Bad travel destination
+  - Schlechtes Reiseziel
+  - Mal destino de viaje
+  good:
+  - Great travel destination
+  - 'Bestes Reiseziel '
+  - Gran destino de viaje
+  example:
+  - Maldives during rainy season
+  - Malediven in der Regenzeit
+  - Maldivas durante la temporada de lluvias
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

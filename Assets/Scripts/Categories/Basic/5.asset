@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 5
   m_EditorClassIdentifier: 
-  bad: Nightmare job
-  good: Dream job
-  example: Complaint call center
-  bad2: Alptraumjob
-  good2: Traumjob
-  example2: "Callcenter f\xFCr Beschwerden"
+  bad:
+  - Nightmare job
+  - Alptraumjob
+  - trabajo de pesadilla
+  good:
+  - 'Dream job '
+  - Traumjob
+  - "Trabajo de ensue\xF1o"
+  example:
+  - Complaint call center
+  - "Callcenter f\xFCr Beschwerden"
+  - Centro de llamadas para quejas
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

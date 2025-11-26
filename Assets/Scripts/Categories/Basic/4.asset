@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 4
   m_EditorClassIdentifier: 
-  bad: Annoying sound
-  good: Calming sound
-  example: Ticking clock in an empty room
-  bad2: "Nerviges Ger\xE4usch"
-  good2: "Beruhigendes Ger\xE4usch"
-  example2: Ticken einer Uhr in einem leeren Raum
+  bad:
+  - Annoying sound
+  - "Nerviges Ger\xE4usch"
+  - sonido molesto
+  good:
+  - Calming sound
+  - "Beruhigendes Ger\xE4usch"
+  - sonido calmante
+  example:
+  - Ticking clock in an empty room
+  - Ticken einer Uhr in einem leeren Raum
+  - "Reloj haciendo tictac en una habitaci\xF3n vac\xEDa"
+  hint: 
+  player: 
+  playerID: 0
+  score: 0

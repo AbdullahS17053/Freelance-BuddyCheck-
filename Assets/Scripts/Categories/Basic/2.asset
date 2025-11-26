@@ -12,9 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8ec107781227f74cbba2b4b10146ec4, type: 3}
   m_Name: 2
   m_EditorClassIdentifier: 
-  bad: Things I'd never do again
-  good: Things I'd love to do again
-  example: Camping in the rain
-  bad2: "Dinge, die ich nie wieder machen w\xFCrde"
-  good2: "Dinge, die ich gerne wieder machen w\xFCrde"
-  example2: Zelten im Regen
+  bad:
+  - Things I'd never do again
+  - "Dinge, die ich nie wieder machen w\xFCrde"
+  - "Cosas que nunca volver\xEDa a hacer"
+  good:
+  - Things I'd love to do again
+  - "Dinge, die ich gerne wieder machen w\xFCrde"
+  - "Cosas que me encantar\xEDa volver a hacer"
+  example:
+  - Camping in the rain
+  - Zelten im Regen
+  - Acampar bajo la lluvia
+  hint: 
+  player: 
+  playerID: 0
+  score: 0
