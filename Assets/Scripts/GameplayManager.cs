@@ -266,8 +266,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (currentRound > totalRounds) ShowOverallLeaderboard();
         else StartNewRound();
-
-        StatsManager.instance.ResetAllRounds();
     }
 
     #endregion
@@ -650,12 +648,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         ClearLeaderboard();
 
         // STEP BY 4 (because each player has 4 values)
-        for (int i = 0; i < leaderboardData.Length; i += 4)
+        for (int i = 0; i < leaderboardData.Length; i += 5)
         {
             string playerName = (string)leaderboardData[i];
             int score = (int)leaderboardData[i + 1];
             int avatarIndex = (int)leaderboardData[i + 2];
             int totalScoreAllPlayers = (int)leaderboardData[i + 3];
+            int otherID = (int)leaderboardData[i + 4];
 
             GameObject entryObj = Instantiate(leaderboardEntryPrefab, leaderboardContainer.transform);
             LeaderboardEntry entry = entryObj.GetComponent<LeaderboardEntry>();
@@ -663,7 +662,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             if (entry != null)
             {
                 int rank = (i / 4) + 1;
-                entry.SetForOverall(rank, playerName, score, totalScoreAllPlayers, false);
+                entry.SetForOverall(rank, playerName, score, totalScoreAllPlayers, false, otherID);
 
                 if (PlayerListUI.instance != null)
                     entry.SetAvatar(PlayerListUI.instance.GetAvatarSprite(avatarIndex));
@@ -689,11 +688,18 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             int avatarIndex = player != null && player.CustomProperties.TryGetValue("avatarIndex", out object idx)
                                 ? (int)idx
                                 : 0;
+            int playerID = 0;
+            if (PhotonNetwork.PlayerList.FirstOrDefault(p => p.NickName == playerScore.Key)?.CustomProperties.TryGetValue("myID", out object idObj) ?? false)
+            {
+                playerID = (int)idObj;
+            }
+
 
             data.Add(playerScore.Key);
             data.Add(playerScore.Value);
             data.Add(avatarIndex);
             data.Add(totalScoreAllPlayers); // <-- Add total score here
+            data.Add(playerID); // <-- PlayerID
         }
 
         return data.ToArray();
@@ -1001,6 +1007,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             roomManager.ShowClientPanel();
         }
+
+        StatsManager.instance.ResetAllRounds();
     }
 
     [PunRPC]
@@ -1192,6 +1200,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             roomManager.ShowClientPanel();
         }
+
+        StatsManager.instance.ResetAllRounds();
     }
 
 

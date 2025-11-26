@@ -42,14 +42,11 @@ public class Menus : MonoBehaviour
 
         if (PlayerPrefs.HasKey("EULA"))
         {
-            if(PlayerPrefs.GetInt("EULA") == 1)
-            {
-                EULA.SetActive(true);
-            }
-            else
-            {
-                EULA.SetActive(false);
-            }
+            EULA.SetActive(false);
+        }
+        else
+        {
+            EULA.SetActive(true);
         }
     }
 

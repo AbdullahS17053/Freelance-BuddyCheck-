@@ -1,6 +1,9 @@
+﻿using NUnit.Framework;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static StatsManager;
 
 public class LeaderboardEntry : MonoBehaviour
 {
@@ -11,60 +14,61 @@ public class LeaderboardEntry : MonoBehaviour
     [SerializeField] private TMP_Text perceText;
     [SerializeField] private TMP_Text subText;
     [SerializeField] private TMP_Text scoreText;
+    [SerializeField] private TMP_Text AtoBScore;
+    [SerializeField] private TMP_Text BtoAScore;
     [SerializeField] private GameObject hostBadge;
     [SerializeField] private Color hostColor = Color.yellow;
     [SerializeField] private Color defaultColor = Color.black;
 
 
-    public void Initialize(int rank, string playerName, int guess, bool isHost, string hint)
+    private void SetScores(int thisPlayerID)
     {
-        SetForRound(rank, playerName, guess, isHost, hint);
+        // Get all round data once
+        List<RoundData> rounds = StatsManager.instance.GetAllRoundsData();
+
+        // Local temporary values
+        int AtoB = 0; // thisPlayer → me
+        int BtoA = 0; // me → thisPlayer
+
+        // Loop once through all rounds
+        foreach (var r in rounds)
+        {
+            // CASE 1: this player gave the hint → I guessed
+            if (r.hintGiverID == thisPlayerID)
+            {
+                foreach (var g in r.guesses)
+                {
+                    if (g.guesserID == StatsManager.instance.myID)
+                    {
+                        BtoA = g.guessScore;
+                    }
+                }
+            }
+
+            // CASE 2: I gave the hint → this player guessed
+            if (r.hintGiverID == StatsManager.instance.myID)
+            {
+                foreach (var g in r.guesses)
+                {
+                    if (g.guesserID == thisPlayerID)
+                    {
+                        AtoB = g.guessScore;
+                    }
+                }
+            }
+        }
+
+        // Update UI
+        AtoBScore.text = AtoB.ToString();   // This player guessed my hint (A→B)
+        BtoAScore.text = BtoA.ToString();   // I guessed this player’s hint (B→A)
     }
 
-    public void SetForRound(int rank, string playerName, int guess, bool isHost, string hint)
+
+
+    public void SetForOverall(int rank, string playerName, int totalScore, int allPlayersScore, bool isHost, int otherID)
     {
-        /*
-        // Set rank
-        if (rankText != null)
-        {
-            rankText.text = rank > 0 ? $"#{rank}" : "HOST";
-            rankText.color = isHost ? hostColor : defaultColor;
-            rankText.gameObject.SetActive(true);
-        }
+        SetScores(otherID);
 
-        // Set player name
-        if (nameText != null)
-        {
-            nameText.text = playerName;
-            nameText.color = isHost ? hostColor : defaultColor;
-            nameText.gameObject.SetActive(true);
-        }
-
-        // Set guessed number
-        if (guessText != null)
-        {
-            guessText.text = guess.ToString();
-            guessText.color = isHost ? hostColor : defaultColor;
-            guessText.gameObject.SetActive(true);
-        }
-
-        // Set hint
-        if (hintText != null)
-        {
-            hintText.text = hint;
-            hintText.color = isHost ? hostColor : defaultColor;
-            hintText.gameObject.SetActive(true);
-        }
-
-        // Hide score for round view
-        if (scoreText != null) scoreText.gameObject.SetActive(false);
-
-        // Show host badge
-        if (hostBadge != null) hostBadge.SetActive(isHost);*/
-    }
-
-    public void SetForOverall(int rank, string playerName, int totalScore, int allPlayersScore, bool isHost)
-    {
         // Set rank
         if (rankText != null)
         {
