@@ -27,7 +27,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 682927759360
-    m_Localized: Comercio
+    m_Localized: Shop
     m_Metadata:
       m_Items: []
   - m_Id: 1199179472896
@@ -35,12 +35,12 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 770223808512
-    m_Localized: Aceptar el Eula del juego
+    m_Localized: "Politique de confidentialit\xE9"
     m_Metadata:
       m_Items: []
   - m_Id: 1590151520256
-    m_Localized: "Toque el bot\xF3n Aceptar para aceptar nuestra Pol\xEDtica de privacidad
-      y T\xE9rminos y condiciones."
+    m_Localized: "En utilisant cette application, vous acceptez notre Politique de
+      confidentialit\xE9\r\n\r\net nos Conditions d'utilisation"
     m_Metadata:
       m_Items: []
   - m_Id: 1903176622080
@@ -56,7 +56,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 2072601337856
-    m_Localized: Regiones
+    m_Localized: Region
     m_Metadata:
       m_Items: []
   - m_Id: 2105677619200
@@ -164,11 +164,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4817202880512
-    m_Localized: Tus puntos de amigo
+    m_Localized: Leur connaissance entre amis
     m_Metadata:
       m_Items: []
   - m_Id: 4421302525952
-    m_Localized: Tus puntos recibidos
+    m_Localized: Vos connaissances d'ami
     m_Metadata:
       m_Items: []
   - m_Id: 4386540134400

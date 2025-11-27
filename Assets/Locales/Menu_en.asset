@@ -31,7 +31,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 770223808512
-    m_Localized: Accept to game Eula
+    m_Localized: Privacy Policy & Terms
     m_Metadata:
       m_Items: []
   - m_Id: 1199179472896
@@ -39,11 +39,12 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1590151520256
-    m_Localized: Touch Ok button to agree our Privacy and Terms of Conditions.
+    m_Localized: "By using this app, you agree to our Privacy Policy\r\nand Terms
+      of Use.\r"
     m_Metadata:
       m_Items: []
   - m_Id: 1903176622080
-    m_Localized: Sound
+    m_Localized: Sound Effects
     m_Metadata:
       m_Items: []
   - m_Id: 2004695556096
@@ -55,7 +56,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 2072601337856
-    m_Localized: Regions
+    m_Localized: Region
     m_Metadata:
       m_Items: []
   - m_Id: 2105677619200
@@ -119,11 +120,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4421302525952
-    m_Localized: Your Recieved Points
+    m_Localized: Your buddy-knowledge
     m_Metadata:
       m_Items: []
   - m_Id: 4817202880512
-    m_Localized: Your Friend Points
+    m_Localized: Their buddy-knowledge
     m_Metadata:
       m_Items: []
   - m_Id: 4928997859328

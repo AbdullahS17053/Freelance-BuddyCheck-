@@ -18,7 +18,7 @@ MonoBehaviour:
   - "Invenci\xF3n in\xFAtil"
   good:
   - Brilliant Invention
-  - Geniale Erfindung
+  - "Regenschirm f\xFCr Schuhe"
   - "Invenci\xF3n brillante"
   example:
   - 'Umbrella for shoes '
@@ -27,4 +27,4 @@ MonoBehaviour:
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 4

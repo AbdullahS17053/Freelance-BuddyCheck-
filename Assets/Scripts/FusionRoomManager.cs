@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 using System.Linq;
+using System.Collections;
 
 public class FusionRoomManager : MonoBehaviourPunCallbacks
 {
@@ -18,7 +19,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private Button shadowGameButton;
 
     [Header("Connection UI")]
-    [SerializeField] private GameObject loadingPanel;
+    [SerializeField] public GameObject loadingPanel;
     [SerializeField] private GameObject connectingPanel;
     [SerializeField] private GameObject reconnectPanel;
     [SerializeField] private Button[] reconnectButton;
@@ -147,12 +148,13 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         MusicManager.instance.GameMusic();
         foreach (var t in roomCodeText) t.text = PhotonNetwork.CurrentRoom.Name;
 
-        UpdatePlayerCount();
 
         if (PhotonNetwork.IsMasterClient)
             ShowHostPanel();
         else
             ShowClientPanel();
+
+        UpdatePlayerCount();
     }
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
@@ -196,6 +198,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         // If the game was ongoing, show player disconnected panel
         if (GameplayManager.instance != null && GameplayManager.instance.gameObject.activeInHierarchy)
         {
+            publicRoomToggle.isOn = false;
             //playerDisconnectedPanel?.SetActive(true);
         }
     }
@@ -204,6 +207,8 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
         MusicManager.instance.LobbyMusic();
         ShowMenuPanel();
+
+        UpdatePlayerCount();
     }
     public override void OnDisconnected(DisconnectCause cause)
     {
@@ -216,6 +221,15 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     private void UpdatePlayerCount()
     {
+        StopAllCoroutines();
+
+        StartCoroutine(littleDelayedUpdatePlayer());
+    }
+
+    private IEnumerator littleDelayedUpdatePlayer()
+    {
+        yield return new WaitForSeconds(1f);
+
         int count = PhotonNetwork.CurrentRoom?.PlayerCount ?? 0;
         playerCountText.text = $"Players: {count}/{MaxPlayers}";
 

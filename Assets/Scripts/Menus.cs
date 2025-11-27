@@ -1,4 +1,4 @@
-using UnityEngine.Localization;
+﻿using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using UnityEngine.Video;
 using UnityEngine;
@@ -61,6 +61,7 @@ public class Menus : MonoBehaviour
 
     private void Awake()
     {
+        LoadSettings();
         if (instance == null)
         {
             instance = this;
@@ -74,7 +75,6 @@ public class Menus : MonoBehaviour
 
     void Start()
     {
-        LoadSettings();
 
         if (PlayerPrefs.HasKey("EULA"))
         {
@@ -118,16 +118,43 @@ public class Menus : MonoBehaviour
 
     private void LoadSettings()
     {
-        // Load language
-        if (PlayerPrefs.HasKey("language"))
+        // ---------------------------------------------------------
+        // 1) FIRST APP LAUNCH → Detect system language
+        // ---------------------------------------------------------
+        if (!PlayerPrefs.HasKey("language"))
         {
+            if (Application.systemLanguage == SystemLanguage.German)
+            {
+                currentLanguage = LanguageOption.German;
+            }
+            else
+            {
+                currentLanguage = LanguageOption.English; // default
+            }
+
+            // Save immediately so future launches don't override user choice
+            PlayerPrefs.SetInt("language", (int)currentLanguage);
+            PlayerPrefs.Save();
+
+            Debug.Log("Auto-detected device language: " + currentLanguage);
+        }
+        else
+        {
+            // ---------------------------------------------------------
+            // 2) USER ALREADY PICKED A LANGUAGE BEFORE → LOAD IT
+            // ---------------------------------------------------------
             currentLanguage = (LanguageOption)PlayerPrefs.GetInt("language");
-            if (languageDropdown != null)
-                languageDropdown.value = (int)currentLanguage;
-            Debug.Log("Loaded language: " + currentLanguage);
+            Debug.Log("Loaded saved language: " + currentLanguage);
         }
 
-        // Load region
+        // Apply to dropdown (if exists)
+        if (languageDropdown != null)
+            languageDropdown.value = (int)currentLanguage;
+
+
+        // ---------------------------------------------------------
+        // REGION STUFF (unchanged)
+        // ---------------------------------------------------------
         if (PlayerPrefs.HasKey("region"))
         {
             currentRegion = PlayerPrefs.GetInt("region");
@@ -139,7 +166,14 @@ public class Menus : MonoBehaviour
         }
 
         InitializeSettingsUI();
+
+        // ---------------------------------------------------------
+        // APPLY LANGUAGE TO LOCALIZATION SYSTEM
+        // ---------------------------------------------------------
+        Locale locale = GetLocaleFromEnum(currentLanguage);
+        LocalizationSettings.SelectedLocale = locale;
     }
+
 
     void InitializeSettingsUI()
     {

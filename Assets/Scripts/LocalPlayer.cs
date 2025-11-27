@@ -20,6 +20,7 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
     [SerializeField] private TextMeshProUGUI[] names;
     [HideInInspector] public TMP_InputField nameField;
 
+    public FusionRoomManager fusionRoomManager;
     private List<RoomInfo> cachedRoomList = new List<RoomInfo>();
 
     void Awake()
@@ -114,6 +115,7 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
     // -------------------------------
     public void JoinRandomRoom(TMP_InputField field)
     {
+        fusionRoomManager.loadingPanel.SetActive(false);
         UpdateUsername(field);
 
         // Define the expected custom properties

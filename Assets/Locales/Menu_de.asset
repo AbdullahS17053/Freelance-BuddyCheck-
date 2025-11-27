@@ -27,7 +27,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 682927759360
-    m_Localized: "Gesch\xE4ft"
+    m_Localized: Shop
     m_Metadata:
       m_Items: []
   - m_Id: 1199179472896
@@ -35,12 +35,12 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 770223808512
-    m_Localized: Akzeptieren Sie die Spiel-EULA
+    m_Localized: Datenschutz & Nutzungsbedingungen
     m_Metadata:
       m_Items: []
   - m_Id: 1590151520256
-    m_Localized: "Ber\xFChren Sie die Schaltfl\xE4che \u201EOK\u201C, um unseren
-      Datenschutzbestimmungen und Nutzungsbedingungen zuzustimmen."
+    m_Localized: "Durch die Nutzung dieser App stimmen Sie\r\nunserer Datenschutzerkl\xE4rung
+      und den\r\nNutzungsbedingungen zu\r"
     m_Metadata:
       m_Items: []
   - m_Id: 2167459717120
@@ -56,11 +56,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 2072601337856
-    m_Localized: Regionen
+    m_Localized: Region
     m_Metadata:
       m_Items: []
   - m_Id: 2031006425088
-    m_Localized: Sprachen
+    m_Localized: Sprache
     m_Metadata:
       m_Items: []
   - m_Id: 2004695556096
@@ -68,7 +68,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1903176622080
-    m_Localized: Klang
+    m_Localized: Soundeffekte
     m_Metadata:
       m_Items: []
   - m_Id: 3237728657408
@@ -92,7 +92,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3782853959680
-    m_Localized: Zimmercode
+    m_Localized: Room Code
     m_Metadata:
       m_Items: []
   - m_Id: 3921672839168
@@ -100,7 +100,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4010407534592
-    m_Localized: Ihr Zimmercode lautet
+    m_Localized: Ihr Room Code lautet
     m_Metadata:
       m_Items: []
   - m_Id: 4211050455040
@@ -120,11 +120,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4421302525952
-    m_Localized: Ihre erhaltenen Punkte
+    m_Localized: Dein Buddy-Wissen
     m_Metadata:
       m_Items: []
   - m_Id: 4817202880512
-    m_Localized: Ihre Freundespunkte
+    m_Localized: Sein Buddy-Wissen
     m_Metadata:
       m_Items: []
   - m_Id: 4928997859328

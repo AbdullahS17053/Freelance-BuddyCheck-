@@ -198,10 +198,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount);
+            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount) * 2;
 
-            if (hintRoundEach < 2)
-                hintRoundEach = 2;
+            if (hintRoundEach < 4)
+                hintRoundEach = 4;
 
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
@@ -222,10 +222,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.IsMasterClient)
         {
-            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount);
+            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount) * 2;
 
-            if (hintRoundEach < 2)
-                hintRoundEach = 2;
+            if (hintRoundEach < 4)
+                hintRoundEach = 4;
 
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);

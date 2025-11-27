@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 using static UnityEngine.GraphicsBuffer;
 
@@ -17,6 +19,7 @@ public class FriendStats
     public int totalPossibleBtoA;     // For calculating % later
     public int avatarIndex;
     public string lastPlayed;
+
 }
 
 public class PlayerStatistics : MonoBehaviour
@@ -49,10 +52,17 @@ public class PlayerStatistics : MonoBehaviour
     public TextMeshProUGUI[] BtoAtotal;
     public TextMeshProUGUI[] BtoAtotalPercent;
     public TextMeshProUGUI[] lastPlayed;
+    [Header("Buddy Score UI")]
+    public TextMeshProUGUI[] buddyScoreText;
+    public TextMeshProUGUI[] buddyRankText;
+    public TextMeshProUGUI[] buddyRankExtraText;
 
-    private void Awake()
+
+    private void Start()
     {
         instance = this;
+
+        LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
 
         if (hardResetOnStart)
         {
@@ -60,6 +70,10 @@ public class PlayerStatistics : MonoBehaviour
         }
 
         LoadStats();
+        UpdateDisplay();
+    }
+    private void OnLocaleChanged(Locale obj)
+    {
         UpdateDisplay();
     }
 
@@ -180,6 +194,20 @@ public class PlayerStatistics : MonoBehaviour
                 // Last Played
                 lastPlayed[i].text = f.lastPlayed;
 
+                // -----------------------------
+                // BUDDYSCORE + RANK
+                // -----------------------------
+                float score = GetBuddyScore(f);
+                BuddyRankInfo rankInfo = GetRank(score);
+
+                buddyScoreText[i].text = score + "%";
+
+                bool isGerman = (Menus.instance.GetLanguageIndex() == 1);
+
+                buddyRankText[i].text = isGerman ? rankInfo.rankDE : rankInfo.rankEN;
+                buddyRankExtraText[i].text = isGerman ? rankInfo.extraDE : rankInfo.extraEN;
+
+
                 // ensure UI is visible
                 names[i].transform.parent.gameObject.transform.parent.gameObject.SetActive(true);
             }
@@ -196,6 +224,82 @@ public class PlayerStatistics : MonoBehaviour
 
         float percent = (points / (float)possible) * 100f;
         return Mathf.RoundToInt(percent) + "%";
+    }
+    // ---------------------------------------------------------
+    // BUDDY SCORE SYSTEM
+    // ---------------------------------------------------------
+
+    [System.Serializable]
+    public class BuddyRankInfo
+    {
+        public string rankEN;
+        public string rankDE;
+        public string extraEN;
+        public string extraDE;
+        public int min;
+        public int max;
+    }
+
+    public BuddyRankInfo[] buddyRanks = new BuddyRankInfo[]
+    {
+    new BuddyRankInfo {
+        rankEN="Brobuddy",        rankDE="Brobuddy",
+        extraEN="You two are basically sharing one brain.",
+        extraDE="Ihr teilt euch im Grunde dasselbe Gehirn.",
+        min=80, max=100
+    },
+    new BuddyRankInfo {
+        rankEN="Co-Pilot Buddy",  rankDE="Beifahrerbuddy",
+        extraEN="Always there, always on track.",
+        extraDE="Immer da, immer auf Kurs.",
+        min=65, max=79
+    },
+    new BuddyRankInfo {
+        rankEN="Parallel-Class Buddy", rankDE="Parallelklassbuddy",
+        extraEN="You know each other surprisingly well.",
+        extraDE="Ihr kennt euch überraschend gut.",
+        min=50, max=64
+    },
+    new BuddyRankInfo {
+        rankEN="Bronze Buddy",   rankDE="Bronzebuddy",
+        extraEN="Not bad — but still some mysteries left.",
+        extraDE="Nicht schlecht — aber es gibt noch einige Geheimnisse.",
+        min=35, max=49
+    },
+    new BuddyRankInfo {
+        rankEN="Spare Tire Buddy", rankDE="Ersatzradbuddy",
+        extraEN="Reliable… in emergencies.",
+        extraDE="Zuverlässig… in Notfällen.",
+        min=20, max=34
+    },
+    new BuddyRankInfo {
+        rankEN="Mr. Nobuddy",    rankDE="Mr. Nobuddy",
+        extraEN="Time for a coffee? You two could need it.",
+        extraDE="Zeit für einen Kaffee? Ihr könntet ihn gebrauchen.",
+        min=0, max=19
+    }
+    };
+    private BuddyRankInfo GetRank(float score)
+    {
+        foreach (var r in buddyRanks)
+        {
+            if (score >= r.min && score <= r.max)
+                return r;
+        }
+        return buddyRanks[buddyRanks.Length - 1];
+    }
+
+    private float GetBuddyScore(FriendStats f)
+    {
+        float aToB = f.totalPossibleAtoB > 0
+            ? (f.totalPointsAtoB / (float)f.totalPossibleAtoB) * 100f : 0f;
+
+        float bToA = f.totalPossibleBtoA > 0
+            ? (f.totalPointsBtoA / (float)f.totalPossibleBtoA) * 100f : 0f;
+
+        float final = (aToB + bToA) / 2f;
+
+        return Mathf.Round(final);
     }
 
     public void HardReset()
