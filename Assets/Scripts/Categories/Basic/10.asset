@@ -16,15 +16,18 @@ MonoBehaviour:
   - Bad gifts
   - Schlechte Geschenke
   - Malos regalos
+  - Mauvais cadeaux
   good:
   - Great gifts
   - 'Gute Geschenke '
   - Grandes regalos
+  - De superbes cadeaux
   example:
   - Homemade voucher for a dinner together
   - "Selbstgemachter Gutschein f\xFCr ein gemeinsames Abendessen"
   - Vale casero para una cena juntos
+  - "Bon cadeau fait maison pour un d\xEEner ensemble"
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 8

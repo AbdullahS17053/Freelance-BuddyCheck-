@@ -16,15 +16,18 @@ MonoBehaviour:
   - Boring sport
   - 'Langweilige Sportart '
   - deporte aburrido
+  - Sport ennuyeux
   good:
   - 'Favorite sport '
   - Lieblingssportart
   - deporte favorito
+  - "Sport pr\xE9f\xE9r\xE9"
   example:
   - 'Watching Nordic walking on TV '
   - Nordic Walking im Fernsehen schauen
   - "Viendo marcha n\xF3rdica en la televisi\xF3n"
+  - "Regarder la marche nordique \xE0 la t\xE9l\xE9vision"
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 6

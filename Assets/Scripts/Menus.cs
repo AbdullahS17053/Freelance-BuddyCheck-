@@ -1,20 +1,22 @@
-﻿using UnityEngine.Localization;
-using UnityEngine.Localization.Settings;
-using UnityEngine.Video;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using TMPro;
-using UnityEngine.UIElements;
-using Image = UnityEngine.UI.Image;
+﻿using Photon.Pun;
 using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
+using UnityEngine.Video;
+using Image = UnityEngine.UI.Image;
 
 public class Menus : MonoBehaviour
 {
     public static Menus instance;
 
     // Language settings
-    public enum LanguageOption { English, German, Spanish }
+    public enum LanguageOption { English, Deutsch, Español, Français }
+
     public LanguageOption currentLanguage = LanguageOption.English;
     private Locale GetLocaleFromEnum(LanguageOption lang)
     {
@@ -22,10 +24,12 @@ public class Menus : MonoBehaviour
         {
             case LanguageOption.English:
                 return LocalizationSettings.AvailableLocales.Locales.Find(l => l.Identifier.Code == "en");
-            case LanguageOption.German:
+            case LanguageOption.Deutsch:
                 return LocalizationSettings.AvailableLocales.Locales.Find(l => l.Identifier.Code == "de");
-            case LanguageOption.Spanish:
+            case LanguageOption.Español:
                 return LocalizationSettings.AvailableLocales.Locales.Find(l => l.Identifier.Code == "es");
+            case LanguageOption.Français:
+                return LocalizationSettings.AvailableLocales.Locales.Find(l => l.Identifier.Code == "en");
             default:
                 return LocalizationSettings.AvailableLocales.Locales[0]; // fallback
         }
@@ -71,6 +75,10 @@ public class Menus : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        PhotonNetwork.KeepAliveInBackground = 60f;
+        Application.runInBackground = true;
     }
 
     void Start()
@@ -125,7 +133,15 @@ public class Menus : MonoBehaviour
         {
             if (Application.systemLanguage == SystemLanguage.German)
             {
-                currentLanguage = LanguageOption.German;
+                currentLanguage = LanguageOption.Deutsch;
+            }
+            else if (Application.systemLanguage == SystemLanguage.Spanish)
+            {
+                currentLanguage = LanguageOption.Español;
+            }
+            else if (Application.systemLanguage == SystemLanguage.French)
+            {
+                currentLanguage = LanguageOption.Français;
             }
             else
             {

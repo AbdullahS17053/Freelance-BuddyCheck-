@@ -16,15 +16,18 @@ MonoBehaviour:
   - Bad surprise
   - "Schlechte \xDCberraschung"
   - Mala sorpresa
+  - Mauvaise surprise
   good:
   - Nice surprise
   - "Sch\xF6ne \xDCberraschung"
   - agradable sorpresa
+  - Belle surprise
   example:
   - Your friend (who is always late) is not coming to late
   - "Der Freund (der immer zu sp\xF6t ist) kommt p\xFCnktlich"
   - Tu amigo (que siempre llega tarde) no llega demasiado tarde
+  - Ton ami (qui est toujours en retard) n'arrivera pas trop tard.
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 3

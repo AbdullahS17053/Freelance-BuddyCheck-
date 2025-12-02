@@ -1,5 +1,6 @@
 ﻿using ExitGames.Client.Photon;
 using Photon.Pun;
+using Photon.Pun.Demo.PunBasics;
 using Photon.Realtime;
 using System;
 using System.Collections.Generic;
@@ -91,6 +92,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private int tempScore;
     private int hintRoundEach = 0;
     private int voting = 0;
+    private int[] hinters;
     private int hintRound = 0;
     private int currentRound = 1;
     public int totalRounds = 2;
@@ -196,12 +198,14 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void StartGame()
     {
+        StatsManager.instance.SyncAllPlayersInfo();
+
         if (PhotonNetwork.IsMasterClient)
         {
-            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount) * 2;
+            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount);
 
-            if (hintRoundEach < 4)
-                hintRoundEach = 4;
+            if (hintRoundEach < 2)
+                hintRoundEach = 2;
 
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
@@ -222,14 +226,17 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.IsMasterClient)
         {
-            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount) * 2;
+            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount);
 
-            if (hintRoundEach < 4)
-                hintRoundEach = 4;
+
+            if (hintRoundEach < 2)
+                hintRoundEach = 2;
 
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         }
+
+        hinters = new int[PhotonNetwork.CurrentRoom.PlayerCount];
         // Reset ready states so match can start after hints
         readyForHints.Clear();
         foreach (Player p in PhotonNetwork.PlayerList)
@@ -291,6 +298,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void HintNewCategory()
     {
+
+
         hintCategoryID = UnityEngine.Random.Range(0, categories[0].categories.Length);
 
         foreach (var t in bad) t.text = categories[0].categories[hintCategoryID].bad[Menus.instance.GetLanguageIndex()];
@@ -303,23 +312,104 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         foreach (var t in scores) t.text = tempScore.ToString();
     }
-
     public void NewCategory()
     {
         // Only the host picks the category
         if (PhotonNetwork.IsMasterClient)
         {
+            int newID = 0;
+            int hinterr = 0;
             // Sort lists first
             hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
             hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
 
-            // Pick category AFTER sorting
-            int newID = UnityEngine.Random.Range(0, hintCatories.Count);
+
+            for (hinterr = 0; hinterr < hinters.Length; hinterr++)
+            {
+                if (hinters[hinterr] == 0 || hinters[hinterr] != hintCatories[newID].playerID)
+                {
+                    newID = UnityEngine.Random.Range(0, hintCatories.Count);
+                    hinters[hinterr] = hintCatories[newID].playerID;
+                    break;
+                }
+                else if (hinterr == hinters.Length - 1)
+                {
+                    for (int j = 0; j < hinters.Length; j++)
+                    {
+                        hinters[j] = 0;
+                    }
+
+                    newID = UnityEngine.Random.Range(0, hintCatories.Count);
+                    hinters[0] = hintCatories[newID].playerID;
+                    break;
+                }
+                else
+                {
+                    // skip same IDs
+                }
+            }
 
             // Broadcast to all clients
-            photonView.RPC("GameNewCategoryAll", RpcTarget.All, newID);
+            photonView.RPC("GameNewCategoryAll", RpcTarget.All, newID, hinterr);
+
         }
+
+        /* Maybe New Way
+
+        if (!PhotonNetwork.IsMasterClient) return; // Only Host picks
+
+        // Make sure categories are sorted (same across clients)
+        hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
+
+        // --- 1. Build list of player IDs that were already used ---
+        HashSet<int> usedPlayers = new HashSet<int>(hinters);
+
+        // --- 2. Build a list of VALID unused playerIDs ---
+        List<int> unusedPlayerIDs = hintCatories
+            .Select(c => c.playerID)
+            .Where(id => id != 0 && !usedPlayers.Contains(id))
+            .ToList();
+
+        // --- 3. If no unused players remain → reset rotation ---
+        if (unusedPlayerIDs.Count == 0)
+        {
+            for (int i = 0; i < hinters.Length; i++)
+                hinters[i] = 0;
+
+            usedPlayers.Clear();
+
+            // Rebuild fresh list
+            unusedPlayerIDs = hintCatories
+                .Select(c => c.playerID)
+                .Where(id => id != 0)
+                .ToList();
+        }
+
+        // --- 4. Randomly pick one unused player ---
+        int randomIndex = UnityEngine.Random.Range(0, unusedPlayerIDs.Count);
+        int chosenPlayerID = unusedPlayerIDs[randomIndex];
+
+        // --- 5. Store this chosen player into next empty hinters slot ---
+        int slot = -1;
+        for (int i = 0; i < hinters.Length; i++)
+        {
+            if (hinters[i] == 0)
+            {
+                slot = i;
+                break;
+            }
+        }
+
+        // If somehow slot is not found (shouldn't happen), default to 0
+        if (slot == -1) slot = 0;
+
+        hinters[slot] = chosenPlayerID;
+
+        // --- 6. Tell all clients the chosen playerID and slot ---
+        photonView.RPC("GameNewCategoryAll", RpcTarget.All, slot, chosenPlayerID);
+        */
     }
+
 
 
     [PunRPC]
@@ -329,8 +419,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    private void GameNewCategoryAll(int ID)
+    private void GameNewCategoryAll(int ID, int playerID)
     {
+        hinters[playerID] = hintCatories[ID].playerID;
         // Every client sorts the same way
         hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
         hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
@@ -964,15 +1055,20 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         playersPanel.SetActive(true);
         hostPanel.SetActive(false);
 
+        // --- Reset simple state ---
         gameActive = false;
         currentRound = 1;
+        currentHostAnswer = -1;
+        hintRound = 0;
+        voting = 0;
 
+        // --- Reset all lists ---
         playerTotalScores.Clear();
         currentRoundGuesses.Clear();
         readyForHints.Clear();
-
         hintCatories.Clear();
         hintStoredCatories.Clear();
+        chatMessages.Clear();
 
         ResetRoundState();
         InitializePlayerTracking();
@@ -991,7 +1087,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             profile.hideAnswers();
             profile.SetChatActivity(false);
         }
-
+        for (int j = 0; j < hinters.Length; j++)
+        {
+            hinters[j] = 0;
+        }
         messagePanel.SetActive(true);
 
         gameplayPanel.SetActive(false);
@@ -1158,14 +1257,20 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         playersPanel.SetActive(true);
         hostPanel.SetActive(false);
 
+        // --- Reset simple state ---
         gameActive = false;
         currentRound = 1;
+        currentHostAnswer = -1;
+        hintRound = 0;
+        voting = 0;
 
+        // --- Reset all lists ---
         playerTotalScores.Clear();
         currentRoundGuesses.Clear();
         readyForHints.Clear();
         hintCatories.Clear();
         hintStoredCatories.Clear();
+        chatMessages.Clear();
 
         ResetRoundState();
         InitializePlayerTracking();
@@ -1184,6 +1289,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             profile.hideAnswers();
             profile.SetChatActivity(false);
         }
+        for (int j = 0; j < hinters.Length; j++)
+        {
+            hinters[j] = 0;
+        }
+
 
         messagePanel.SetActive(false);
 

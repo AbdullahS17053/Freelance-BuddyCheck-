@@ -16,15 +16,18 @@ MonoBehaviour:
   - Bad proposal location
   - "Schlechter Ort f\xFCr Heiratsantrag"
   - "Mala ubicaci\xF3n de la propuesta"
+  - Mauvais emplacement de la proposition
   good:
   - Great proposal location
   - "Guter Ort f\xFCr Heiratsantrag "
   - "Excelente ubicaci\xF3n para la propuesta"
+  - Excellent emplacement de proposition
   example:
   - In line at an amusement park
   - In der Warteschlange im Freizeitpark
   - En la fila de un parque de atracciones
+  - Dans la file d'attente d'un parc d'attractions
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 4

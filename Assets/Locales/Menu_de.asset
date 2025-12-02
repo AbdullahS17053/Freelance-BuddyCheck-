@@ -72,7 +72,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3237728657408
-    m_Localized: "W\xE4hlen Sie Charakter aus"
+    m_Localized: "W\xE4hlen Sie einen Charakter aus"
     m_Metadata:
       m_Items: []
   - m_Id: 3464153964544
@@ -217,6 +217,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 11190993068032
     m_Localized: Meine Freunde
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2278213529804800
+    m_Localized: "Beispiel f\xFCr die Zahl"
     m_Metadata:
       m_Items: []
   references:

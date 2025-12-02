@@ -16,15 +16,18 @@ MonoBehaviour:
   - Boring topics
   - "Langweilige Gespr\xE4chsthemen"
   - Temas aburridos
+  - Sujets ennuyeux
   good:
   - Exciting topics
   - "Spannende Gespr\xE4chsthemen "
   - Temas interesantes
+  - Des sujets passionnants
   example:
   - 'Talking about the weather during a road trip '
   - Wetter auf einem Roadtrip
   - Hablando sobre el clima durante un viaje por carretera
+  - "Parler de la m\xE9t\xE9o pendant un voyage en voiture"
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 7

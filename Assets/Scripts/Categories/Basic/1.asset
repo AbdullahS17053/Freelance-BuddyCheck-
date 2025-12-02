@@ -16,15 +16,18 @@ MonoBehaviour:
   - Bad travel destination
   - Schlechtes Reiseziel
   - Mal destino de viaje
+  - Mauvaise destination de voyage
   good:
   - Great travel destination
   - 'Bestes Reiseziel '
   - Gran destino de viaje
+  - Excellente destination de voyage
   example:
   - Maldives during rainy season
   - Malediven in der Regenzeit
   - Maldivas durante la temporada de lluvias
+  - Les Maldives pendant la saison des pluies
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 9

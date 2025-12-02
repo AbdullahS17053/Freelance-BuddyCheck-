@@ -68,7 +68,7 @@ public class StatsManager : MonoBehaviourPunCallbacks
 
         return ids;
     }
-    private void SyncAllPlayersInfo()
+    public void SyncAllPlayersInfo()
     {
         allPlayersInfo.Clear();
 

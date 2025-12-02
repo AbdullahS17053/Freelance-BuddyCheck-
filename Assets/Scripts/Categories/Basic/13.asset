@@ -16,15 +16,18 @@ MonoBehaviour:
   - Bad food
   - Schlechtes Essen
   - mala comida
+  - Mauvaise nourriture
   good:
   - Favorite food
   - Lieblingsessen
   - comida favorita
+  - "Plat pr\xE9f\xE9r\xE9"
   example:
   - Supermarket sushi
   - Sushi vom Supermarkt
-  - sushi de supermercado
+  - Sushi de supermercado
+  - "Sushis de supermarch\xE9"
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 3

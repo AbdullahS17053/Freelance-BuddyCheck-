@@ -16,16 +16,20 @@ MonoBehaviour:
   - 'Bad Music '
   - Schlechte Musik
   - Mala musica
+  - Mauvaise musique
   good:
   - 'Favorite Song '
   - Lieblingslied
   - "Canci\xF3n favorita"
+  - "Chanson pr\xE9f\xE9r\xE9e"
   example:
   - 'A pop song you used to like but now find overplayed (Despacito) AYY FonSI! '
   - "Ein Popsong, den man fr\xFCher mochte, aber heute \xFCberspielt findet (Despacito)
     AYY FonSI!"
   - "Una canci\xF3n pop que te gustaba pero que ahora encuentras sobre escuchada
     (Despacito) \xA1AYY FonSI!"
+  - "Une chanson pop que vous aimiez bien mais que vous trouvez maintenant surjou\xE9e
+    (Despacito) AYY FonSI !"
   hint: 
   player: 
   playerID: 0

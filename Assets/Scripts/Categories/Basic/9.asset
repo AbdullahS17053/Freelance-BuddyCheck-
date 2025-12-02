@@ -16,15 +16,18 @@ MonoBehaviour:
   - Villain
   - "B\xF6sewicht"
   - Villano
+  - "M\xE9chant"
   good:
   - Hero
   - 'Held '
   - "H\xE9roe"
+  - "H\xE9ros"
   example:
   - ' Robin Hood '
   - ' Robin Hood'
   - Robin Hood
+  - Robin des Bois
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 3

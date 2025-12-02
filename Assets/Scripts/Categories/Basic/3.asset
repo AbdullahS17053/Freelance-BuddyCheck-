@@ -16,14 +16,17 @@ MonoBehaviour:
   - 'Useless superpower '
   - "Unn\xFCtze Superkraft "
   - "Superpotencia in\xFAtil"
+  - Superpouvoir inutile
   good:
   - 'Useful superpower '
   - "N\xFCtzliche Superkraft"
   - "Superpoder \xFAtil"
+  - Superpouvoir utile
   example:
   - ' Always keeping a white T-shirt clean'
   - "Immer wei\xDFes T-Shirt sauber halten"
   - Mantener siempre limpia una camiseta blanca
+  - Toujours garder un t-shirt blanc propre
   hint: 
   player: 
   playerID: 0

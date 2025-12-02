@@ -16,15 +16,18 @@ MonoBehaviour:
   - 'Bad movie ending '
   - 'Schlechtes Filmende '
   - "Mal final de pel\xEDcula"
+  - Mauvaise fin du film
   good:
   - Great movie ending
   - Gutes Filmende
   - "Gran final de pel\xEDcula"
+  - Superbe fin de film
   example:
   - The ending of Titanic
   - "Ende von \u201ETitanic"
   - El final del Titanic
+  - La fin du Titanic
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 6

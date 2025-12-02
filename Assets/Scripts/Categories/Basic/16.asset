@@ -16,15 +16,18 @@ MonoBehaviour:
   - 'Useless Invention '
   - Sinnlose Erfindung
   - "Invenci\xF3n in\xFAtil"
+  - Invention inutile
   good:
   - Brilliant Invention
   - "Regenschirm f\xFCr Schuhe"
   - "Invenci\xF3n brillante"
+  - "Invention g\xE9niale"
   example:
   - 'Umbrella for shoes '
   - "Regenschirm f\xFCr Schuhe"
   - paraguas para zapatos
+  - Parapluie pour chaussures
   hint: 
   player: 
   playerID: 0
-  score: 4
+  score: 7

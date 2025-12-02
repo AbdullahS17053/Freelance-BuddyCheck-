@@ -219,6 +219,10 @@ MonoBehaviour:
     m_Localized: Mis amigas
     m_Metadata:
       m_Items: []
+  - m_Id: 2278213529804800
+    m_Localized: Example for the number
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

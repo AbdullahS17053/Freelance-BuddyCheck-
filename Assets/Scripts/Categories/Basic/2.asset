@@ -16,15 +16,18 @@ MonoBehaviour:
   - Things I'd never do again
   - "Dinge, die ich nie wieder machen w\xFCrde"
   - "Cosas que nunca volver\xEDa a hacer"
+  - Des choses que je ne referais plus jamais
   good:
   - Things I'd love to do again
   - "Dinge, die ich gerne wieder machen w\xFCrde"
   - "Cosas que me encantar\xEDa volver a hacer"
+  - Choses que j'aimerais refaire
   example:
   - Camping in the rain
   - Zelten im Regen
   - Acampar bajo la lluvia
+  - Camping sous la pluie
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 5

@@ -16,15 +16,18 @@ MonoBehaviour:
   - Hated vacation activity
   - "Hassbesch\xE4ftigung im Urlaub"
   - Odiada actividad de vacaciones
+  - "Activit\xE9 de vacances d\xE9test\xE9e"
   good:
   - 'Favorite vacation activity '
   - "Lieblingsbesch\xE4ftigung im Urlaub "
   - Actividad de vacaciones favorita
+  - "Activit\xE9 de vacances pr\xE9f\xE9r\xE9e"
   example:
   - ' Waking up early every day to see tourist spots'
   - "Jeden Morgen fr\xFCh aufstehen, um Sehensw\xFCrdigkeiten zu sehen"
   - "Despertarse temprano todos los d\xEDas para ver lugares tur\xEDsticos."
+  - "Se r\xE9veiller t\xF4t tous les jours pour visiter les sites touristiques"
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 2

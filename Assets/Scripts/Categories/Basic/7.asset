@@ -16,15 +16,18 @@ MonoBehaviour:
   - Bad date idea
   - Schlechte Dateidee
   - Mala idea para una cita
+  - "Mauvaise id\xE9e de rendez-vous"
   good:
   - 'Great date idea '
   - 'Gute Dateidee '
   - Gran idea para una cita
+  - "Excellente id\xE9e de rendez-vous"
   example:
   - Movie date with a 4-hour film
   - Kino-Date bei einem 4-Stunden-Film
   - "Cita de cine con una pel\xEDcula de 4 horas"
+  - "Sortie cin\xE9ma avec un film de 4 heures"
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 7

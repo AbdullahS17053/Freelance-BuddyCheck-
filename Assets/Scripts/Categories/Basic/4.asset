@@ -16,15 +16,18 @@ MonoBehaviour:
   - Annoying sound
   - "Nerviges Ger\xE4usch"
   - sonido molesto
+  - "Son g\xEAnant"
   good:
   - Calming sound
   - "Beruhigendes Ger\xE4usch"
   - sonido calmante
+  - Son apaisant
   example:
   - Ticking clock in an empty room
   - Ticken einer Uhr in einem leeren Raum
   - "Reloj haciendo tictac en una habitaci\xF3n vac\xEDa"
+  - "Le tic-tac d'une horloge dans une pi\xE8ce vide"
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 1

@@ -16,14 +16,17 @@ MonoBehaviour:
   - 'Red flag '
   - Red Flag
   - Bandera roja
+  - Drapeau rouge
   good:
   - 'Green flag '
   - Green Flag
   - Bandera Verde
+  - Drapeau vert
   example:
   - ' Always available, but has no own hobbies'
   - Immer erreichbar, aber keine eigenen Hobbys
   - Siempre disponible, pero no tiene aficiones propias.
+  - Toujours disponible, mais sans passe-temps propres.
   hint: 
   player: 
   playerID: 0

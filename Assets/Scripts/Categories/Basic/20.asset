@@ -16,15 +16,18 @@ MonoBehaviour:
   - 'Ugly Animal '
   - "H\xE4ssliches Tier"
   - animal feo
+  - Animal laid
   good:
   - Beautiful Animal
   - "H\xFCbsches Tier "
   - Hermoso animal
+  - Bel animal
   example:
   - ' A naked mole-rat wearing a ribbon'
   - Ein Nacktmull mit Schleife
   - Una rata topo desnuda con una cinta
+  - Un rat-taupe nu portant un ruban
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 8

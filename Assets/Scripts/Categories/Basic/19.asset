@@ -16,15 +16,18 @@ MonoBehaviour:
   - Boring Movie/series
   - Langweiliger Film/serie
   - "Pel\xEDcula/serie aburrida"
+  - "Film/s\xE9rie ennuyeux"
   good:
   - Favorite Movie/series
   - Lieblingsfilm /serie
   - "Pel\xEDcula/serie favorita"
+  - "Film/s\xE9rie pr\xE9f\xE9r\xE9(e)"
   example:
   - ' A visually beautiful film with little plot '
   - "Ein Film mit sch\xF6ner Optik, aber kaum Handlung"
   - "Una pel\xEDcula visualmente hermosa con poca trama."
+  - Un film visuellement magnifique, mais avec une intrigue minimaliste.
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 3

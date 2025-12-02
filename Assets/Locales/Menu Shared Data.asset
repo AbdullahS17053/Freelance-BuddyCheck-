@@ -215,6 +215,10 @@ MonoBehaviour:
     m_Key: stats.myFriends
     m_Metadata:
       m_Items: []
+  - m_Id: 2278213529804800
+    m_Key: example.text
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

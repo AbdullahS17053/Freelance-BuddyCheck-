@@ -16,15 +16,18 @@ MonoBehaviour:
   - Nightmare job
   - Alptraumjob
   - trabajo de pesadilla
+  - Un travail de cauchemar
   good:
   - 'Dream job '
   - Traumjob
   - "Trabajo de ensue\xF1o"
+  - "Travail de r\xEAve"
   example:
   - Complaint call center
   - "Callcenter f\xFCr Beschwerden"
   - Centro de llamadas para quejas
+  - "Centre d'appels pour les r\xE9clamations"
   hint: 
   player: 
   playerID: 0
-  score: 0
+  score: 1
