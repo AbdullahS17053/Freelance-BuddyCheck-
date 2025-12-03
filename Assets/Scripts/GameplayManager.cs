@@ -202,10 +202,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (PhotonNetwork.IsMasterClient)
         {
-            hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount);
+            hintRoundEach = totalRounds;
 
-            if (hintRoundEach < 2)
-                hintRoundEach = 2;
 
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);

@@ -60,6 +60,7 @@ public class Menus : MonoBehaviour
     public string termsURL = "https://buddycheck.app/terms-and-conditions-english";
     public string privacyURL = "https://buddycheck.app/privacy-english";
     public string aboutURL = "https://buddycheck.app/impressum";
+    public GameObject signIn;
     public VideoPlayer videoPlayer;
 
 
@@ -98,7 +99,10 @@ public class Menus : MonoBehaviour
 
     void OnVideoEnd(VideoPlayer vp)
     {
-        StartCoroutine(DisableAfterDelay(vp));
+        signIn.SetActive(true);
+        
+        
+        //StartCoroutine(DisableAfterDelay(vp));
     }
 
     private IEnumerator DisableAfterDelay(VideoPlayer vp)
