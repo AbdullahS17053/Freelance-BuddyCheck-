@@ -50015,6 +50015,7 @@ MonoBehaviour:
   registerPanel: {fileID: 5919466021373151081}
   mainMenuPanel: {fileID: 1587438115}
   UI_Loading: {fileID: 1196097678}
+  doneButton: {fileID: 1787384116}
   loginEmailField: {fileID: 4099542719673052327}
   loginPasswordField: {fileID: 4099542721267588387}
   loginErrorUI: {fileID: 584311020}
@@ -91928,19 +91929,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4928603992599700233}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1307127394}
-        m_TargetAssemblyTypeName: LoginManager, Assembly-CSharp
-        m_MethodName: BuyFullVersion
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &4928603992599700233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92019,6 +92008,7 @@ GameObject:
   - component: {fileID: 4928603992599700233}
   - component: {fileID: 4928603992599700232}
   - component: {fileID: 4928603992599700235}
+  - component: {fileID: 4928603992599700343}
   m_Layer: 0
   m_Name: Button_Subscribe now
   m_TagString: Untagged
@@ -92034,6 +92024,46 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4928603992599700237}
   m_CullTransparentMesh: 0
+--- !u!114 &4928603992599700343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4928603992599700237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b79b5624d944058bd39aad2b90fb275, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  productId: ads
+  buttonType: 0
+  consumePurchase: 1
+  onTransactionsRestored:
+    m_PersistentCalls:
+      m_Calls: []
+  onPurchaseComplete:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1307127394}
+        m_TargetAssemblyTypeName: LoginManager, Assembly-CSharp
+        m_MethodName: BuyFullVersion
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  onPurchaseFailed:
+    m_PersistentCalls:
+      m_Calls: []
+  onProductFetched:
+    m_PersistentCalls:
+      m_Calls: []
+  button: {fileID: 4928603992599700232}
 --- !u!222 &4928603992599922912
 CanvasRenderer:
   m_ObjectHideFlags: 0

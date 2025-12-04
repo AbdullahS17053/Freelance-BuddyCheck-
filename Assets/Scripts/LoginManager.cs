@@ -28,6 +28,7 @@ public class LoginManager : MonoBehaviour
     public GameObject registerPanel;
     public GameObject mainMenuPanel;
     public GameObject UI_Loading;
+    public GameObject doneButton;
 
     [Header("Login Fields")]
     public TMP_InputField loginEmailField;
@@ -115,6 +116,12 @@ public class LoginManager : MonoBehaviour
             userEmail = data.email;
             userPassword = password;
             fullVersion = int.Parse(data.fullVersion);
+
+            if(fullVersion == 1)
+            {
+
+                doneButton.SetActive(true);
+            }
 
             SavePlayerData();
             OpenMainMenu();
@@ -212,6 +219,7 @@ public class LoginManager : MonoBehaviour
             if (data.success.ToLower() == "true")
             {
                 fullVersion = 1;
+                doneButton.SetActive(true);
                 SavePlayerData();
                 Debug.Log("Purchase successful! Full version unlocked.");
             }
