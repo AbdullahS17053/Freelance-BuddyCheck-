@@ -18,6 +18,8 @@ public static class Utils
 }
 public class LoginManager : MonoBehaviour
 {
+    public static LoginManager Instance;
+
     [Header("Web App URL")]
     public string webAppUrl = "https://script.google.com/macros/s/AKfycbxTk_86k7ziXLH_I7RrNuE0h03BAbFnccZLZUgin5W32KEq_cR2JZ_GvO8QJ0smtiNi/exec";
 
@@ -44,6 +46,11 @@ public class LoginManager : MonoBehaviour
     public string userEmail;
     public string userPassword;
     public int fullVersion;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {

@@ -3,11 +3,13 @@ using Photon.Pun;
 using Photon.Pun.Demo.PunBasics;
 using Photon.Realtime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class GameplayManager : MonoBehaviourPunCallbacks
 {
@@ -198,13 +200,19 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void StartGame()
     {
+        // This only runs after ad unlock or immediately if no ad required
         StatsManager.instance.SyncAllPlayersInfo();
 
-        if (PhotonNetwork.IsMasterClient)
+        if (LoginManager.Instance.fullVersion == 1)
         {
+
+            Hashtable props3 = new Hashtable
+            {
+                ["my_purchase"] = 1        // Buyer marker
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(props3);
+
             hintRoundEach = totalRounds;
-
-
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
 
@@ -212,9 +220,31 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             var props2 = new Hashtable { [VOTING] = voting };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props2);
         }
+        else
+        {
+            StartCoroutine(WaitForAllPlayersReadyForHints());
+        }
+    }
 
-        HintCollection(); // Local for master
-        photonView.RPC("HintCollection", RpcTarget.Others);
+    IEnumerator WaitForAllPlayersReadyForHints()
+    {
+        yield return new WaitForSeconds(1f);
+
+        bool someonePurchased = PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("my_purchase");
+
+        if (someonePurchased)
+        {
+            Debug.Log("Buyer in room → No ads, start game immediately");
+
+            HintCollection();
+            yield break;
+        }
+
+        // No buyer → ALL players must unlock via rewarded ad
+        AdCommunicator.Instance.TryStartGame(() =>
+        {
+            HintCollection();
+        });
     }
 
     [PunRPC]
@@ -268,19 +298,26 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         Debug.Log("Proceeding to next phase..." + currentRound + " ||| " + totalRounds);
 
         StatsManager.instance.UpdatePlayerStatistics();
+        AdCommunicator.Instance.ShowEndOfRoundAd();
+        if (currentRound > totalRounds) 
+        {
+            ShowOverallLeaderboard();
 
-        if (currentRound > totalRounds) ShowOverallLeaderboard();
-        else StartNewRound();
+        }
+        else
+        {
+            StartNewRound();
+        }
     }
 
     #endregion
-    // -----------------------------------------------------------
+        // -----------------------------------------------------------
 
 
 
-    // -----------------------------------------------------------
-    #region HINT SYSTEM
-    // -----------------------------------------------------------
+        // -----------------------------------------------------------
+        #region HINT SYSTEM
+        // -----------------------------------------------------------
 
     public void ToggleExampleButton(bool toggle = true)
     {

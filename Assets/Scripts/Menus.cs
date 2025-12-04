@@ -63,7 +63,6 @@ public class Menus : MonoBehaviour
     public GameObject signIn;
     public VideoPlayer videoPlayer;
 
-
     private void Awake()
     {
         videoPlayer.gameObject.SetActive(true);

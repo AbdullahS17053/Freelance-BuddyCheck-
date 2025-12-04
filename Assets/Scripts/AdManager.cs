@@ -12,6 +12,7 @@ public class AdManager : MonoBehaviour
     private RewardedAd rewarded;
 
     public GameObject noAdLoadedPanel;
+    public GameObject boughtButton;
 
     void Awake()
     {
@@ -158,5 +159,12 @@ public class AdManager : MonoBehaviour
         });
 
         rewarded = null;
+    }
+
+
+    public void BuyAds()
+    {
+        boughtButton.SetActive(true);
+        LoginManager.Instance.BuyFullVersion();
     }
 }
