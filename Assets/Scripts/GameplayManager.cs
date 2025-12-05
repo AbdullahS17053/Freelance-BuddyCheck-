@@ -203,6 +203,21 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         // This only runs after ad unlock or immediately if no ad required
         StatsManager.instance.SyncAllPlayersInfo();
 
+        hintRoundEach = totalRounds;
+        var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+
+        voting = 0;
+        var props2 = new Hashtable { [VOTING] = voting };
+        PhotonNetwork.CurrentRoom.SetCustomProperties(props2);
+
+        photonView.RPC("CheckFullVersions", RpcTarget.All);
+
+
+    }
+    [PunRPC]
+    private void CheckFullVersions()
+    {
         if (LoginManager.Instance.fullVersion == 1)
         {
 
@@ -212,15 +227,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props3);
 
-            hintRoundEach = totalRounds;
-            var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
-
-            voting = 0;
-            var props2 = new Hashtable { [VOTING] = voting };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(props2);
         }
-        else
+
+        if(PhotonNetwork.IsMasterClient)
         {
             StartCoroutine(WaitForAllPlayersReadyForHints());
         }
@@ -228,7 +237,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     IEnumerator WaitForAllPlayersReadyForHints()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         bool someonePurchased = PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("my_purchase");
 
@@ -236,21 +245,19 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             Debug.Log("Buyer in room → No ads, start game immediately");
 
-            HintCollection();
+            photonView.RPC("HintCollection", RpcTarget.All, false);
             yield break;
         }
 
-        // No buyer → ALL players must unlock via rewarded ad
-        AdCommunicator.Instance.TryStartGame(() =>
-        {
-            HintCollection();
-        });
+        photonView.RPC("HintCollection", RpcTarget.All, true);
+
     }
 
     [PunRPC]
-    private void HintCollection()
+    private void HintCollection(bool ad)
     {
         Debug.Log("New Hint Round of " + hintRoundEach);
+
 
         if (PhotonNetwork.IsMasterClient)
         {
@@ -274,6 +281,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         waitingForPlayersPanel.SetActive(true);
         hintPanel.SetActive(true);
         HintNewCategory();
+
+
+        if (ad)
+        {
+            AdCommunicator.Instance.TryStartGame();
+        }
     }
     private void StartNewRound()
     {
@@ -298,7 +311,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         Debug.Log("Proceeding to next phase..." + currentRound + " ||| " + totalRounds);
 
         StatsManager.instance.UpdatePlayerStatistics();
-        AdCommunicator.Instance.ShowEndOfRoundAd();
         if (currentRound > totalRounds) 
         {
             ShowOverallLeaderboard();
@@ -672,8 +684,16 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             realAnswer.SetActive(true);
             ShowPlayerAnswers();
             Invoke("ProceedToNextPhase", 3f);
+
+            photonView.RPC("showAllaAds", RpcTarget.All);
         }
     }
+    [PunRPC]
+    private void showAllaAds()
+    {
+        AdCommunicator.Instance.ShowEndOfRoundAd();
+    }
+
     private int CalculatePoints(int guess, int answer)
     {
         int diff = Mathf.Abs(guess - answer);

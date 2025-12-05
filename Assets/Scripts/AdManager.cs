@@ -57,7 +57,6 @@ public class AdManager : MonoBehaviour
 
             interstitial.OnAdFullScreenContentClosed += () =>
             {
-                Time.timeScale = 1f;
                 LoadInterstitialMain();
             };
         });
@@ -82,7 +81,6 @@ public class AdManager : MonoBehaviour
 
             interstitialBuffer.OnAdFullScreenContentClosed += () =>
             {
-                Time.timeScale = 1f;
                 LoadInterstitialBuffer();
             };
         });
@@ -95,7 +93,7 @@ public class AdManager : MonoBehaviour
     {
         if (interstitial != null)
         {
-            Time.timeScale = 0f;
+            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
             interstitial.Show();
             interstitial = null;
             return;
@@ -103,14 +101,15 @@ public class AdManager : MonoBehaviour
 
         if (interstitialBuffer != null)
         {
-            Time.timeScale = 0f;
+            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
             interstitialBuffer.Show();
             interstitialBuffer = null;
             return;
         }
 
+        LoadInterstitialMain();
+        LoadInterstitialBuffer();
         if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
-
         Debug.Log("No interstitial loaded.");
     }
 
@@ -126,6 +125,7 @@ public class AdManager : MonoBehaviour
             if (error != null || ad == null)
             {
                 Debug.LogWarning("Rewarded failed to load: " + error);
+                if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
                 return;
             }
 
@@ -133,7 +133,6 @@ public class AdManager : MonoBehaviour
 
             rewarded.OnAdFullScreenContentClosed += () =>
             {
-                Time.timeScale = 1f;
                 LoadRewarded();
             };
         });
@@ -142,20 +141,20 @@ public class AdManager : MonoBehaviour
     // -----------------------------------------------------
     // SHOW REWARDED
     // -----------------------------------------------------
-    public void ShowRewarded(Action onReward)
+    public void ShowRewarded()
     {
-        if (rewarded == null)
+        if (rewarded == null || !rewarded.CanShowAd())
         {
             if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
+            LoadRewarded();
             Debug.Log("Rewarded not loaded.");
             return;
         }
-
-        Time.timeScale = 0f;
+        if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
 
         rewarded.Show(reward =>
         {
-            onReward?.Invoke();
+            // onReward?.Invoke();
         });
 
         rewarded = null;

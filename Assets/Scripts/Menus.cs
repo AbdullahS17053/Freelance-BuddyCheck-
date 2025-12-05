@@ -95,7 +95,7 @@ public class Menus : MonoBehaviour
             EULA.SetActive(true);
         }
 
-        videoPlayer.loopPointReached += OnVideoEnd;
+        signIn.SetActive(true);
     }
 
     void OnVideoEnd(VideoPlayer vp)

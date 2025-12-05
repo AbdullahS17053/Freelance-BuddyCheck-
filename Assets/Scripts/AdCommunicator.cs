@@ -24,20 +24,12 @@ public class AdCommunicator : MonoBehaviourPunCallbacks
     /// <summary>
     /// Call this at the start of a game
     /// </summary>
-    public void TryStartGame(Action onGameStart)
+    public void TryStartGame()
     {
-        if(LoginManager.Instance.fullVersion == 1)
+        if(LoginManager.Instance.fullVersion != 1)
         {
-            Debug.Log("Buyer in room → No ads, start game immediately");
-            onGameStart?.Invoke();
-            return;
-        }
-        else
-        {
-            ShowLongAd(() =>
-            {
-                onGameStart?.Invoke();
-            });
+            Debug.Log("No buyer in room → ads");
+            ShowLongAd();
         }
     }
 
@@ -55,25 +47,24 @@ public class AdCommunicator : MonoBehaviourPunCallbacks
     // ----------------------------
     // Mock ad methods
     // ----------------------------
-    private void ShowLongAd(Action onComplete)
+    private void ShowLongAd()
     {
         Debug.Log("Showing LONG rewarded ad...");
 
         if(LoginManager.Instance.fullVersion != 1)
         {
             // Replace with actual ad SDK call
-            AdManager.Instance.ShowRewarded(() =>
-            {
-                onComplete?.Invoke();
-            });
+            AdManager.Instance.ShowRewarded();
         }
     }
 
     private void ShowShortAd()
     {
+        if (LoginManager.Instance.fullVersion != 1)
+        {
+            // Replace with actual ad SDK call
+            AdManager.Instance.ShowInterstitial();
+        }
         Debug.Log("Showing SHORT interstitial ad...");
-
-        // Replace with actual ad SDK call
-        AdManager.Instance.ShowInterstitial();
     }
 }
