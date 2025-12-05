@@ -7,9 +7,10 @@ public class AdManager : MonoBehaviour
     public static AdManager Instance;
 
     private InterstitialAd interstitial;
-    private InterstitialAd interstitialBuffer;
+    private bool isInterstitialLoading = false;
 
     private RewardedAd rewarded;
+    private bool isRewardedLoading = false;
 
     public GameObject noAdLoadedPanel;
     public GameObject boughtButton;
@@ -26,30 +27,30 @@ public class AdManager : MonoBehaviour
 
     void Start()
     {
-        MobileAds.Initialize(_ => {
-            PreloadAds();
-        });
+        MobileAds.Initialize(_ => PreloadAds());
     }
 
-    void PreloadAds()
+    private void PreloadAds()
     {
-        LoadInterstitialMain();
-        LoadInterstitialBuffer();
+        LoadInterstitial();
         LoadRewarded();
     }
 
-    // -----------------------------------------------------
-    // LOAD MAIN INTERSTITIAL
-    // -----------------------------------------------------
-    void LoadInterstitialMain()
+    // ------------------- INTERSTITIAL -------------------
+    private void LoadInterstitial()
     {
-        string adId = "ca-app-pub-3940256099942544/1033173712";
+        if (isInterstitialLoading || interstitial != null) return;
+
+        isInterstitialLoading = true;
+        string adId = "ca-app-pub-3940256099942544/1033173712"; // Test ID
 
         InterstitialAd.Load(adId, new AdRequest(), (ad, error) =>
         {
+            isInterstitialLoading = false;
+
             if (error != null || ad == null)
             {
-                Debug.LogWarning("Main interstitial failed to load: " + error);
+                Debug.LogWarning("Interstitial failed to load: " + error);
                 return;
             }
 
@@ -57,71 +58,43 @@ public class AdManager : MonoBehaviour
 
             interstitial.OnAdFullScreenContentClosed += () =>
             {
-                LoadInterstitialMain();
+                interstitial = null;
+                LoadInterstitial();
             };
+
+            Debug.Log("Interstitial loaded.");
         });
     }
 
-    // -----------------------------------------------------
-    // LOAD BUFFER INTERSTITIAL
-    // -----------------------------------------------------
-    void LoadInterstitialBuffer()
-    {
-        string adId = "ca-app-pub-3940256099942544/1033173712";
-
-        InterstitialAd.Load(adId, new AdRequest(), (ad, error) =>
-        {
-            if (error != null || ad == null)
-            {
-                Debug.LogWarning("Buffer interstitial failed to load: " + error);
-                return;
-            }
-
-            interstitialBuffer = ad;
-
-            interstitialBuffer.OnAdFullScreenContentClosed += () =>
-            {
-                LoadInterstitialBuffer();
-            };
-        });
-    }
-
-    // -----------------------------------------------------
-    // SHOW INTERSTITIAL
-    // -----------------------------------------------------
     public void ShowInterstitial()
     {
         if (interstitial != null)
         {
-            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
             interstitial.Show();
             interstitial = null;
-            return;
-        }
-
-        if (interstitialBuffer != null)
-        {
+            LoadInterstitial();
             if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
-            interstitialBuffer.Show();
-            interstitialBuffer = null;
-            return;
         }
-
-        LoadInterstitialMain();
-        LoadInterstitialBuffer();
-        if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
-        Debug.Log("No interstitial loaded.");
+        else
+        {
+            Debug.Log("No interstitial loaded yet.");
+            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
+            LoadInterstitial();
+        }
     }
 
-    // -----------------------------------------------------
-    // LOAD REWARDED
-    // -----------------------------------------------------
-    void LoadRewarded()
+    // ------------------- REWARDED -------------------
+    private void LoadRewarded()
     {
-        string adId = "ca-app-pub-3940256099942544/5224354917";
+        if (isRewardedLoading || rewarded != null) return;
+
+        isRewardedLoading = true;
+        string adId = "ca-app-pub-3940256099942544/5224354917"; // Test ID
 
         RewardedAd.Load(adId, new AdRequest(), (ad, error) =>
         {
+            isRewardedLoading = false;
+
             if (error != null || ad == null)
             {
                 Debug.LogWarning("Rewarded failed to load: " + error);
@@ -133,37 +106,39 @@ public class AdManager : MonoBehaviour
 
             rewarded.OnAdFullScreenContentClosed += () =>
             {
+                rewarded = null;
                 LoadRewarded();
             };
+
+            Debug.Log("Rewarded loaded.");
         });
     }
 
-    // -----------------------------------------------------
-    // SHOW REWARDED
-    // -----------------------------------------------------
-    public void ShowRewarded()
+    public void ShowRewarded(Action onReward = null)
     {
-        if (rewarded == null || !rewarded.CanShowAd())
+        if (rewarded != null && rewarded.CanShowAd())
         {
+            rewarded.Show(reward =>
+            {
+                onReward?.Invoke();
+            });
+
+            rewarded = null;
+            LoadRewarded();
+            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
+        }
+        else
+        {
+            Debug.Log("Rewarded not loaded yet.");
             if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
             LoadRewarded();
-            Debug.Log("Rewarded not loaded.");
-            return;
         }
-        if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
-
-        rewarded.Show(reward =>
-        {
-            // onReward?.Invoke();
-        });
-
-        rewarded = null;
     }
 
-
+    // ------------------- PURCHASE -------------------
     public void BuyAds()
     {
-        boughtButton.SetActive(true);
+        if (boughtButton) boughtButton.SetActive(true);
         LoginManager.Instance.BuyFullVersion();
     }
 }

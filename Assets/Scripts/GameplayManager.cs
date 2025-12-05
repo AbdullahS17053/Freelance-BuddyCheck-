@@ -97,7 +97,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private int[] hinters;
     private int hintRound = 0;
     private int currentRound = 1;
-    public int totalRounds = 2;
+    public int totalRounds = 4;
     private TMP_InputField roundsInputField;
 
     private List<string> chatMessages = new List<string>();
@@ -298,6 +298,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         NewCategory();
         ResetUIForNewRound();
         HideAllAnswers();
+
+        AdCommunicator.Instance.ShowEndOfRoundAd();
+
     }
 
     private void ProceedToNextPhase()
@@ -681,11 +684,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount - 1;
         if (currentRoundGuesses.Count >= expectedVotes)
         {
+            //photonView.RPC("showAllaAds", RpcTarget.All);
+
             realAnswer.SetActive(true);
             ShowPlayerAnswers();
             Invoke("ProceedToNextPhase", 3f);
 
-            photonView.RPC("showAllaAds", RpcTarget.All);
+            
         }
     }
     [PunRPC]
@@ -1109,6 +1114,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         gameplayPanel.SetActive(false);
         playersPanel.SetActive(true);
         hostPanel.SetActive(false);
+        hintPanel.SetActive(false);
 
         // --- Reset simple state ---
         gameActive = false;
@@ -1225,7 +1231,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (string.IsNullOrWhiteSpace(raw))
         {
-            totalRounds = 2;
+            totalRounds = 4;
         }
         else if (int.TryParse(raw, out int rounds))
         {
@@ -1233,7 +1239,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            totalRounds = 2;
+            totalRounds = 4;
         }
 
         if (PhotonNetwork.IsMasterClient)
@@ -1311,6 +1317,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         gameplayPanel.SetActive(false);
         playersPanel.SetActive(true);
         hostPanel.SetActive(false);
+        hintPanel.SetActive(false);
 
         // --- Reset simple state ---
         gameActive = false;

@@ -79,7 +79,7 @@ public class Menus : MonoBehaviour
         }
 
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
-        PhotonNetwork.KeepAliveInBackground = 60f;
+        PhotonNetwork.KeepAliveInBackground = 10f;
         Application.runInBackground = true;
     }
 
