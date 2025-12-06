@@ -6,14 +6,16 @@ public class AdManager : MonoBehaviour
 {
     public static AdManager Instance;
 
-    private InterstitialAd interstitial;
-    private bool isInterstitialLoading = false;
+    public bool disableAds = false;
+    public GameObject testAds;
 
+    private InterstitialAd interstitial;
     private RewardedAd rewarded;
-    private bool isRewardedLoading = false;
 
     public GameObject noAdLoadedPanel;
     public GameObject boughtButton;
+
+    private bool initializing = false;
 
     void Awake()
     {
@@ -27,30 +29,47 @@ public class AdManager : MonoBehaviour
 
     void Start()
     {
-        MobileAds.Initialize(_ => PreloadAds());
+        if (disableAds)
+        {
+            Debug.LogWarning("Ads are disabled via inspector.");
+            return;
+        }
+        // Prevent activity race crash
+        StartCoroutine(InitializeAdsDelayed());
     }
 
-    private void PreloadAds()
+    private System.Collections.IEnumerator InitializeAdsDelayed()
     {
-        LoadInterstitial();
-        LoadRewarded();
+        if (initializing) yield break;
+        initializing = true;
+
+        yield return new WaitForSeconds(10f);
+
+        MobileAds.Initialize(initStatus =>
+        {
+            LoadInterstitial();
+            LoadRewarded();
+        });
+    }
+
+    void OnApplicationPause(bool pause)
+    {
+
     }
 
     // ------------------- INTERSTITIAL -------------------
     private void LoadInterstitial()
     {
-        if (isInterstitialLoading || interstitial != null) return;
+        if (interstitial != null)
+            return;
 
-        isInterstitialLoading = true;
         string adId = "ca-app-pub-3940256099942544/1033173712"; // Test ID
 
         InterstitialAd.Load(adId, new AdRequest(), (ad, error) =>
         {
-            isInterstitialLoading = false;
-
             if (error != null || ad == null)
             {
-                Debug.LogWarning("Interstitial failed to load: " + error);
+                Debug.LogWarning("Failed to load interstitial: " + error);
                 return;
             }
 
@@ -58,7 +77,13 @@ public class AdManager : MonoBehaviour
 
             interstitial.OnAdFullScreenContentClosed += () =>
             {
-                interstitial = null;
+                DestroyInterstitial();
+                LoadInterstitial();
+            };
+
+            interstitial.OnAdFullScreenContentFailed += (err) =>
+            {
+                DestroyInterstitial();
                 LoadInterstitial();
             };
 
@@ -68,36 +93,54 @@ public class AdManager : MonoBehaviour
 
     public void ShowInterstitial()
     {
+        if (disableAds)
+        {
+            Debug.LogWarning("Ads are disabled via inspector.");
+            testAds.SetActive(true);
+            return;
+        }
         if (interstitial != null)
         {
             interstitial.Show();
-            interstitial = null;
-            LoadInterstitial();
             if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
         }
         else
         {
-            Debug.Log("No interstitial loaded yet.");
+            Debug.Log("Interstitial not loaded yet.");
             if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
             LoadInterstitial();
         }
     }
 
+    private void DestroyInterstitial()
+    {
+        if (interstitial != null)
+        {
+            interstitial.Destroy();
+            interstitial = null;
+        }
+    }
+
+
     // ------------------- REWARDED -------------------
     private void LoadRewarded()
     {
-        if (isRewardedLoading || rewarded != null) return;
+        if (disableAds)
+        {
+            Debug.LogWarning("Ads are disabled via inspector.");
+            testAds.SetActive(true);
+            return;
+        }
+        if (rewarded != null)
+            return;
 
-        isRewardedLoading = true;
         string adId = "ca-app-pub-3940256099942544/5224354917"; // Test ID
 
         RewardedAd.Load(adId, new AdRequest(), (ad, error) =>
         {
-            isRewardedLoading = false;
-
             if (error != null || ad == null)
             {
-                Debug.LogWarning("Rewarded failed to load: " + error);
+                Debug.LogWarning("Failed to load rewarded: " + error);
                 if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
                 return;
             }
@@ -106,7 +149,13 @@ public class AdManager : MonoBehaviour
 
             rewarded.OnAdFullScreenContentClosed += () =>
             {
-                rewarded = null;
+                DestroyRewarded();
+                LoadRewarded();
+            };
+
+            rewarded.OnAdFullScreenContentFailed += (err) =>
+            {
+                DestroyRewarded();
                 LoadRewarded();
             };
 
@@ -116,6 +165,12 @@ public class AdManager : MonoBehaviour
 
     public void ShowRewarded(Action onReward = null)
     {
+        if (disableAds)
+        {
+            Debug.LogWarning("Ads are disabled via inspector.");
+            testAds.SetActive(true);
+            return;
+        }
         if (rewarded != null && rewarded.CanShowAd())
         {
             rewarded.Show(reward =>
@@ -123,8 +178,6 @@ public class AdManager : MonoBehaviour
                 onReward?.Invoke();
             });
 
-            rewarded = null;
-            LoadRewarded();
             if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
         }
         else
@@ -135,13 +188,26 @@ public class AdManager : MonoBehaviour
         }
     }
 
+    private void DestroyRewarded()
+    {
+        if (rewarded != null)
+        {
+            rewarded.Destroy();
+            rewarded = null;
+        }
+    }
+
+
     // ------------------- PURCHASE -------------------
     public void BuyAds()
     {
+        // unchanged
         LoginManager.Instance.BuyFullVersion();
     }
+
     public void PurchasedSuccess()
     {
+        // unchanged
         if (boughtButton) boughtButton.SetActive(true);
     }
 }

@@ -61,11 +61,11 @@ public class Menus : MonoBehaviour
     public string privacyURL = "https://buddycheck.app/privacy-english";
     public string aboutURL = "https://buddycheck.app/impressum";
     public GameObject signIn;
-    public VideoPlayer videoPlayer;
+    //public VideoPlayer videoPlayer;
 
     private void Awake()
     {
-        videoPlayer.gameObject.SetActive(true);
+        //videoPlayer.gameObject.SetActive(true);
 
         LoadSettings();
         if (instance == null)

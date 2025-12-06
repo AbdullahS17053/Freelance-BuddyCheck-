@@ -51,7 +51,7 @@ public class AdCommunicator : MonoBehaviourPunCallbacks
     {
         Debug.Log("Showing LONG rewarded ad...");
 
-        if(LoginManager.Instance.fullVersion != 1)
+        if(LoginManager.Instance.fullVersion != 1 || LoginManager.Instance.privilagedUser)
         {
             // Replace with actual ad SDK call
             AdManager.Instance.ShowRewarded();
@@ -60,7 +60,7 @@ public class AdCommunicator : MonoBehaviourPunCallbacks
 
     private void ShowShortAd()
     {
-        if (LoginManager.Instance.fullVersion != 1)
+        if (LoginManager.Instance.fullVersion != 1 || LoginManager.Instance.privilagedUser)
         {
             // Replace with actual ad SDK call
             AdManager.Instance.ShowInterstitial();

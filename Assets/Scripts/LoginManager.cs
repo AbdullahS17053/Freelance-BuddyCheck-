@@ -38,6 +38,8 @@ public class LoginManager : MonoBehaviour
     public GameObject mainMenuPanel;
     public GameObject UI_Loading;
     public GameObject doneButton;
+    public GameObject androidPurchaseBlockedPanel;
+
 
     [Header("Login Fields")]
     public TMP_InputField loginEmailField;
@@ -261,7 +263,8 @@ public class LoginManager : MonoBehaviour
             yield break;
         }
 
-        if (UI_Loading != null) UI_Loading.SetActive(true);
+
+        if (androidPurchaseBlockedPanel != null) androidPurchaseBlockedPanel.SetActive(true);
 
         WWWForm form = new WWWForm();
         form.AddField("action", "buy");
@@ -307,7 +310,7 @@ public class LoginManager : MonoBehaviour
             }
             finally
             {
-                if (UI_Loading != null) UI_Loading.SetActive(false);
+                if (androidPurchaseBlockedPanel != null) androidPurchaseBlockedPanel.SetActive(false);
             }
         }
     }
