@@ -9,6 +9,8 @@ using System.Collections;
 
 public class FusionRoomManager : MonoBehaviourPunCallbacks
 {
+    public static FusionRoomManager Instance;
+
     [Header("UI Panels")]
     [SerializeField] private GameObject hostPanel;
     [SerializeField] private GameObject clientPanel;
@@ -32,10 +34,16 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     [SerializeField] private Toggle publicRoomToggle;
     [SerializeField] private GameObject[] textOfToggle;
+    [SerializeField] private GameObject privilagedButton;
 
 
     private const int MaxPlayers = 7;
     private string currentRoomCode;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {
@@ -155,7 +163,36 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             ShowClientPanel();
 
         UpdatePlayerCount();
+
+        PhotonNetwork.LocalPlayer.SetCustomProperties(
+    new ExitGames.Client.Photon.Hashtable { { "full", LoginManager.Instance.fullVersion == 1 } }
+);
+        CheckPrivilegedStatus();
+
     }
+
+    public void BoughtAdsRN()
+    {
+        if (PhotonNetwork.InRoom)
+        {
+
+
+            PhotonNetwork.LocalPlayer.SetCustomProperties(
+        new ExitGames.Client.Photon.Hashtable { { "full", LoginManager.Instance.fullVersion == 1 } }
+    );
+            CheckPrivilegedStatus();
+        }
+    }
+
+    [PunRPC]
+    private void SetPrivilagedStatus(bool status)
+    {
+        LoginManager.Instance.privilagedUser = status;
+
+        privilagedButton.SetActive(!status);
+    }
+
+
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
         loadingPanel.SetActive(false);
@@ -189,6 +226,8 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
         loadingPanel.SetActive(false);
         UpdatePlayerCount();
+
+        CheckPrivilegedStatus();
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
@@ -201,6 +240,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             publicRoomToggle.isOn = false;
             //playerDisconnectedPanel?.SetActive(true);
         }
+        CheckPrivilegedStatus();
     }
 
     public override void OnLeftRoom()
@@ -290,6 +330,18 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         textOfToggle[1].SetActive(!makePublic);
     }
 
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
+    {
+        if (changedProps.ContainsKey("full"))
+            CheckPrivilegedStatus();
+    }
+    private void CheckPrivilegedStatus()
+    {
+        bool someoneHasFull = PhotonNetwork.PlayerList
+            .Any(p => p.CustomProperties.ContainsKey("full") && (bool)p.CustomProperties["full"]);
+
+        photonView.RPC("SetPrivilagedStatus", RpcTarget.All, someoneHasFull);
+    }
 
 
     private void SetPanelActive(GameObject panel, bool active)

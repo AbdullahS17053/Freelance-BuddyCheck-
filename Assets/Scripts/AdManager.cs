@@ -138,7 +138,10 @@ public class AdManager : MonoBehaviour
     // ------------------- PURCHASE -------------------
     public void BuyAds()
     {
-        if (boughtButton) boughtButton.SetActive(true);
         LoginManager.Instance.BuyFullVersion();
+    }
+    public void PurchasedSuccess()
+    {
+        if (boughtButton) boughtButton.SetActive(true);
     }
 }

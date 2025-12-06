@@ -56,6 +56,7 @@ public class LoginManager : MonoBehaviour
     [HideInInspector] public string userEmail;
     [HideInInspector] public string userPassword;
     [HideInInspector] public int fullVersion;
+    public bool privilagedUser = false;
 
     // Regex cache
     private static readonly Regex keyRegexTemplate = new Regex("\"{0}\"\\s*:\\s*(?:\"(?<str>[^\"]*)\"|(?<word>[^,}\\s]+))", RegexOptions.Compiled);
@@ -295,6 +296,9 @@ public class LoginManager : MonoBehaviour
                     if (doneButton != null) doneButton.SetActive(true);
                     SavePlayerData();
                     Debug.Log("Purchase successful! Full version unlocked.");
+
+                    AdManager.Instance.PurchasedSuccess();
+                    FusionRoomManager.Instance.BoughtAdsRN();
                 }
                 else
                 {
