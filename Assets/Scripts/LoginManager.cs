@@ -1,596 +1,220 @@
-using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Unity.Services.Authentication;
-using Unity.Services.Core;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Networking;
 using TMPro;
-using Mono.Cecil.Cil;
-
-
-
+using UnityEngine.Purchasing;
 
 #if UNITY_ANDROID
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
 #endif
 
-    /// <summary>
-    /// Small utility class (email validation)
-    /// </summary>
-    public static class Utils
-{
-    // Returns true if input looks like a valid email
-    public static bool IsValidEmail(string email)
-    {
-        if (string.IsNullOrEmpty(email)) return false;
-        // Simple regex for email validation
-        string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-        return Regex.IsMatch(email, pattern);
-    }
-}
-
-/// <summary>
-/// Robust LoginManager that communicates with Google Apps Script endpoint.
-/// Handles Editor and Build differences by cleaning server response and extracting fields safely.
-/// </summary>
 public class LoginManager : MonoBehaviour
 {
 #if UNITY_ANDROID
     public string GooglePlayGamesToken { get; private set; }
-
 #endif
-
-
-
-    private void OnEnable()
-    {
-        InitializeSilentAuthentication();
-    }
-
-    private void InitializeSilentAuthentication()
-    {
-        SignInOrLinkWithGooglePlayGames();
-    }
 
     public static LoginManager Instance;
 
     [Header("Web App URL")]
-    public string webAppUrl = "https://script.google.com/macros/s/AKfycbxTk_86k7ziXLH_I7RrNuE0h03BAbFnccZLZUgin5W32KEq_cR2JZ_GvO8QJ0smtiNi/exec";
+    public string webAppUrl = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
     public string playerID;
     public bool signedIn;
 
     [Header("UI Panels")]
-    public GameObject loginPanel;
-    public GameObject registerPanel;
     public GameObject mainMenuPanel;
     public GameObject UI_Loading;
     public GameObject doneButton;
-    public GameObject androidPurchaseBlockedPanel;
-    public GameObject SigingIn;
     public GameObject SignInFailed;
 
+    [Header("Debug")]
+    public TextMeshProUGUI debugText; // Assign in inspector
 
-    [Header("Login Fields")]
-    public TMP_InputField loginEmailField;
-    public TMP_InputField loginPasswordField;
-    public GameObject loginErrorUI;
-
-    [Header("Register Fields")]
-    public TMP_InputField registerEmailField;
-    public TMP_InputField registerPasswordField;
-    public GameObject registerErrorUI;
-
-    [Header("Forgot Password")]
-    public string recoveryEmail = "dash.clientwork@gmail.com";
-
-    // Local Player Data
-    [HideInInspector] public string userEmail;
-    [HideInInspector] public string userPassword;
     [HideInInspector] public int fullVersion;
-    public bool privilagedUser = false;
-
-    // Regex cache
-    private static readonly Regex keyRegexTemplate = new Regex("\"{0}\"\\s*:\\s*(?:\"(?<str>[^\"]*)\"|(?<word>[^,}\\s]+))", RegexOptions.Compiled);
+    [HideInInspector] public bool privilagedUser;
+    [HideInInspector] public bool guestMode;
 
     private void Awake()
     {
+        Instance = this;
 #if UNITY_ANDROID
         PlayGamesPlatform.DebugLogEnabled = true;
-
         PlayGamesPlatform.Activate();
-        LoginGooglePlayGames();
-
+        StartSignIn();
+#else
+        EnterGuestMode();
 #endif
-        Instance = this;
     }
 
-#if UNITY_ANDROID
-    public void LoginGooglePlayGames()
+    private void StartSignIn()
     {
+#if UNITY_ANDROID
+        LogDebug("Attempting Google Play Games sign-in...");
         PlayGamesPlatform.Instance.Authenticate((status) =>
         {
-            if(status == SignInStatus.Success)
+            if (status == SignInStatus.Success)
             {
+                LogDebug("Sign-in success.");
                 PlayGamesPlatform.Instance.RequestServerSideAccess(true, code =>
                 {
-                    GooglePlayGamesToken = code;    
+                    GooglePlayGamesToken = code;
+                    playerID = PlayGamesPlatform.Instance.GetUserId();
+                    signedIn = true;
+                    guestMode = false;
+
+                    LogDebug("PlayerID: " + playerID);
+                    StartCoroutine(RegisterOrFetchFullVersion(playerID));
                 });
-
                 SignInFailed.SetActive(false);
-
             }
             else
             {
-                // not successfull
-
+                LogDebug("Sign-in failed. Entering guest mode.");
                 SignInFailed.SetActive(true);
+                EnterGuestMode();
             }
         });
-    }
-
-    public void StartSignInWithGooglePlayGames()
-    {
-        if (!PlayGamesPlatform.Instance.IsAuthenticated())
-        {
-            // not yet authenticated
-            LoginGooglePlayGames();
-            return;
-        }
-
-        SignInOrLinkWithGooglePlayGames();
-    }
-
-    private async void SignInOrLinkWithGooglePlayGames()
-    {
-        if (string.IsNullOrEmpty(GooglePlayGamesToken))
-        {
-            // code is null
-        }
-        if (!AuthenticationService.Instance.IsSignedIn)
-        {
-            await SignInWithGooglePlayGamesAsync(GooglePlayGamesToken);
-        }
-        else
-        {
-            await LinkWithGooglePlayGamesAsync(GooglePlayGamesToken);
-        }
-    }
-
-    private async Task SignInWithGooglePlayGamesAsync(string authCode)
-    {
-        SigingIn.SetActive(true);
-        try
-        {
-            await AuthenticationService.Instance.SignInWithGooglePlayGamesAsync(authCode);
-            playerID = AuthenticationService.Instance.PlayerId;
-            signedIn = true;
-            // signed in
-        }
-        catch (AuthenticationException ex)
-        {
-            SignInFailed.SetActive(true);
-            // couldn't
-        }
-        catch(RequestFailedException ex)
-        {
-            SignInFailed.SetActive(true);
-            // couldn't
-        }
-
-        SigingIn.SetActive(false);
-    }
-    private async Task LinkWithGooglePlayGamesAsync(string authCode)
-    {
-        SigingIn.SetActive(true);
-        try
-        {
-            await AuthenticationService.Instance.LinkWithGooglePlayGamesAsync(authCode);
-            playerID = AuthenticationService.Instance.PlayerId;
-            signedIn = true;
-            // signed up
-        }
-        catch (AuthenticationException ex) when (ex.ErrorCode == AuthenticationErrorCodes.AccountAlreadyLinked)
-        {
-            SignInFailed.SetActive(true);
-            // couldn't
-            // presented somewhore else
-        }
-        catch (AuthenticationException ex)
-        {
-            SignInFailed.SetActive(true);
-            // couldn't
-        }
-        catch (RequestFailedException ex)
-        {
-            SignInFailed.SetActive(true);
-            // couldn't
-        }
-        SigingIn.SetActive(false);
-    }
-
 #endif
-
-    private void Start()
-    {
-        // Try auto-login from PlayerPrefs
-        if (PlayerPrefs.HasKey("email") && PlayerPrefs.HasKey("password"))
-        {
-            userEmail = PlayerPrefs.GetString("email");
-            userPassword = PlayerPrefs.GetString("password");
-            fullVersion = PlayerPrefs.GetInt("fullVersion", 0);
-
-            StartCoroutine(LoginRoutine(userEmail, userPassword, true));
-        }
-        else
-        {
-            // show login UI if assigned
-            if (loginPanel != null) loginPanel.SetActive(true);
-        }
     }
 
-    // ---------------------------
-    // Public UI hooks
-    // ---------------------------
-    public void OnLoginButton()
-    {
-        string email = loginEmailField.text.Trim().ToLower();
-        string password = loginPasswordField.text.Trim();
-
-        if (!Utils.IsValidEmail(email))
-        {
-            Debug.Log("Invalid email format!");
-            if (loginErrorUI != null) loginErrorUI.SetActive(true);
-            return;
-        }
-
-        StartCoroutine(LoginRoutine(email, password, false));
-    }
-
-    public void OnRegisterButton()
-    {
-        string email = registerEmailField.text.Trim().ToLower();
-        string password = registerPasswordField.text.Trim();
-
-        if (!Utils.IsValidEmail(email))
-        {
-            Debug.Log("Invalid email format!");
-            if (registerErrorUI != null) registerErrorUI.SetActive(true);
-            return;
-        }
-
-        StartCoroutine(RegisterRoutine(email, password));
-    }
-
-    public void OnForgotPasswordButton()
-    {
-        Application.OpenURL($"mailto:{recoveryEmail}?subject=Password Recovery Request");
-    }
-
-    // ---------------------------
-    // Network Routines
-    // ---------------------------
-    IEnumerator LoginRoutine(string email, string password, bool silentLogin)
+    IEnumerator RegisterOrFetchFullVersion(string id)
     {
         if (UI_Loading != null) UI_Loading.SetActive(true);
 
+        // Try login first
         WWWForm form = new WWWForm();
         form.AddField("action", "login");
-        form.AddField("email", email);
-        form.AddField("password", password);
+        form.AddField("email", id);
 
         using (UnityWebRequest www = UnityWebRequest.Post(webAppUrl, form))
         {
-            www.timeout = 15;
             yield return www.SendWebRequest();
 
-            // Always hide loading at the end
-            try
+            bool success = false;
+
+            if (www.result == UnityWebRequest.Result.Success)
             {
-                if (www.result != UnityWebRequest.Result.Success)
+                LogDebug("Login response: " + www.downloadHandler.text);
+                var parsed = UnityEngine.Purchasing.MiniJSON.Json.Deserialize(www.downloadHandler.text) as Dictionary<string, object>;
+                if (parsed != null && parsed.ContainsKey("success") && parsed["success"].ToString() == "true")
                 {
-                    Debug.LogWarning("Login request failed: " + www.error);
-                    if (!silentLogin && loginErrorUI != null) loginErrorUI.SetActive(true);
-                    if (loginPanel != null) loginPanel.SetActive(true);
-                    yield break;
-                }
-
-                string raw = www.downloadHandler.text;
-                Debug.Log("[Login] Server response: " + raw);
-
-                var parsed = ParseServerJson(raw);
-                string successStr = GetParsedValue(parsed, "success");
-                string emailResp = GetParsedValue(parsed, "email");
-                string fullVerStr = GetParsedValue(parsed, "fullVersion");
-                string errorResp = GetParsedValue(parsed, "error");
-
-                bool ok = IsTrue(successStr);
-
-                if (ok)
-                {
-                    // successful login
-                    loginEmailField.text = "";
-                    loginPasswordField.text = "";
-
-                    userEmail = !string.IsNullOrEmpty(emailResp) ? emailResp : email;
-                    userPassword = password;
-
-                    if (!int.TryParse(fullVerStr, out fullVersion))
-                        fullVersion = 0;
-
-                    if (fullVersion == 1 && doneButton != null)
-                        doneButton.SetActive(true);
-
-                    SavePlayerData();
-                    OpenMainMenu();
-                }
-                else
-                {
-                    Debug.LogWarning("[Login] Failed: " + errorResp);
-                    if (!silentLogin && loginErrorUI != null) loginErrorUI.SetActive(true);
-                    if (loginPanel != null) loginPanel.SetActive(true);
+                    fullVersion = int.Parse(parsed["fullVersion"].ToString());
+                    LogDebug("Login fetched fullVersion: " + fullVersion);
+                    success = true;
                 }
             }
-            finally
+
+            // If login fails, register
+            if (!success)
             {
-                if (UI_Loading != null) UI_Loading.SetActive(false);
+                LogDebug("Login failed or first-time user. Registering...");
+                WWWForm regForm = new WWWForm();
+                regForm.AddField("action", "register");
+                regForm.AddField("email", id);
+
+                using (UnityWebRequest regWWW = UnityWebRequest.Post(webAppUrl, regForm))
+                {
+                    yield return regWWW.SendWebRequest();
+
+                    if (regWWW.result == UnityWebRequest.Result.Success)
+                    {
+                        LogDebug("Register response: " + regWWW.downloadHandler.text);
+                        var parsedReg = UnityEngine.Purchasing.MiniJSON.Json.Deserialize(regWWW.downloadHandler.text) as Dictionary<string, object>;
+                        if (parsedReg != null && parsedReg.ContainsKey("success") && parsedReg["success"].ToString() == "true")
+                        {
+                            fullVersion = int.Parse(parsedReg["fullVersion"].ToString());
+                            LogDebug("Registration complete. FullVersion: " + fullVersion);
+                        }
+                        else
+                        {
+                            LogDebug("Registration failed, entering guest mode.");
+                            EnterGuestMode();
+                        }
+                    }
+                    else
+                    {
+                        LogDebug("Register request failed: " + regWWW.error + " Entering guest mode.");
+                        EnterGuestMode();
+                    }
+                }
             }
+
+            OpenMainMenu();
+            if (UI_Loading != null) UI_Loading.SetActive(false);
         }
     }
 
-    IEnumerator RegisterRoutine(string email, string password)
+    private void EnterGuestMode()
     {
-        if (UI_Loading != null) UI_Loading.SetActive(true);
+        guestMode = true;
+        playerID = "Guest_" + System.Guid.NewGuid().ToString("N");
+        fullVersion = 0;
+        privilagedUser = false;
+        LogDebug("Guest mode activated with ID: " + playerID);
+        OpenMainMenu();
+    }
 
-        WWWForm form = new WWWForm();
-        form.AddField("action", "register");
-        form.AddField("email", email);
-        form.AddField("password", password);
-
-        using (UnityWebRequest www = UnityWebRequest.Post(webAppUrl, form))
+    public void BuyFullVersion()
+    {
+        if (guestMode)
         {
-            www.timeout = 15;
-            yield return www.SendWebRequest();
-
-            try
-            {
-                if (www.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogWarning("Register request failed: " + www.error);
-                    if (registerErrorUI != null) registerErrorUI.SetActive(true);
-                    yield break;
-                }
-
-                string raw = www.downloadHandler.text;
-                Debug.Log("[Register] Server response: " + raw);
-
-                var parsed = ParseServerJson(raw);
-                string successStr = GetParsedValue(parsed, "success");
-                string fullVerStr = GetParsedValue(parsed, "fullVersion");
-                string errorResp = GetParsedValue(parsed, "error");
-
-                bool ok = IsTrue(successStr);
-
-                if (ok)
-                {
-                    userEmail = email;
-                    userPassword = password;
-
-                    if (!int.TryParse(fullVerStr, out fullVersion))
-                        fullVersion = 0;
-
-                    registerEmailField.text = "";
-                    registerPasswordField.text = "";
-
-                    SavePlayerData();
-                    OpenMainMenu();
-                }
-                else
-                {
-                    Debug.LogWarning("[Register] Failed: " + errorResp);
-                    if (registerErrorUI != null) registerErrorUI.SetActive(true);
-                }
-            }
-            finally
-            {
-                if (UI_Loading != null) UI_Loading.SetActive(false);
-            }
+            LogDebug("Guest tried to purchase. Retrying sign-in...");
+            StartSignIn();
+        }
+        else
+        {
+            StartCoroutine(BuyFullVersionRoutine());
         }
     }
 
     IEnumerator BuyFullVersionRoutine()
     {
-        if (string.IsNullOrEmpty(userEmail))
-        {
-            Debug.LogWarning("BuyFullVersion: no user email set");
-            yield break;
-        }
-
-
-        if (androidPurchaseBlockedPanel != null) androidPurchaseBlockedPanel.SetActive(true);
+        if (UI_Loading != null) UI_Loading.SetActive(true);
+        LogDebug("Sending buy full version request...");
 
         WWWForm form = new WWWForm();
         form.AddField("action", "buy");
-        form.AddField("email", userEmail);
+        form.AddField("email", playerID);
 
         using (UnityWebRequest www = UnityWebRequest.Post(webAppUrl, form))
         {
-            www.timeout = 15;
             yield return www.SendWebRequest();
 
-            try
+            if (www.result == UnityWebRequest.Result.Success)
             {
-                if (www.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogWarning("Buy request failed: " + www.error);
-                    yield break;
-                }
-
-                string raw = www.downloadHandler.text;
-                Debug.Log("[Buy] Server response: " + raw);
-
-                var parsed = ParseServerJson(raw);
-                string successStr = GetParsedValue(parsed, "success");
-                string fullVerStr = GetParsedValue(parsed, "fullVersion");
-                string errorResp = GetParsedValue(parsed, "error");
-
-                bool ok = IsTrue(successStr);
-
-                if (ok)
+                LogDebug("Buy response: " + www.downloadHandler.text);
+                var parsed = UnityEngine.Purchasing.MiniJSON.Json.Deserialize(www.downloadHandler.text) as Dictionary<string, object>;
+                if (parsed != null && parsed.ContainsKey("success") && parsed["success"].ToString() == "true")
                 {
                     fullVersion = 1;
+                    LogDebug("Full version unlocked!");
                     if (doneButton != null) doneButton.SetActive(true);
-                    SavePlayerData();
-                    Debug.Log("Purchase successful! Full version unlocked.");
-
-                    AdManager.Instance.PurchasedSuccess();
-                    FusionRoomManager.Instance.BoughtAdsRN();
-                }
-                else
-                {
-                    Debug.LogWarning("[Buy] Failed: " + errorResp);
                 }
             }
-            finally
+            else
             {
-                if (androidPurchaseBlockedPanel != null) androidPurchaseBlockedPanel.SetActive(false);
+                LogDebug("Buy request failed: " + www.error);
             }
         }
-    }
 
-    IEnumerator CheckPurchaseRoutine()
-    {
-        if (string.IsNullOrEmpty(userEmail))
-        {
-            Debug.LogWarning("CheckPurchaseStatus: no user email set");
-            yield break;
-        }
-
-        if (UI_Loading != null) UI_Loading.SetActive(true);
-
-        WWWForm form = new WWWForm();
-        form.AddField("action", "getPurchase");
-        form.AddField("email", userEmail);
-
-        using (UnityWebRequest www = UnityWebRequest.Post(webAppUrl, form))
-        {
-            www.timeout = 15;
-            yield return www.SendWebRequest();
-
-            try
-            {
-                if (www.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogWarning("getPurchase failed: " + www.error);
-                    yield break;
-                }
-
-                string raw = www.downloadHandler.text;
-                Debug.Log("[GetPurchase] Server response: " + raw);
-
-                var parsed = ParseServerJson(raw);
-                string successStr = GetParsedValue(parsed, "success");
-                string fullVerStr = GetParsedValue(parsed, "fullVersion");
-
-                bool ok = IsTrue(successStr);
-                if (ok && int.TryParse(fullVerStr, out int fv))
-                {
-                    fullVersion = fv;
-                    SavePlayerData();
-                }
-            }
-            finally
-            {
-                if (UI_Loading != null) UI_Loading.SetActive(false);
-            }
-        }
-    }
-
-    // ---------------------------
-    // Helpers
-    // ---------------------------
-
-    /// <summary>
-    /// Extracts a clean JSON object substring if the response contains HTML or extra text.
-    /// Then extracts simple key:value pairs into a dictionary (string values).
-    /// Works with values that are quoted strings or bare words/numbers/true/false.
-    /// </summary>
-    private Dictionary<string, string> ParseServerJson(string raw)
-    {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        if (string.IsNullOrEmpty(raw))
-            return result;
-
-        // Trim BOM/Whitespace
-        raw = raw.Trim();
-
-        // Try to find the first { and the last } to extract the JSON object
-        int first = raw.IndexOf('{');
-        int last = raw.LastIndexOf('}');
-        string json = (first >= 0 && last > first) ? raw.Substring(first, last - first + 1) : raw;
-
-        // Now extract keys using regex (handles "key":"value" or "key":true or "key":123)
-        // Pattern: "key" : "value" OR "key": value
-        var keyPattern = new Regex("\"(?<key>[^\"\\\\]+)\"\\s*:\\s*(?:\"(?<sval>[^\"]*)\"|(?<wval>[^,}\\s]+))", RegexOptions.Compiled);
-
-        var matches = keyPattern.Matches(json);
-        foreach (Match m in matches)
-        {
-            var k = m.Groups["key"].Value;
-            string val = null;
-            if (m.Groups["sval"].Success) val = m.Groups["sval"].Value;
-            else if (m.Groups["wval"].Success) val = m.Groups["wval"].Value;
-            if (k != null && val != null)
-                result[k] = val;
-        }
-
-        return result;
-    }
-
-    private string GetParsedValue(Dictionary<string, string> parsed, string key)
-    {
-        if (parsed == null) return null;
-        if (parsed.TryGetValue(key, out string v)) return v;
-        return null;
-    }
-
-    private bool IsTrue(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return false;
-        value = value.Trim().ToLowerInvariant();
-        return value == "true" || value == "1" || value == "yes";
-    }
-
-    private void SavePlayerData()
-    {
-        PlayerPrefs.SetString("email", userEmail ?? "");
-        PlayerPrefs.SetString("password", userPassword ?? "");
-        PlayerPrefs.SetInt("fullVersion", fullVersion);
-        PlayerPrefs.Save();
+        if (UI_Loading != null) UI_Loading.SetActive(false);
     }
 
     private void OpenMainMenu()
     {
-        if (loginPanel != null) loginPanel.SetActive(false);
-        if (registerPanel != null) registerPanel.SetActive(false);
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+        LogDebug("Main Menu opened.");
     }
 
-    // ---------------------------
-    // Public wrappers to start routines
-    // ---------------------------
-    public void BuyFullVersion()
+    private void LogDebug(string msg)
     {
-        StartCoroutine(BuyFullVersionRoutine());
-    }
-
-    public void CheckPurchaseStatus()
-    {
-        StartCoroutine(CheckPurchaseRoutine());
+        Debug.Log(msg);
+        if (debugText != null)
+        {
+            debugText.text += msg + "\n";
+        }
     }
 }

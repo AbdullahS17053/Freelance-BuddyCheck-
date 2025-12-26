@@ -2,7 +2,7 @@
 - Project name: Freelance-BuddyCheck-
 - Unity version: Unity 6000.0.47f1
 - Active game object:
-  - Name: Login Fails
+  - Name: Local Player Data
   - Tag: Untagged
-  - Layer: UI
+  - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
