@@ -54,7 +54,7 @@ public class AdCommunicator : MonoBehaviourPunCallbacks
         if(LoginManager.Instance.fullVersion != 1 || LoginManager.Instance.privilagedUser)
         {
             // Replace with actual ad SDK call
-            AdManager.Instance.ShowRewarded();
+            AdManager.Instance.ShowRewardedAd();
         }
     }
 
@@ -63,7 +63,7 @@ public class AdCommunicator : MonoBehaviourPunCallbacks
         if (LoginManager.Instance.fullVersion != 1 || LoginManager.Instance.privilagedUser)
         {
             // Replace with actual ad SDK call
-            AdManager.Instance.ShowInterstitial();
+            AdManager.Instance.ShowInterstitialAd();
         }
         Debug.Log("Showing SHORT interstitial ad...");
     }

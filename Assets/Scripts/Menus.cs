@@ -14,6 +14,9 @@ public class Menus : MonoBehaviour
 {
     public static Menus instance;
 
+    public GameObject ShopEnglish;
+    public GameObject ShopGerman;
+
     // Language settings
     public enum LanguageOption { English, Deutsch, Español, Français }
 
@@ -139,18 +142,22 @@ public class Menus : MonoBehaviour
             if (Application.systemLanguage == SystemLanguage.German)
             {
                 currentLanguage = LanguageOption.Deutsch;
+                updateShop(false);
             }
             else if (Application.systemLanguage == SystemLanguage.Spanish)
             {
                 currentLanguage = LanguageOption.Español;
+                updateShop(true);
             }
             else if (Application.systemLanguage == SystemLanguage.French)
             {
                 currentLanguage = LanguageOption.Français;
+                updateShop(true);
             }
             else
             {
                 currentLanguage = LanguageOption.English; // default
+                updateShop(true);
             }
 
             // Save immediately so future launches don't override user choice
@@ -166,6 +173,29 @@ public class Menus : MonoBehaviour
             // ---------------------------------------------------------
             currentLanguage = (LanguageOption)PlayerPrefs.GetInt("language");
             Debug.Log("Loaded saved language: " + currentLanguage);
+
+            switch (currentLanguage)
+            {
+                case LanguageOption.English:
+                    updateShop(true);
+                    break;
+                case LanguageOption.Deutsch:
+                    updateShop(false);
+                    break;
+
+                case LanguageOption.Español:
+                    updateShop(true);
+                    break;
+
+                case LanguageOption.Français:
+                    updateShop(true);
+                    break;
+
+                default:
+                    updateShop(true);
+                    break;
+
+            }
         }
 
         // Apply to dropdown (if exists)
@@ -195,7 +225,11 @@ public class Menus : MonoBehaviour
         LocalizationSettings.SelectedLocale = locale;
     }
 
-
+    void updateShop(bool eng)
+    {
+        ShopEnglish.SetActive(eng);
+        ShopGerman.SetActive(!eng);
+    }
     void InitializeSettingsUI()
     {
         if (languageDropdown != null)
@@ -218,6 +252,30 @@ public class Menus : MonoBehaviour
         }
 
         SaveSettings();
+
+        switch (currentLanguage)
+        {
+            case LanguageOption.English:
+                updateShop(true);
+                break;
+            case LanguageOption.Deutsch:
+                updateShop(false);
+                break;
+
+            case LanguageOption.Español:
+                updateShop(true);
+                break;
+
+            case LanguageOption.Français:
+                updateShop(true);
+                break;
+
+            default:
+                updateShop(true);
+                break;
+
+        }
+
     }
     public int GetLanguageIndex()
     {

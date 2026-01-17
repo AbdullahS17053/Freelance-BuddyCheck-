@@ -1,201 +1,241 @@
-using UnityEngine;
 using GoogleMobileAds.Api;
+using Photon.Pun.Demo.PunBasics;
 using System;
+using UnityEngine;
 
 public class AdManager : MonoBehaviour
 {
     public static AdManager Instance;
 
-    public bool disableAds = false;
-    public GameObject testAds;
+    public bool fakePurchaseStore;
+    public GameObject fakePurchaseStorePanel;
 
-    private InterstitialAd interstitial;
-    private RewardedAd rewarded;
 
-    public GameObject noAdLoadedPanel;
-    public GameObject boughtButton;
 
-    private bool initializing = false;
 
-    void Awake()
+#if UNITY_ANDROID
+    public string bannerAdUnitId = "ca-app-pub-2445870976172222/1336179037";
+    public string interstitialAdUnitId = "ca-app-pub-2445870976172222/7789906744";
+    public string rewardedAdUnitId = "ca-app-pub-2445870976172222/1899285818";
+    private string testBannerId = "ca-app-pub-3940256099942544/6300978111";
+    private string testInterstitialId = "ca-app-pub-3940256099942544/1033173712";
+    private string testRewardedId = "ca-app-pub-3940256099942544/5224354917";
+#elif UNITY_IPHONE
+    public string bannerAdUnitId = "your_real_banner_id_ios";
+    public string interstitialAdUnitId = "your_real_interstitial_id_ios";
+    public string rewardedAdUnitId = "your_real_rewarded_id_ios";
+    private string testBannerId = "ca-app-pub-3940256099942544/2934735716";
+    private string testInterstitialId = "ca-app-pub-3940256099942544/4411468910";
+    private string testRewardedId = "ca-app-pub-3940256099942544/1712485313";
+#else
+    private string bannerAdUnitId = "unused";
+    private string interstitialAdUnitId = "unused";
+    private string rewardedAdUnitId = "unused";
+#endif
+
+    private BannerView bannerView;
+    private InterstitialAd interstitialAd;
+    private RewardedAd rewardedAd;
+
+    private bool bannerLoaded = false;
+    private bool bannerVisible = false;
+
+
+    public GameObject adsBoughtButton;
+    public bool noAds = false;
+
+    private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else Destroy(gameObject);
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     void Start()
     {
-        if (disableAds)
-        {
-            Debug.LogWarning("Ads are disabled via inspector.");
-            return;
-        }
-        // Prevent activity race crash
-        StartCoroutine(InitializeAdsDelayed());
-    }
-
-    private System.Collections.IEnumerator InitializeAdsDelayed()
-    {
-        if (initializing) yield break;
-        initializing = true;
-
-        yield return new WaitForSeconds(10f);
-
         MobileAds.Initialize(initStatus =>
         {
-            LoadInterstitial();
-            LoadRewarded();
+
         });
-    }
 
-    void OnApplicationPause(bool pause)
-    {
-
-    }
-
-    // ------------------- INTERSTITIAL -------------------
-    private void LoadInterstitial()
-    {
-        if (interstitial != null)
-            return;
-
-        string adId = "ca-app-pub-3940256099942544/1033173712"; // Test ID
-
-        InterstitialAd.Load(adId, new AdRequest(), (ad, error) =>
+        if (PlayerPrefs.HasKey("NoAds"))
         {
-            if (error != null || ad == null)
-            {
-                Debug.LogWarning("Failed to load interstitial: " + error);
-                return;
-            }
-
-            interstitial = ad;
-
-            interstitial.OnAdFullScreenContentClosed += () =>
-            {
-                DestroyInterstitial();
-                LoadInterstitial();
-            };
-
-            interstitial.OnAdFullScreenContentFailed += (err) =>
-            {
-                DestroyInterstitial();
-                LoadInterstitial();
-            };
-
-            Debug.Log("Interstitial loaded.");
-        });
+            CompleteFakePurchase();
+        }
+    }
+    public void RunFakePurchase()
+    {
+        if (fakePurchaseStore)
+        {
+            fakePurchaseStorePanel.SetActive(true);
+        }
+    }
+    public void CompleteFakePurchase()
+    {
+        if (fakePurchaseStore)
+        {
+            fakePurchaseStorePanel.SetActive(false);
+            AdManager.Instance.NoAds();
+            PlayerPrefs.SetInt("NoAds", 1);
+        }
     }
 
-    public void ShowInterstitial()
+    public void OnPurchaseComplete()
     {
-        if (disableAds)
+        // Go Ad Free Here
+        Debug.Log("Game is free now");
+    }
+    #region Banner
+    private void LoadBannerAd(string adUnit)
+    {
+        bannerView = new BannerView(adUnit, AdSize.Banner, AdPosition.Bottom);
+        AdRequest request = new AdRequest();
+
+        bannerView.OnBannerAdLoaded += () =>
         {
-            Debug.LogWarning("Ads are disabled via inspector.");
-            testAds.SetActive(true);
+            bannerLoaded = true;
+            bannerView.Hide();
+        };
+
+        bannerView.OnBannerAdLoadFailed += (LoadAdError error) =>
+        {
+            if (adUnit != testBannerId) LoadBannerAd(testBannerId);
+        };
+
+        bannerView.LoadAd(request);
+    }
+
+    public void ToggleBanner()
+    {
+        if (noAds) return;
+
+        if (!bannerLoaded)
+        {
+            LoadBannerAd(bannerAdUnitId);
             return;
         }
-        if (interstitial != null)
+
+        if (bannerVisible)
         {
-            interstitial.Show();
-            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
+            bannerView.Hide();
+            bannerVisible = false;
         }
         else
         {
-            Debug.Log("Interstitial not loaded yet.");
-            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
-            LoadInterstitial();
+            bannerView.Show();
+            bannerVisible = true;
         }
     }
+    #endregion
 
-    private void DestroyInterstitial()
+    #region Interstitial
+    private void LoadInterstitialAd(string adUnit)
     {
-        if (interstitial != null)
+        if (interstitialAd != null)
         {
-            interstitial.Destroy();
-            interstitial = null;
+            interstitialAd.Destroy();
+            interstitialAd = null;
         }
-    }
 
-
-    // ------------------- REWARDED -------------------
-    private void LoadRewarded()
-    {
-        if (disableAds)
-        {
-            Debug.LogWarning("Ads are disabled via inspector.");
-            testAds.SetActive(true);
-            return;
-        }
-        if (rewarded != null)
-            return;
-
-        string adId = "ca-app-pub-3940256099942544/5224354917"; // Test ID
-
-        RewardedAd.Load(adId, new AdRequest(), (ad, error) =>
+        InterstitialAd.Load(adUnit, new AdRequest(), (InterstitialAd ad, LoadAdError error) =>
         {
             if (error != null || ad == null)
             {
-                Debug.LogWarning("Failed to load rewarded: " + error);
-                if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
+                if (adUnit != testInterstitialId) LoadInterstitialAd(testInterstitialId);
                 return;
             }
 
-            rewarded = ad;
+            interstitialAd = ad;
 
-            rewarded.OnAdFullScreenContentClosed += () =>
+            interstitialAd.OnAdFullScreenContentClosed += () =>
             {
-                DestroyRewarded();
-                LoadRewarded();
+                LoadInterstitialAd(adUnit);
             };
 
-            rewarded.OnAdFullScreenContentFailed += (err) =>
+            interstitialAd.OnAdFullScreenContentFailed += (error) =>
             {
-                DestroyRewarded();
-                LoadRewarded();
-            };
 
-            Debug.Log("Rewarded loaded.");
+            };
         });
     }
 
-    public void ShowRewarded(Action onReward = null)
+    public void ShowInterstitialAd()
     {
-        if (disableAds)
+        if (noAds) return;
+
+        if (interstitialAd != null && interstitialAd.CanShowAd())
         {
-            Debug.LogWarning("Ads are disabled via inspector.");
-            testAds.SetActive(true);
-            return;
+            interstitialAd.Show();
         }
-        if (rewarded != null && rewarded.CanShowAd())
+        else
         {
-            rewarded.Show(reward =>
+            LoadInterstitialAd(interstitialAdUnitId);
+        }
+    }
+    #endregion
+
+    #region Rewarded
+    private void LoadRewardedAd(string adUnit)
+    {
+        if (rewardedAd != null)
+        {
+            rewardedAd.Destroy();
+            rewardedAd = null;
+        }
+
+        RewardedAd.Load(adUnit, new AdRequest(), (RewardedAd ad, LoadAdError error) =>
+        {
+            if (error != null || ad == null)
             {
-                onReward?.Invoke();
+                if (adUnit != testRewardedId) LoadRewardedAd(testRewardedId);
+                return;
+            }
+
+            rewardedAd = ad;
+
+            rewardedAd.OnAdFullScreenContentClosed += () =>
+            {
+                LoadRewardedAd(adUnit);
+            };
+
+            rewardedAd.OnAdFullScreenContentFailed += (error) =>
+            {
+
+            };
+        });
+    }
+
+    public void ShowRewardedAd()
+    {
+        if (noAds) return;
+
+        if (rewardedAd != null && rewardedAd.CanShowAd())
+        {
+            rewardedAd.Show((Reward reward) =>
+            {
+
             });
-
-            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(false);
         }
         else
         {
-            Debug.Log("Rewarded not loaded yet.");
-            if (noAdLoadedPanel) noAdLoadedPanel.SetActive(true);
-            LoadRewarded();
+
+            LoadRewardedAd(rewardedAdUnitId);
         }
     }
 
-    private void DestroyRewarded()
+    public void NoAds()
     {
-        if (rewarded != null)
-        {
-            rewarded.Destroy();
-            rewarded = null;
-        }
+        adsBoughtButton.SetActive(true);
+        noAds = true;
+        BuyAds();
     }
+    #endregion
 
 
     // ------------------- PURCHASE -------------------
@@ -203,11 +243,5 @@ public class AdManager : MonoBehaviour
     {
         // unchanged
         LoginManager.Instance.BuyFullVersion();
-    }
-
-    public void PurchasedSuccess()
-    {
-        // unchanged
-        if (boughtButton) boughtButton.SetActive(true);
     }
 }

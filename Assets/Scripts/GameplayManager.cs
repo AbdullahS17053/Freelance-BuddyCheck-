@@ -66,6 +66,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     public List<Categories> hintCatories;
     public List<Categories> hintStoredCatories;
     private int hintCategoryID;
+    private int hintChance = 0;
     private int categoryID;
 
     [System.Serializable]
@@ -208,6 +209,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         PhotonNetwork.CurrentRoom.SetCustomProperties(props);
 
         voting = 0;
+        hintChance = 0;
         var props2 = new Hashtable { [VOTING] = voting };
         PhotonNetwork.CurrentRoom.SetCustomProperties(props2);
 
@@ -348,7 +350,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void HintNewCategory()
     {
+        if (LoginManager.Instance.fullVersion != 1 && hintChance < 1) return;
 
+        hintChance++;
 
         hintCategoryID = UnityEngine.Random.Range(0, categories[0].categories.Length);
 

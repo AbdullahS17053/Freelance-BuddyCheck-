@@ -43,9 +43,9 @@ public class LoginManager : MonoBehaviour
 #if UNITY_ANDROID
         PlayGamesPlatform.DebugLogEnabled = true;
         PlayGamesPlatform.Activate();
-        StartSignIn();
+        //StartSignIn();
 #else
-        EnterGuestMode();
+        //EnterGuestMode();
 #endif
     }
 
@@ -159,6 +159,8 @@ public class LoginManager : MonoBehaviour
 
     public void BuyFullVersion()
     {
+        StartCoroutine(BuyFullVersionRoutine());
+        /*
         if (guestMode)
         {
             LogDebug("Guest tried to purchase. Retrying sign-in...");
@@ -167,11 +169,19 @@ public class LoginManager : MonoBehaviour
         else
         {
             StartCoroutine(BuyFullVersionRoutine());
-        }
+        }*/
     }
 
     IEnumerator BuyFullVersionRoutine()
     {
+
+        UI_Loading.SetActive(true);
+        yield return new WaitForSeconds(2);
+        fullVersion = 1;
+        UI_Loading.SetActive(false);
+
+
+        /*
         if (UI_Loading != null) UI_Loading.SetActive(true);
         LogDebug("Sending buy full version request...");
 
@@ -201,6 +211,7 @@ public class LoginManager : MonoBehaviour
         }
 
         if (UI_Loading != null) UI_Loading.SetActive(false);
+        */
     }
 
     private void OpenMainMenu()
