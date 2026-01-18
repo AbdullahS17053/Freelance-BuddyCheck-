@@ -13,7 +13,7 @@ public class LocalPlayer : MonoBehaviourPunCallbacks
     [Header("Profile Settings")]
     public string defaultUsername = "Player";
     public int defaultAvatarIndex = 0;
-    [SerializeField] private int maxAvatarIndex = 7;
+    [SerializeField] private int maxAvatarIndex = 8;
 
     [Header("UI References")]
     [SerializeField] private Image[] pfp;
