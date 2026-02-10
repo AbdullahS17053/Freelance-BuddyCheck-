@@ -38,6 +38,11 @@ public class Menus : MonoBehaviour
         }
     }
 
+    public int GetCurrentLanguageIndex()
+    {
+        return (int)currentLanguage;
+    }
+
 
     public GameObject EULA;
 

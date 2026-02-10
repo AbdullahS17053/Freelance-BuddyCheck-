@@ -105,7 +105,7 @@ public class AdManager : MonoBehaviour
 
         bannerView.OnBannerAdLoadFailed += (LoadAdError error) =>
         {
-            if (adUnit != testBannerId) LoadBannerAd(testBannerId);
+            // if (adUnit != testBannerId) LoadBannerAd(testBannerId);
         };
 
         bannerView.LoadAd(request);
@@ -147,7 +147,7 @@ public class AdManager : MonoBehaviour
         {
             if (error != null || ad == null)
             {
-                if (adUnit != testInterstitialId) LoadInterstitialAd(testInterstitialId);
+               // if (adUnit != testInterstitialId) LoadInterstitialAd(testInterstitialId);
                 return;
             }
 
@@ -193,7 +193,7 @@ public class AdManager : MonoBehaviour
         {
             if (error != null || ad == null)
             {
-                if (adUnit != testRewardedId) LoadRewardedAd(testRewardedId);
+               // if (adUnit != testRewardedId) LoadRewardedAd(testRewardedId);
                 return;
             }
 

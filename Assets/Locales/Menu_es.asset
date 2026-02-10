@@ -88,11 +88,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 6933699010560
-    m_Localized: Agujas
+    m_Localized: Puntos
     m_Metadata:
       m_Items: []
   - m_Id: 6818791858176
-    m_Localized: "Tabla de clasificaci\xF3n"
+    m_Localized: "Clasificaci\xF3n"
     m_Metadata:
       m_Items: []
   - m_Id: 6679708737536
@@ -164,11 +164,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4817202880512
-    m_Localized: Leur connaissance entre amis
+    m_Localized: SU Conocimiento
     m_Metadata:
       m_Items: []
   - m_Id: 4421302525952
-    m_Localized: Vos connaissances d'ami
+    m_Localized: TU Conocimiento
     m_Metadata:
       m_Items: []
   - m_Id: 4386540134400
@@ -208,15 +208,15 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 3531548041216
-    m_Localized: Unirse al juego
+    m_Localized: Unirse a sala
     m_Metadata:
       m_Items: []
   - m_Id: 3464153964544
-    m_Localized: "Juego anfitri\xF3n"
+    m_Localized: Crear Sala
     m_Metadata:
       m_Items: []
   - m_Id: 11190993068032
-    m_Localized: Mis amigas
+    m_Localized: Mis Amigos
     m_Metadata:
       m_Items: []
   - m_Id: 2278213529804800

@@ -21,6 +21,7 @@ public class LeaderboardEntry : MonoBehaviour
     [SerializeField] private Color defaultColor = Color.black;
 
 
+
     private void SetScores(int thisPlayerID)
     {
         // Get all round data once
@@ -61,6 +62,7 @@ public class LeaderboardEntry : MonoBehaviour
         // Update UI
         AtoBScore.text = AtoB.ToString();   // This player guessed my hint (A→B)
         BtoAScore.text = BtoA.ToString();   // I guessed this player’s hint (B→A)
+
     }
 
 
