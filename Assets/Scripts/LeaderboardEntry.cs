@@ -21,6 +21,54 @@ public class LeaderboardEntry : MonoBehaviour
     [SerializeField] private Color defaultColor = Color.black;
 
 
+    [System.Serializable]
+    public class UIEL
+    {
+        public TextMeshProUGUI _name;
+        public TextMeshProUGUI _score;
+    }
+
+    public UIEL[] guessers;
+    public void ShowGuessesForHintGiver(int hintGiverID)
+    {
+        for (int i = 0; i < guessers.Length; i++)
+        {
+            guessers[i]._name.gameObject.SetActive(false);
+        }
+
+        RoundData round = StatsManager.instance.roundsData
+            .Find(r => r.hintGiverID == hintGiverID);
+
+        if (round == null)
+        {
+            Debug.Log("No guesses found for this hint giver.");
+            return;
+        }
+
+        int uiIndex = 0;
+
+        foreach (var guess in round.guesses)
+        {
+            // Skip self
+            if (guess.guesserID == hintGiverID)
+                continue;
+
+            // Stop if UI slots are full
+            if (uiIndex >= guessers.Length)
+                break;
+
+            if (!StatsManager.instance.allPlayersInfo.TryGetValue(
+                guess.guesserID, out PlayerInfo info))
+                continue;
+
+            // Fill UI
+            guessers[uiIndex]._name.gameObject.SetActive(true);
+            guessers[uiIndex]._name.text = info.playerName;
+            guessers[uiIndex]._score.text = guess.guessScore.ToString();
+
+            uiIndex++;
+        }
+    }
 
     private void SetScores(int thisPlayerID)
     {
@@ -62,6 +110,9 @@ public class LeaderboardEntry : MonoBehaviour
         // Update UI
         AtoBScore.text = AtoB.ToString();   // This player guessed my hint (A→B)
         BtoAScore.text = BtoA.ToString();   // I guessed this player’s hint (B→A)
+
+
+        ShowGuessesForHintGiver(StatsManager.instance.myID);
 
     }
 

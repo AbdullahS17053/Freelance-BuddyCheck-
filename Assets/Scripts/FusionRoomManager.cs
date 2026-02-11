@@ -43,6 +43,12 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     private void Awake()
     {
         Instance = this;
+
+        Application.runInBackground = true;
+
+        PhotonNetwork.SendRate = 30;
+        PhotonNetwork.SerializationRate = 10;
+        PhotonNetwork.KeepAliveInBackground = 120;
     }
 
     void Start()
@@ -99,8 +105,9 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
-
         if (!PhotonNetwork.IsConnectedAndReady) return;
+
+        Fpause(true);
 
         loadingPanel.SetActive(true);
 
@@ -128,6 +135,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             return;
         }
 
+        Fpause(true);
 
         loadingPanel.SetActive(true);
 
@@ -138,6 +146,8 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public void JoinRoom(string inputCode)
     {
         currentRoomCode = inputCode.ToUpper();
+
+        Fpause(true);
 
         loadingPanel.SetActive(true);
 
@@ -249,6 +259,9 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         ShowMenuPanel();
 
         UpdatePlayerCount();
+
+
+        Fpause(false);
     }
     public override void OnDisconnected(DisconnectCause cause)
     {
@@ -256,7 +269,10 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         Debug.LogWarning("Photon disconnected: " + cause);
         ShowMenuPanel();
         connectingPanel.SetActive(false); 
-        playerDisconnectedPanel.SetActive(true); 
+        playerDisconnectedPanel.SetActive(true);
+
+
+        Fpause(false);
     }
 
     private void UpdatePlayerCount()
@@ -353,5 +369,11 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("[PUNRoomManager] " + message);
         return message;
+    }
+
+    public void Fpause(bool pause)
+    {
+
+        PhotonNetwork.IsMessageQueueRunning = !pause;
     }
 }

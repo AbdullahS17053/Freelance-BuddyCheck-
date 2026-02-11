@@ -38,6 +38,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [SerializeField] private TMP_Text hintNameText;
     [SerializeField] private TMP_InputField hintAnswerInput;
     [SerializeField] private Button submitHintAnswerButton;
+    [SerializeField] private Button reniewHintAnswerButton;
 
     [Header("Player UI")]
     [SerializeField] private TMP_InputField playerGuessInput;
@@ -136,6 +137,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         else Destroy(gameObject);
 
         roomManager = GetComponent<FusionRoomManager>();
+
     }
 
     void Start()
@@ -144,6 +146,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
 
         foreach (var b in exampleButton) b.onClick.AddListener(() => ToggleExampleButton(true));
+        reniewHintAnswerButton.onClick.AddListener(HintNewCategory);
         voteButton.onClick.AddListener(SubmitVote);
         submitHintAnswerButton.onClick.AddListener(SubmitHint);
         replayButton.onClick.AddListener(RequestRestartGame);
@@ -266,8 +269,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount);
 
 
-            if (hintRoundEach < 2)
-                hintRoundEach = 2;
+            if (hintRoundEach < 3)
+                hintRoundEach = 3;
 
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
@@ -283,6 +286,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         waitingForPlayersPanel.SetActive(true);
         hintPanel.SetActive(true);
         HintNewCategory();
+        FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNS - game starting
 
 
         if (ad)
@@ -297,9 +301,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         realAnswer.SetActive(false);
         currentRoundGuesses.Clear();
 
-        NewCategory();
         ResetUIForNewRound();
         HideAllAnswers();
+        NewCategory();
 
         AdCommunicator.Instance.ShowEndOfRoundAd();
 
@@ -347,103 +351,81 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             foreach (var g in exampleText) g.SetActive(toggle);
         }
     }
-
+    /// <summary>
+    /// /////////////////// YEAHHHHHHHHHHHHHH
+    /// </summary>
     public void HintNewCategory()
     {
-        if (LoginManager.Instance.fullVersion != 1 && hintChance < 1) return;
-
-        hintChance++;
-
+        // ✅ FIRST: Pick new random category (always allow the action)
         hintCategoryID = UnityEngine.Random.Range(0, categories[0].categories.Length);
 
-        foreach (var t in bad) t.text = categories[0].categories[hintCategoryID].bad[Menus.instance.GetLanguageIndex()];
-        foreach (var t in example) t.text = categories[0].categories[hintCategoryID].example[Menus.instance.GetLanguageIndex()];
-        foreach (var t in good) t.text = categories[0].categories[hintCategoryID].good[Menus.instance.GetLanguageIndex()];
+        foreach (var t in bad)
+            t.text = categories[0].categories[hintCategoryID].bad[Menus.instance.GetLanguageIndex()];
+        foreach (var t in example)
+            t.text = categories[0].categories[hintCategoryID].example[Menus.instance.GetLanguageIndex()];
+        foreach (var t in good)
+            t.text = categories[0].categories[hintCategoryID].good[Menus.instance.GetLanguageIndex()];
 
         tempScore = UnityEngine.Random.Range(0, 10);
-
         categories[0].categories[hintCategoryID].score = tempScore;
 
-        foreach (var t in scores) t.text = tempScore.ToString();
+        foreach (var t in scores)
+            t.text = tempScore.ToString();
+
+        // ✅ THEN: Increment usage counter
+        hintChance++;
+        Debug.Log(hintChance);
+        // ✅ FINALLY: Disable button if free user has used up their renewals
+        if (LoginManager.Instance.fullVersion != 1 && hintChance >= 3)
+        {
+            reniewHintAnswerButton.interactable = false;
+        }
+        else
+        {
+            reniewHintAnswerButton.interactable = true;
+        }
     }
     public void NewCategory()
     {
-        // Only the host picks the category
-        if (PhotonNetwork.IsMasterClient)
-        {
-            int newID = 0;
-            int hinterr = 0;
-            // Sort lists first
-            hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
-            hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
+        if (!PhotonNetwork.IsMasterClient) return;
 
+        FusionRoomManager.Instance.Fpause(true); // ✅ Queue PAUSED - preparing category
 
-            for (hinterr = 0; hinterr < hinters.Length; hinterr++)
-            {
-                if (hinters[hinterr] == 0 || hinters[hinterr] != hintCatories[newID].playerID)
-                {
-                    newID = UnityEngine.Random.Range(0, hintCatories.Count);
-                    hinters[hinterr] = hintCatories[newID].playerID;
-                    break;
-                }
-                else if (hinterr == hinters.Length - 1)
-                {
-                    for (int j = 0; j < hinters.Length; j++)
-                    {
-                        hinters[j] = 0;
-                    }
-
-                    newID = UnityEngine.Random.Range(0, hintCatories.Count);
-                    hinters[0] = hintCatories[newID].playerID;
-                    break;
-                }
-                else
-                {
-                    // skip same IDs
-                }
-            }
-
-            // Broadcast to all clients
-            photonView.RPC("GameNewCategoryAll", RpcTarget.All, newID, hinterr);
-
-        }
-
-        /* Maybe New Way
-
-        if (!PhotonNetwork.IsMasterClient) return; // Only Host picks
-
-        // Make sure categories are sorted (same across clients)
+        // Sort lists
         hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
+        hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
 
-        // --- 1. Build list of player IDs that were already used ---
-        HashSet<int> usedPlayers = new HashSet<int>(hinters);
+        // ✅ Build list of player IDs that haven't been used yet
+        HashSet<int> usedPlayerIDs = new HashSet<int>(hinters.Where(h => h != 0));
 
-        // --- 2. Build a list of VALID unused playerIDs ---
-        List<int> unusedPlayerIDs = hintCatories
+        // ✅ Get list of available (unused) players
+        List<int> availablePlayerIDs = hintCatories
             .Select(c => c.playerID)
-            .Where(id => id != 0 && !usedPlayers.Contains(id))
+            .Where(id => !usedPlayerIDs.Contains(id))
             .ToList();
 
-        // --- 3. If no unused players remain → reset rotation ---
-        if (unusedPlayerIDs.Count == 0)
+        // ✅ If everyone has been used, reset
+        if (availablePlayerIDs.Count == 0)
         {
-            for (int i = 0; i < hinters.Length; i++)
-                hinters[i] = 0;
+            for (int j = 0; j < hinters.Length; j++)
+            {
+                hinters[j] = 0;
+            }
 
-            usedPlayers.Clear();
-
-            // Rebuild fresh list
-            unusedPlayerIDs = hintCatories
+            // All players are now available again
+            availablePlayerIDs = hintCatories
                 .Select(c => c.playerID)
-                .Where(id => id != 0)
+                .Distinct()
                 .ToList();
         }
 
-        // --- 4. Randomly pick one unused player ---
-        int randomIndex = UnityEngine.Random.Range(0, unusedPlayerIDs.Count);
-        int chosenPlayerID = unusedPlayerIDs[randomIndex];
+        // ✅ Pick random player from available ones
+        int randomPlayerID = availablePlayerIDs[UnityEngine.Random.Range(0, availablePlayerIDs.Count)];
 
-        // --- 5. Store this chosen player into next empty hinters slot ---
+        // ✅ Find that player's category index
+        int categoryIndex = hintCatories.FindIndex(c => c.playerID == randomPlayerID);
+
+        // ✅ Find first empty slot
         int slot = -1;
         for (int i = 0; i < hinters.Length; i++)
         {
@@ -454,14 +436,15 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             }
         }
 
-        // If somehow slot is not found (shouldn't happen), default to 0
-        if (slot == -1) slot = 0;
+        if (slot == -1) slot = 0; // Fallback
 
-        hinters[slot] = chosenPlayerID;
+        // ✅ Mark this player as used
+        hinters[slot] = randomPlayerID;
 
-        // --- 6. Tell all clients the chosen playerID and slot ---
-        photonView.RPC("GameNewCategoryAll", RpcTarget.All, slot, chosenPlayerID);
-        */
+        Debug.Log($"Selected player {randomPlayerID} at category index {categoryIndex} for slot {slot}");
+
+        // Broadcast
+        photonView.RPC("GameNewCategoryAll", RpcTarget.All, categoryIndex, slot);
     }
 
 
@@ -511,13 +494,27 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         foreach (var t in scores) t.text = hintCatories[ID].score.ToString();
 
         currentHostAnswer = hintCatories[ID].score;
+
+        FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNS - category ready to play
     }
 
 
+    bool IsInvalidHintAnswer(TMP_InputField input)
+    {
+        if (input == null || string.IsNullOrWhiteSpace(input.text))
+            return true;
+
+        if (!int.TryParse(input.text, out int value))
+            return true;
+
+        return value <= 0 || value >= 10;
+    }
 
     public void SubmitHint()
     {
         hintRound++;
+
+        FusionRoomManager.Instance.Fpause(true); // ✅ Queue PAUSED - submitting hint
 
         photonView.RPC("AddHintList", RpcTarget.All,
             hintCategoryID,
@@ -563,7 +560,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void AddHintList(int ID, int score, string hint, string player, int id)
     {
-        Categories newCat = new Categories();
+        Categories newCat = ScriptableObject.CreateInstance<Categories>();
         newCat.bad = categories[0].categories[ID].bad;
         newCat.good = categories[0].categories[ID].good;
         newCat.example = categories[0].categories[ID].example;
@@ -576,6 +573,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         hintCatories.Add(newCat);
         hintStoredCatories.Add(newCat);
+        
+        // ✅ FIX: Resume queue after hint is added
+        FusionRoomManager.Instance.Fpause(false);
     }
 
     public void RemoveHint()
@@ -655,6 +655,14 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void SubmitVote()
     {
+        if (IsInvalidHintAnswer(playerGuessInput))
+        {
+            Debug.Log("Invalid hint answer. Must be a number between 0 and 10.");
+            playerGuessInput.text = "";
+            return; // ⛔ STOP submission
+        }
+
+        FusionRoomManager.Instance.Fpause(true); // ✅ Queue PAUSED - submitting vote
 
         if (!int.TryParse(playerGuessInput.text, out int guessedNumber))
             return;
@@ -673,7 +681,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         RemoveHint();
         Debug.Log("Correct Answer = " + currentHostAnswer);
 
-        if (currentRoundGuesses.ContainsKey(playerName)) return;
+        if (currentRoundGuesses.ContainsKey(playerName)) 
+        {
+            // ✅ FIX: Resume queue even if duplicate guess
+            FusionRoomManager.Instance.Fpause(false);
+            return;
+        }
 
         currentRoundGuesses[playerName] = guess;
 
@@ -682,6 +695,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         int hinterID = hintStoredCatories[categoryID].playerID; // track who gave hint
         StatsManager.instance.SubmitGuess(hinterID, points);
         // ----------------------------------------------------------
+
+        // ✅ FIX: Resume queue after processing guess
+        FusionRoomManager.Instance.Fpause(false);
 
         photonView.RPC("SyncPlayerGuessRPC", RpcTarget.Others, playerName, guess);
 
@@ -706,8 +722,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private int CalculatePoints(int guess, int answer)
     {
         int diff = Mathf.Abs(guess - answer);
-        return diff == 0 ? 3 : diff == 1 ? 2 : diff == 2 ? 1 : 0;
+        return diff == 0 ? 2 : diff == 1 ? 1 : 0;
     }
+
 
 
     [PunRPC]
@@ -746,7 +763,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
                 playerTotalScores[playerName] = 0;
 
             int diff = Mathf.Abs(playerGuess - currentHostAnswer);
-            int points = diff == 0 ? 3 : diff == 1 ? 2 : diff == 2 ? 1 : 0;
+            int points = diff == 0 ? 2 : diff == 1 ? 1 : 0;
 
             playerTotalScores[playerName] += points;
         }
@@ -802,7 +819,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
         ClearLeaderboard();
 
-        // STEP BY 4 (because each player has 4 values)
+        // STEP BY 5 (because each player has 5 values) - ✅ FIXED from comment
         for (int i = 0; i < leaderboardData.Length; i += 5)
         {
             string playerName = (string)leaderboardData[i];
@@ -816,7 +833,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
             if (entry != null)
             {
-                int rank = (i / 4) + 1;
+                int rank = (i / 5) + 1; // ✅ FIXED from (i / 4)
                 entry.SetForOverall(rank, playerName, score, totalScoreAllPlayers, false, otherID);
 
                 if (PlayerListUI.instance != null)
@@ -1126,6 +1143,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         currentHostAnswer = -1;
         hintRound = 0;
         voting = 0;
+        hintChance = 0;
 
         // --- Reset all lists ---
         playerTotalScores.Clear();
@@ -1329,6 +1347,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         currentHostAnswer = -1;
         hintRound = 0;
         voting = 0;
+        hintChance = 0;
 
         // --- Reset all lists ---
         playerTotalScores.Clear();

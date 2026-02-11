@@ -265,7 +265,6 @@ public class StatsManager : MonoBehaviourPunCallbacks
     // Get all round data for leaderboard
     public List<RoundData> GetAllRoundsData()
     {
-        ShowGuessesForHintGiver(myID);
         return roundsData;
     }
 
@@ -278,54 +277,6 @@ public class StatsManager : MonoBehaviourPunCallbacks
     }
 
 
-    [System.Serializable]
-    public class UIEL
-    {
-        public GameObject parent;
-        public TextMeshProUGUI _name;
-        public TextMeshProUGUI _score;
-    }
 
-    public UIEL[] guessers;
 
-    public void ShowGuessesForHintGiver(int hintGiverID)
-    {
-        for(int i = 0; i < guessers.Length; i++)
-        {
-            guessers[i].parent.SetActive(false);
-        }
-
-        RoundData round = StatsManager.instance.roundsData
-            .Find(r => r.hintGiverID == hintGiverID);
-
-        if (round == null)
-        {
-            Debug.Log("No guesses found for this hint giver.");
-            return;
-        }
-
-        int uiIndex = 0;
-
-        foreach (var guess in round.guesses)
-        {
-            // Skip self
-            if (guess.guesserID == hintGiverID)
-                continue;
-
-            // Stop if UI slots are full
-            if (uiIndex >= guessers.Length)
-                break;
-
-            if (!StatsManager.instance.allPlayersInfo.TryGetValue(
-                guess.guesserID, out PlayerInfo info))
-                continue;
-
-            // Fill UI
-            guessers[uiIndex].parent.SetActive(true);
-            guessers[uiIndex]._name.text = info.playerName;
-            guessers[uiIndex]._score.text = guess.guessScore.ToString();
-
-            uiIndex++;
-        }
-    }
 }
