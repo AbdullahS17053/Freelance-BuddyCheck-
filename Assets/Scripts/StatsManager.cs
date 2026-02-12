@@ -33,6 +33,8 @@ public class StatsManager : MonoBehaviourPunCallbacks
 
     public static StatsManager instance;
 
+    public int maxScore;
+
     public int myID = 0;
     // ✅ All player IDs in room
     public List<int> allPlayerIDs = new List<int>();
@@ -234,7 +236,7 @@ public class StatsManager : MonoBehaviourPunCallbacks
                     friendName = guesserInfo.playerName,
                     totalPointsAtoB = points,
                     totalPointsBtoA = 0,
-                    totalPossibleAtoB = 3,
+                    totalPossibleAtoB = 2,
                     totalPossibleBtoA = 0,
                     avatarIndex = guesserInfo.avatarIndex
                 };
@@ -248,7 +250,7 @@ public class StatsManager : MonoBehaviourPunCallbacks
                     totalPointsAtoB = 0,
                     totalPointsBtoA = points,
                     totalPossibleAtoB = 0,
-                    totalPossibleBtoA = 3,
+                    totalPossibleBtoA = 2,
                     avatarIndex = hinterInfo.avatarIndex
                 };
 

@@ -17,6 +17,14 @@ public class Menus : MonoBehaviour
     public GameObject ShopEnglish;
     public GameObject ShopGerman;
 
+    // last time changes
+    public GameObject Fmenu;
+    public GameObject FlobbyH;
+    public GameObject FlobbyJ;
+    public GameObject menu;
+    public GameObject lobbyH;
+    public GameObject lobbyJ;
+
     // Language settings
     public enum LanguageOption { English, Deutsch, Español, Français }
 
@@ -35,6 +43,28 @@ public class Menus : MonoBehaviour
                 return LocalizationSettings.AvailableLocales.Locales.Find(l => l.Identifier.Code == "en");
             default:
                 return LocalizationSettings.AvailableLocales.Locales[0]; // fallback
+        }
+    }
+
+    private void SetFrance( bool yes)
+    {
+        if (yes)
+        {
+            menu.SetActive(false);
+            lobbyH.SetActive(false);
+            lobbyJ.SetActive(false);
+            Fmenu.SetActive(true);
+            FlobbyH.SetActive(true);
+            FlobbyJ.SetActive(true);
+        }
+         else
+        {
+            Fmenu.SetActive(false);
+            FlobbyH.SetActive(false);
+            FlobbyJ.SetActive(false);
+            menu.SetActive(true);
+            lobbyH.SetActive(true);
+            lobbyJ.SetActive(true);
         }
     }
 
@@ -147,21 +177,25 @@ public class Menus : MonoBehaviour
             if (Application.systemLanguage == SystemLanguage.German)
             {
                 currentLanguage = LanguageOption.Deutsch;
+                SetFrance(false);
                 updateShop(false);
             }
             else if (Application.systemLanguage == SystemLanguage.Spanish)
             {
                 currentLanguage = LanguageOption.Español;
+                SetFrance(false);
                 updateShop(true);
             }
             else if (Application.systemLanguage == SystemLanguage.French)
             {
                 currentLanguage = LanguageOption.Français;
+                SetFrance(true);
                 updateShop(true);
             }
             else
             {
                 currentLanguage = LanguageOption.English; // default
+                SetFrance(false);
                 updateShop(true);
             }
 
@@ -182,21 +216,26 @@ public class Menus : MonoBehaviour
             switch (currentLanguage)
             {
                 case LanguageOption.English:
+                    SetFrance(false);
                     updateShop(true);
                     break;
                 case LanguageOption.Deutsch:
+                    SetFrance(false);
                     updateShop(false);
                     break;
 
                 case LanguageOption.Español:
+                    SetFrance(false);
                     updateShop(true);
                     break;
 
                 case LanguageOption.Français:
+                    SetFrance(true);
                     updateShop(true);
                     break;
 
                 default:
+                    SetFrance(false);
                     updateShop(true);
                     break;
 
@@ -261,21 +300,26 @@ public class Menus : MonoBehaviour
         switch (currentLanguage)
         {
             case LanguageOption.English:
+                SetFrance(false);
                 updateShop(true);
                 break;
             case LanguageOption.Deutsch:
+                SetFrance(false);
                 updateShop(false);
                 break;
 
             case LanguageOption.Español:
+                SetFrance(false);
                 updateShop(true);
                 break;
 
             case LanguageOption.Français:
+                SetFrance(true);
                 updateShop(true);
                 break;
 
             default:
+                SetFrance(false);
                 updateShop(true);
                 break;
 

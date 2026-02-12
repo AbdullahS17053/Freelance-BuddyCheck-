@@ -204,19 +204,22 @@ public class PlayerStatistics : MonoBehaviour
 
                 bool isGerman = (Menus.instance.GetLanguageIndex() == 1);
 
-                buddyRankText[i].text = isGerman ? rankInfo.rankDE : rankInfo.rankEN;
+                buddyRankText[i].text = isGerman
+                    ? $"#{i} {rankInfo.rankDE}"
+                    : $"#{i} {rankInfo.rankEN}";
+
                 buddyRankExtraText[i].text = isGerman ? rankInfo.extraDE : rankInfo.extraEN;
 
 
                 // ensure UI is visible
                 names[i].transform.parent.gameObject.SetActive(true);
-                avatars[i].transform.parent.gameObject.SetActive(true);
+                avatars[i].transform.parent.gameObject.transform.parent.gameObject.SetActive(true);
             }
             else
             {
                 // hide empty rows
                 names[i].transform.parent.gameObject.SetActive(false);
-                avatars[i].transform.parent.gameObject.SetActive(false);
+                avatars[i].transform.parent.gameObject.transform.parent.gameObject.SetActive(false);
             }
         }
     }

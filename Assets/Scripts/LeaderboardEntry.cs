@@ -72,6 +72,49 @@ public class LeaderboardEntry : MonoBehaviour
             uiIndex++;
         }
     }
+    /// <summary>
+    /// Shows what THIS player guessed on OTHER people's hints (when they were a guesser)
+    /// </summary>
+    public void ShowMyGuessesOnOthers(int myPlayerID)
+    {
+        // Hide all UI slots first
+        for (int i = 0; i < guessers.Length; i++)
+        {
+            guessers[i]._name.gameObject.SetActive(false);
+        }
+
+        int uiIndex = 0;
+
+        // ✅ Loop through ALL rounds
+        foreach (var round in StatsManager.instance.roundsData)
+        {
+            // Skip rounds where I was the hint giver
+            if (round.hintGiverID == myPlayerID)
+                continue;
+
+            // Stop if UI slots are full
+            if (uiIndex >= guessers.Length)
+                break;
+
+            // Find MY guess in this round
+            RoundGuess myGuess = round.guesses.Find(g => g.guesserID == myPlayerID);
+
+            if (myGuess == null)
+                continue; // I didn't guess in this round
+
+            // Get the hint giver's info
+            if (StatsManager.instance.allPlayersInfo.TryGetValue(
+                round.hintGiverID, out PlayerInfo hintGiverInfo))
+            {
+                // Show hint giver's name and MY score on their hint
+                guessers[uiIndex]._name.gameObject.SetActive(true);
+                guessers[uiIndex]._name.text = hintGiverInfo.playerName;
+                guessers[uiIndex]._score.text = myGuess.guessScore.ToString();
+
+                uiIndex++;
+            }
+        }
+    }
 
     private void SetScores(int thisPlayerID)
     {
@@ -115,7 +158,7 @@ public class LeaderboardEntry : MonoBehaviour
         BtoAScore.text = BtoA.ToString();   // I guessed this player’s hint (B→A)
 
 
-        ShowGuessesForHintGiver(StatsManager.instance.myID);
+        ShowMyGuessesOnOthers(StatsManager.instance.myID);
 
     }
 

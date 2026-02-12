@@ -27,6 +27,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private Button[] reconnectButton;
 
     [Header("Room Info UI")]
+    [SerializeField] private TMP_InputField roundsInput;
     [SerializeField] private TMP_InputField joinCodeInput;
     [SerializeField] private TMP_Text[] roomCodeText;
     [SerializeField] private TMP_Text playerCountText;
@@ -110,9 +111,17 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
-        if (!PhotonNetwork.IsConnectedAndReady) return;
+        if (!PhotonNetwork.IsConnectedAndReady)
+        {
+            PhotonNetwork.ConnectUsingSettings();
+            return;
+        }
+        else
+        {
 
-        Fpause(true);
+        }
+
+            Fpause(true);
 
         loadingPanel.SetActive(true);
 
@@ -129,6 +138,8 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         };
 
         PhotonNetwork.CreateRoom(currentRoomCode, options);
+
+        GameplayManager.instance.UpdateRounds(roundsInput);
     }
 
     public void JoinRoomFromInput()
@@ -319,6 +330,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void ShowHostPanel()
     {
+        SetPanelActive(GameplayManager.instance.waitingForPlayersPanel, false);
         SetPanelActive(loadingPanel, false);
         SetPanelActive(connectingPanel, false);
         SetPanelActive(reconnectPanel, false);
@@ -330,6 +342,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void ShowClientPanel()
     {
+        SetPanelActive(GameplayManager.instance.waitingForPlayersPanel, false);
         SetPanelActive(loadingPanel, false);
         SetPanelActive(connectingPanel, false);
         SetPanelActive(reconnectPanel, false);
@@ -340,6 +353,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void ShowMenuPanel()
     {
+        SetPanelActive(GameplayManager.instance.waitingForPlayersPanel, false);
         SetPanelActive(hostPanel, false);
         SetPanelActive(clientPanel, false);
         SetPanelActive(loadingPanel, false);

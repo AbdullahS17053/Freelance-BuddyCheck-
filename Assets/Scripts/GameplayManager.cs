@@ -39,6 +39,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [SerializeField] private TMP_InputField hintAnswerInput;
     [SerializeField] private Button submitHintAnswerButton;
     [SerializeField] private Button reniewHintAnswerButton;
+    [SerializeField] private Button reniewHintAnswerConfirmButton;
+    [SerializeField] private TextMeshProUGUI reniewHintAnswerConfirmText;
 
     [Header("Player UI")]
     [SerializeField] private TMP_InputField playerGuessInput;
@@ -107,7 +109,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     // --- Reworked ready-system: separate ready-for-hints
     private Dictionary<string, bool> readyForHints = new Dictionary<string, bool>();
-    [SerializeField] private GameObject waitingForPlayersPanel;
+    public GameObject waitingForPlayersPanel;
 
     private Dictionary<string, int> playerTotalScores = new Dictionary<string, int>();
     private Dictionary<string, int> currentRoundGuesses = new Dictionary<string, int>();
@@ -146,8 +148,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
 
         foreach (var b in exampleButton) b.onClick.AddListener(() => ToggleExampleButton(true));
-        reniewHintAnswerButton.onClick.AddListener(HintNewCategory);
-        reniewHintAnswerButton.onClick.AddListener(increaseHintChance);
+        reniewHintAnswerButton.onClick.AddListener(ReniewCategoryLimit);
+        reniewHintAnswerConfirmButton.onClick.AddListener(HintNewCategory);
+        reniewHintAnswerConfirmButton.onClick.AddListener(increaseHintChance);
         voteButton.onClick.AddListener(SubmitVote);
         submitHintAnswerButton.onClick.AddListener(SubmitHint);
         replayButton.onClick.AddListener(RequestRestartGame);
@@ -269,14 +272,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             hintRoundEach = totalRounds / Mathf.CeilToInt((float)PhotonNetwork.CurrentRoom.PlayerCount);
 
-
             if (hintRoundEach < 3)
                 hintRoundEach = 3;
 
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         }
-
+        StatsManager.instance.maxScore = totalRounds * 2;
         hinters = new int[PhotonNetwork.CurrentRoom.PlayerCount];
         // Reset ready states so match can start after hints
         readyForHints.Clear();
@@ -374,7 +376,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             t.text = tempScore.ToString();
 
         // ✅ FINALLY: Disable button if free user has used up their renewals
-        if (LoginManager.Instance.fullVersion != 1 && hintChance >= 0)
+        if (LoginManager.Instance.fullVersion != 1 && hintChance >= 1)
         {
             reniewHintAnswerButton.interactable = false;
         }
@@ -388,6 +390,17 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         // ✅ THEN: Increment usage counter
         hintChance++;
         Debug.Log(hintChance);
+    }
+    public void ReniewCategoryLimit()
+    {
+        if (LoginManager.Instance.fullVersion != 1)
+        {
+            reniewHintAnswerConfirmText.text = "Do you really want to skip ?";
+        }
+        else
+        {
+            reniewHintAnswerConfirmText.text = "Do you really want to skip ? : " + (1 - hintChance) + " Skip Left";
+        }
     }
     public void NewCategory()
     {
@@ -855,7 +868,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         List<object> data = new List<object>();
         var sortedScores = playerTotalScores.OrderByDescending(p => p.Value).ToList();
 
-        int totalScoreAllPlayers = playerTotalScores.Values.Sum(); // total of all players
+       // int totalScoreAllPlayers = playerTotalScores.Values.Sum(); // total of all players
+        int totalScoreAllPlayers = StatsManager.instance.maxScore; // total of all players * 2
 
         foreach (var playerScore in sortedScores)
         {
@@ -1086,6 +1100,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
+        StatsManager.instance.maxScore = 0;
 
         // --- Reset all lists ---
         playerTotalScores.Clear();
@@ -1175,6 +1190,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
+        StatsManager.instance.maxScore = 0;
 
         // --- Reset all lists ---
         playerTotalScores.Clear();
@@ -1284,15 +1300,15 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (string.IsNullOrWhiteSpace(raw))
         {
-            totalRounds = 4;
+            totalRounds = 6;
         }
         else if (int.TryParse(raw, out int rounds))
         {
-            totalRounds = Mathf.Clamp(rounds, 2, 20);
+            totalRounds = Mathf.Clamp(rounds, 6, 20);
         }
         else
         {
-            totalRounds = 4;
+            totalRounds = 6;
         }
 
         if (PhotonNetwork.IsMasterClient)
@@ -1379,6 +1395,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
+        StatsManager.instance.maxScore = 0;
 
         // --- Reset all lists ---
         playerTotalScores.Clear();
