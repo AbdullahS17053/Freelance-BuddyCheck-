@@ -165,10 +165,15 @@ public class PlayerStatistics : MonoBehaviour
 
     private void UpdateDisplay()
     {
-        for (int i = 0; i < names.Length; i++)
+        for (int i = 1; i < names.Length - 1; i++)
         {
             if (i < friendsStats.Count)
             {
+                if(friendsStats[i - 1].friendID == StatsManager.instance.myID)
+                {
+                    continue;
+                }
+
                 FriendStats f = friendsStats[i];
 
                 // avatar
@@ -205,8 +210,8 @@ public class PlayerStatistics : MonoBehaviour
                 bool isGerman = (Menus.instance.GetLanguageIndex() == 1);
 
                 buddyRankText[i].text = isGerman
-                    ? $"#{i} {rankInfo.rankDE}"
-                    : $"#{i} {rankInfo.rankEN}";
+                    ? $"#{i + 1} {rankInfo.rankDE}"
+                    : $"#{i + 1} {rankInfo.rankEN}";
 
                 buddyRankExtraText[i].text = isGerman ? rankInfo.extraDE : rankInfo.extraEN;
 

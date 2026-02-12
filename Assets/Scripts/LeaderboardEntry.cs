@@ -158,7 +158,7 @@ public class LeaderboardEntry : MonoBehaviour
         BtoAScore.text = BtoA.ToString();   // I guessed this player’s hint (B→A)
 
 
-        ShowMyGuessesOnOthers(StatsManager.instance.myID);
+        ShowMyGuessesOnOthers(thisPlayerID);
 
     }
 

@@ -278,7 +278,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             var props = new Hashtable { [EACH_ROUNDS_KEY] = hintRoundEach };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
         }
-        StatsManager.instance.maxScore = totalRounds * 2;
+        StatsManager.instance.maxScore = totalRounds;
         hinters = new int[PhotonNetwork.CurrentRoom.PlayerCount];
         // Reset ready states so match can start after hints
         readyForHints.Clear();
