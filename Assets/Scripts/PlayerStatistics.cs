@@ -185,14 +185,14 @@ public class PlayerStatistics : MonoBehaviour
                 AtoBslider[i].maxValue = f.totalPossibleAtoB;
                 AtoBslider[i].value = f.totalPointsAtoB;
                 AtoBtotal[i].text = f.totalPossibleAtoB.ToString();
-                AtoBtotalPercent[i].text = CalculatePercent(f.totalPointsAtoB, f.totalPossibleAtoB);
+                AtoBtotalPercent[i].text = CalculatePercent(f.totalPointsAtoB, StatsManager.instance.maxScore);
 
                 // B → A
                 BtoA[i].text = f.totalPointsBtoA.ToString();
                 BtoAslider[i].maxValue = f.totalPossibleBtoA;
                 BtoAslider[i].value = f.totalPointsBtoA;
                 BtoAtotal[i].text = f.totalPossibleBtoA.ToString();
-                BtoAtotalPercent[i].text = CalculatePercent(f.totalPointsBtoA, f.totalPossibleBtoA);
+                BtoAtotalPercent[i].text = CalculatePercent(f.totalPointsBtoA, StatsManager.instance.maxScore);
 
                 // Last Played
                 lastPlayed[i].text = f.lastPlayed;

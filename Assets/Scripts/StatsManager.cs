@@ -20,9 +20,12 @@ public class StatsManager : MonoBehaviourPunCallbacks
     [System.Serializable]
     public class RoundData
     {
+        public int roundNumber;        // ✅ NEW: Track which game round this is
         public int hintGiverID;        // who gave the hint
         public List<RoundGuess> guesses = new List<RoundGuess>();
     }
+
+    public int currentRoundNumber = 0; // ✅ NEW: Track current round
 
     [System.Serializable]
     public class PlayerInfo
@@ -55,6 +58,12 @@ public class StatsManager : MonoBehaviourPunCallbacks
         {
             myID = PlayerPrefs.GetInt("ID");
         }
+    }
+    // ✅ NEW: Method to increment round
+    public void IncrementRound()
+    {
+        currentRoundNumber++;
+        Debug.Log($"Round incremented to {currentRoundNumber}");
     }
     public List<int> GetAllPlayerIDsInRoom()
     {
@@ -156,19 +165,23 @@ public class StatsManager : MonoBehaviourPunCallbacks
         photonView.RPC("SyncRoundData", RpcTarget.All, hintGiverID, myID, points);
     }
 
-    // ----------------------------
-    // ✅ RPC to sync guesses
-    // ----------------------------
+    // ✅ Add logging to SyncRoundData
     [PunRPC]
     private void SyncRoundData(int hintGiverID, int guesserID, int points)
     {
-        // Find existing round for this hint giver
-        RoundData round = roundsData.Find(r => r.hintGiverID == hintGiverID);
+        Debug.Log($"SyncRoundData: Round {currentRoundNumber}, HintGiver {hintGiverID}, Guesser {guesserID}, Points {points}");
+
+        // ✅ FIX: Find by BOTH round number AND hint giver
+        RoundData round = roundsData.Find(r =>
+            r.roundNumber == currentRoundNumber && r.hintGiverID == hintGiverID);
+
         if (round == null)
         {
             round = new RoundData();
+            round.roundNumber = currentRoundNumber; // ✅ NEW
             round.hintGiverID = hintGiverID;
             roundsData.Add(round);
+            Debug.Log($"Created new round: Round#{currentRoundNumber}, HintGiver {hintGiverID}");
         }
 
         // Add or update guess for this player
@@ -181,25 +194,27 @@ public class StatsManager : MonoBehaviourPunCallbacks
                 guessScore = points
             };
             round.guesses.Add(newGuess);
+            Debug.Log($"Added new guess: Round#{currentRoundNumber}, Guesser {guesserID} scored {points} on HintGiver {hintGiverID}'s hint");
         }
         else
         {
-            existing.guessScore = points; // update if already exists
+            existing.guessScore = points;
+            Debug.Log($"Updated guess: Round#{currentRoundNumber}, Guesser {guesserID} scored {points} on HintGiver {hintGiverID}'s hint");
         }
 
-        // ----------------------------
+        Debug.Log($"Round#{currentRoundNumber} (HintGiver {hintGiverID}) now has {round.guesses.Count} guesses");
 
+        // Optional logging
         if (myID == hintGiverID)
         {
-            // I am the hint giver → track others' guesses
             StoreGuessForHint(guesserID, points);
         }
         else
         {
-            // I am NOT the hint giver → track my judgement of the hint
             StoreYourJudgement(hintGiverID, points);
         }
     }
+
 
     // ----------------------------
     // Store guesses on your own hint
@@ -275,6 +290,7 @@ public class StatsManager : MonoBehaviourPunCallbacks
     public void ResetAllRounds()
     {
         roundsData.Clear();
+        currentRoundNumber = 0; // ✅ NEW: Reset round counter
         Debug.Log("All rounds data cleared!");
     }
 
@@ -284,25 +300,27 @@ public class StatsManager : MonoBehaviourPunCallbacks
     {
         SyncRoundData(hintGiverID, guesserID, points);
     }
-    // ✅ NEW: Calculate max possible score for a specific player
     public int GetMaxPossibleScore(int playerID)
     {
         int roundsAsGuesser = 0;
 
+        // ✅ Count rounds where this player ACTUALLY SUBMITTED A GUESS
         foreach (var round in roundsData)
         {
-            // Count rounds where this player was a guesser (not hint giver)
-            if (round.hintGiverID != playerID)
+            // Check if this player has a guess entry in this round
+            bool playerGuessedInThisRound = round.guesses.Exists(g => g.guesserID == playerID);
+
+            if (playerGuessedInThisRound)
             {
                 roundsAsGuesser++;
             }
         }
 
-        // Max 2 points per round
-        return roundsAsGuesser * 2;
+        int maxScore = roundsAsGuesser * 2;
+        Debug.Log($"GetMaxPossibleScore: Player {playerID} was guesser in {roundsAsGuesser} rounds, max possible = {maxScore}");
+        return maxScore;
     }
 
-    // ✅ NEW: Get total points earned by a player from a specific hint giver
     public int GetPointsFromHintGiver(int guesserID, int hintGiverID)
     {
         int totalPoints = 0;
@@ -315,10 +333,15 @@ public class StatsManager : MonoBehaviourPunCallbacks
                 if (guess != null)
                 {
                     totalPoints += guess.guessScore;
+                    Debug.Log($"Found: Guesser {guesserID} earned {guess.guessScore} from HintGiver {hintGiverID}");
                 }
             }
         }
 
+        Debug.Log($"GetPointsFromHintGiver: Guesser {guesserID} earned total {totalPoints} from HintGiver {hintGiverID}");
         return totalPoints;
     }
+
+    
+
 }

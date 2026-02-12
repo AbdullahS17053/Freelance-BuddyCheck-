@@ -30,54 +30,10 @@ public class LeaderboardEntry : MonoBehaviour
 
     public UIEL[] guessers;
 
-    public void ShowGuessesForHintGiver(int hintGiverID)
-    {
-        // Hide all UI slots first
-        for (int i = 0; i < guessers.Length; i++)
-        {
-            guessers[i]._name.gameObject.SetActive(false);
-        }
-
-        RoundData round = StatsManager.instance.roundsData
-            .Find(r => r.hintGiverID == hintGiverID);
-
-        if (round == null)
-        {
-            Debug.Log("No guesses found for this hint giver.");
-            return;
-        }
-
-        int uiIndex = 0;
-
-        foreach (var guess in round.guesses)
-        {
-            // Skip self
-            if (guess.guesserID == hintGiverID)
-                continue;
-
-            // Stop if UI slots are full
-            if (uiIndex >= guessers.Length)
-                break;
-
-            // ✅ FIXED: Removed the ! negation - now checks if info EXISTS
-            if (StatsManager.instance.allPlayersInfo.TryGetValue(
-                guess.guesserID, out PlayerInfo info))
-            {
-                // Fill UI
-                guessers[uiIndex]._name.gameObject.SetActive(true);
-                guessers[uiIndex]._name.text = info.playerName;
-                guessers[uiIndex]._score.text = guess.guessScore.ToString();
-
-                uiIndex++; // ✅ FIXED: Moved inside the if block
-            }
-            // ✅ If player info not found, skip this guess (no continue needed)
-        }
-    }
-
     /// <summary>
-    /// Shows what THIS player guessed on OTHER people's hints (when they were a guesser)
+    /// Shows what THIS player earned from each hint giver
     /// </summary>
-    public void ShowMyGuessesOnOthers(int myPlayerID)
+    public void ShowPlayerBreakdown(int playerID)
     {
         // Hide all UI slots first
         for (int i = 0; i < guessers.Length; i++)
@@ -85,11 +41,11 @@ public class LeaderboardEntry : MonoBehaviour
             guessers[i]._name.gameObject.SetActive(false);
         }
 
-        // ✅ FIX: Get list of all OTHER players
+        // ✅ Get list of all OTHER players (potential hint givers)
         List<int> otherPlayerIDs = new List<int>();
         foreach (var kvp in StatsManager.instance.allPlayersInfo)
         {
-            if (kvp.Key != myPlayerID)
+            if (kvp.Key != playerID)
             {
                 otherPlayerIDs.Add(kvp.Key);
             }
@@ -97,76 +53,85 @@ public class LeaderboardEntry : MonoBehaviour
 
         int uiIndex = 0;
 
-        // ✅ FIX: Loop through each other player and calculate points from them
+        Debug.Log($"=== Breakdown for Player {playerID} ===");
+
+        // ✅ Loop through each other player and show points earned from them
         foreach (int hintGiverID in otherPlayerIDs)
         {
             if (uiIndex >= guessers.Length)
                 break;
 
-            // Get total points I earned from this hint giver
-            int pointsFromThisPlayer = StatsManager.instance.GetPointsFromHintGiver(myPlayerID, hintGiverID);
+            // Get total points THIS player earned from this hint giver
+            int pointsFromThisHintGiver = StatsManager.instance.GetPointsFromHintGiver(playerID, hintGiverID);
 
-            // ✅ FIX: ALWAYS show, even if 0 points
+            // ✅ ALWAYS show, even if 0 points
             if (StatsManager.instance.allPlayersInfo.TryGetValue(hintGiverID, out PlayerInfo hintGiverInfo))
             {
                 guessers[uiIndex]._name.gameObject.SetActive(true);
                 guessers[uiIndex]._name.text = hintGiverInfo.playerName;
-                guessers[uiIndex]._score.text = pointsFromThisPlayer.ToString(); // Will show "0" if no points
+                guessers[uiIndex]._score.text = pointsFromThisHintGiver.ToString();
+
+                Debug.Log($"  {hintGiverInfo.playerName}: {pointsFromThisHintGiver} points");
 
                 uiIndex++;
             }
         }
+
+        Debug.Log($"===================");
     }
 
     private void SetScores(int thisPlayerID)
     {
-        // This is for the AtoB/BtoA scores at the top
-        // Keep your existing logic here or simplify it
+        // ✅ FIX: Calculate THIS player's total scores (not relationship with me)
+        int totalEarned = 0;  // Total points THIS player earned by guessing correctly
+        int totalGiven = 0;   // Total points given to THIS player's hints
 
-        // Get all round data once
         List<RoundData> rounds = StatsManager.instance.GetAllRoundsData();
 
-        int AtoB = 0; // I guessed on thisPlayer's hint
-        int BtoA = 0; // thisPlayer guessed on my hint
-
-        foreach (var r in rounds)
+        foreach (var round in rounds)
         {
-            // CASE 1: thisPlayer gave the hint → I guessed on it
-            if (r.hintGiverID == thisPlayerID)
+            // Calculate points THIS player earned (when they were a guesser)
+            if (round.hintGiverID != thisPlayerID)
             {
-                foreach (var g in r.guesses)
+                RoundGuess thisPlayerGuess = round.guesses.Find(g => g.guesserID == thisPlayerID);
+                if (thisPlayerGuess != null)
                 {
-                    if (g.guesserID == StatsManager.instance.myID)
-                    {
-                        AtoB += g.guessScore;
-                    }
+                    totalEarned += thisPlayerGuess.guessScore;
                 }
             }
 
-            // CASE 2: I gave the hint → thisPlayer guessed on it
-            if (r.hintGiverID == StatsManager.instance.myID)
+            // Calculate points given to THIS player's hints (when they were the hint giver)
+            if (round.hintGiverID == thisPlayerID)
             {
-                foreach (var g in r.guesses)
+                foreach (var guess in round.guesses)
                 {
-                    if (g.guesserID == thisPlayerID)
-                    {
-                        BtoA += g.guessScore;
-                    }
+                    totalGiven += guess.guessScore;
                 }
             }
         }
 
         // Update UI
-        if (AtoBScore != null) AtoBScore.text = AtoB.ToString();
-        if (BtoAScore != null) BtoAScore.text = BtoA.ToString();
+        if (AtoBScore != null)
+        {
+            AtoBScore.text = totalEarned.ToString();
+            Debug.Log($"Player {thisPlayerID} total earned: {totalEarned}");
+        }
 
-        // ✅ Show breakdown
-        ShowMyGuessesOnOthers(thisPlayerID);
+        if (BtoAScore != null)
+        {
+            BtoAScore.text = totalGiven.ToString();
+            Debug.Log($"Player {thisPlayerID} total given: {totalGiven}");
+        }
+
+        // ✅ Show breakdown of where points came from
+        ShowPlayerBreakdown(thisPlayerID);
     }
 
 
     public void SetForOverall(int rank, string playerName, int totalScore, int allPlayersScore, bool isHost, int otherID)
     {
+        Debug.Log($"=== SetForOverall: {playerName} (ID: {otherID}) - Score: {totalScore} ===");
+
         SetScores(otherID);
 
         // Set rank
@@ -176,47 +141,47 @@ public class LeaderboardEntry : MonoBehaviour
             {
                 case 1:
                     rankText.text = $"#{rank}st Place: {playerName} |";
-                    subText.text = $"BROBUDDY";
+                    if (subText != null) subText.text = $"BROBUDDY";
                     break;
                 case 2:
                     rankText.text = $"{rank}nd Place: {playerName} |";
-                    subText.text = $"Co-pilot buddy";
+                    if (subText != null) subText.text = $"Co-pilot buddy";
                     break;
                 case 3:
                     rankText.text = $"{rank}rd Place: {playerName} |";
-                    subText.text = $"Parallel class buddy";
+                    if (subText != null) subText.text = $"Parallel class buddy";
                     break;
                 case 4:
                     rankText.text = $"{rank}th Place: {playerName} |";
-                    subText.text = $"Bronze buddy";
+                    if (subText != null) subText.text = $"Bronze buddy";
                     break;
                 case 5:
                     rankText.text = $"{rank}th Place: {playerName} |";
-                    subText.text = $"Spare tire buddy";
+                    if (subText != null) subText.text = $"Spare tire buddy";
                     break;
                 case 6:
                     rankText.text = $"{rank}th Place: {playerName} |";
-                    subText.text = $"Farmer buddy";
+                    if (subText != null) subText.text = $"Farmer buddy";
                     break;
                 case 7:
                     rankText.text = $"{rank}th Place: {playerName} |";
-                    subText.text = $"Chill buddy";
+                    if (subText != null) subText.text = $"Chill buddy";
                     break;
                 case 8:
                     rankText.text = $"{rank}th Place: {playerName} |";
-                    subText.text = $"bit on the other side buddy";
+                    if (subText != null) subText.text = $"bit on the other side buddy";
                     break;
                 case 9:
                     rankText.text = $"{rank}th Place: {playerName} |";
-                    subText.text = $"no words buddy";
+                    if (subText != null) subText.text = $"no words buddy";
                     break;
                 case 10:
                     rankText.text = $"{rank}th Place: {playerName} |";
-                    subText.text = $"Mr. Nobuddy";
+                    if (subText != null) subText.text = $"Mr. Nobuddy";
                     break;
                 default:
                     rankText.text = $"{rank} Place: {playerName} |";
-                    subText.text = $"Mr. Nobuddy";
+                    if (subText != null) subText.text = $"Mr. Nobuddy";
                     break;
             }
         }
@@ -237,17 +202,22 @@ public class LeaderboardEntry : MonoBehaviour
             scoreText.gameObject.SetActive(true);
         }
 
-        // Calculate % of total
+        // ✅ FIX: Calculate CORRECT percentage using THIS player's max possible
         if (perceText != null)
         {
-            if (allPlayersScore > 0)
+            // Get max possible score for THIS specific player
+            int maxPossible = StatsManager.instance.GetMaxPossibleScore(otherID);
+
+            Debug.Log($"Player {otherID} ({playerName}): {totalScore}/{maxPossible} points");
+
+            if (StatsManager.instance.maxScore > 0)
             {
-                float percentage = (float)totalScore / allPlayersScore * 100f;
-                perceText.text = $"{percentage:F1}%";
+                float percentage = ((float)totalScore / StatsManager.instance.maxScore) * 100f;
+                perceText.text = $"{percentage}%";
             }
             else
             {
-                perceText.text = "0%";
+                perceText.text = $"0% ({totalScore}/0)";
             }
 
             perceText.color = isHost ? hostColor : defaultColor;

@@ -301,6 +301,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         ResetRoundState();
 
+        // ✅ NEW: Increment round number in StatsManager
+        StatsManager.instance.IncrementRound();
+
         realAnswer.SetActive(false);
         currentRoundGuesses.Clear();
 
@@ -309,7 +312,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         NewCategory();
 
         AdCommunicator.Instance.ShowEndOfRoundAd();
-
     }
 
     private void ProceedToNextPhase()
@@ -389,11 +391,20 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         // ✅ THEN: Increment usage counter
         hintChance++;
+        // ✅ FINALLY: Disable button if free user has used up their renewals
+        if (LoginManager.Instance.fullVersion != 1 && hintChance >= 1)
+        {
+            reniewHintAnswerButton.interactable = false;
+        }
+        else
+        {
+            reniewHintAnswerButton.interactable = true;
+        }
         Debug.Log(hintChance);
     }
     public void ReniewCategoryLimit()
     {
-        if (LoginManager.Instance.fullVersion != 1)
+        if (LoginManager.Instance.fullVersion == 1)
         {
             reniewHintAnswerConfirmText.text = "Do you really want to skip ?";
         }
