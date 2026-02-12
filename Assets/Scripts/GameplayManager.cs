@@ -89,7 +89,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     // -----------------------------------------------------------
 
     private int currentHostAnswer = -1;
-    private bool gameActive = false;
+    public bool gameActive = false;
 
 
     private int tempPlayerChecks = 0;
@@ -147,6 +147,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         foreach (var b in exampleButton) b.onClick.AddListener(() => ToggleExampleButton(true));
         reniewHintAnswerButton.onClick.AddListener(HintNewCategory);
+        reniewHintAnswerButton.onClick.AddListener(increaseHintChance);
         voteButton.onClick.AddListener(SubmitVote);
         submitHintAnswerButton.onClick.AddListener(SubmitHint);
         replayButton.onClick.AddListener(RequestRestartGame);
@@ -234,7 +235,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         }
 
-        if(PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient)
         {
             StartCoroutine(WaitForAllPlayersReadyForHints());
         }
@@ -286,7 +287,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         waitingForPlayersPanel.SetActive(true);
         hintPanel.SetActive(true);
         HintNewCategory();
-        FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNS - game starting
+        FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNNING - game is starting
 
 
         if (ad)
@@ -320,7 +321,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         Debug.Log("Proceeding to next phase..." + currentRound + " ||| " + totalRounds);
 
         StatsManager.instance.UpdatePlayerStatistics();
-        if (currentRound > totalRounds) 
+        if (currentRound > totalRounds)
         {
             ShowOverallLeaderboard();
 
@@ -332,13 +333,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     }
 
     #endregion
-        // -----------------------------------------------------------
+    // -----------------------------------------------------------
 
 
 
-        // -----------------------------------------------------------
-        #region HINT SYSTEM
-        // -----------------------------------------------------------
+    // -----------------------------------------------------------
+    #region HINT SYSTEM
+    // -----------------------------------------------------------
 
     public void ToggleExampleButton(bool toggle = true)
     {
@@ -372,11 +373,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         foreach (var t in scores)
             t.text = tempScore.ToString();
 
-        // ✅ THEN: Increment usage counter
-        hintChance++;
-        Debug.Log(hintChance);
         // ✅ FINALLY: Disable button if free user has used up their renewals
-        if (LoginManager.Instance.fullVersion != 1 && hintChance >= 3)
+        if (LoginManager.Instance.fullVersion != 1 && hintChance >= 0)
         {
             reniewHintAnswerButton.interactable = false;
         }
@@ -384,6 +382,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             reniewHintAnswerButton.interactable = true;
         }
+    }
+    public void increaseHintChance()
+    {
+        // ✅ THEN: Increment usage counter
+        hintChance++;
+        Debug.Log(hintChance);
     }
     public void NewCategory()
     {
@@ -495,7 +499,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         currentHostAnswer = hintCatories[ID].score;
 
-        FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNS - category ready to play
+        FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNNING - category ready
     }
 
 
@@ -507,7 +511,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (!int.TryParse(input.text, out int value))
             return true;
 
-        return value <= 0 || value >= 10;
+        return value <= -1 || value >= 11;
     }
 
     public void SubmitHint()
@@ -573,8 +577,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         hintCatories.Add(newCat);
         hintStoredCatories.Add(newCat);
-        
-        // ✅ FIX: Resume queue after hint is added
+
+        // ✅ CRITICAL FIX: Resume queue after hint is added
         FusionRoomManager.Instance.Fpause(false);
     }
 
@@ -670,7 +674,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         playerGuessInput.interactable = false;
         voteButton.interactable = false;
 
-        SendChatMessage(PhotonNetwork.NickName + " voted");
+        SendChatMessage(PhotonNetwork.NickName + ": voted");
 
         photonView.RPC("SubmitPlayerGuessRPC", RpcTarget.All, PhotonNetwork.NickName, guessedNumber);
     }
@@ -681,9 +685,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         RemoveHint();
         Debug.Log("Correct Answer = " + currentHostAnswer);
 
-        if (currentRoundGuesses.ContainsKey(playerName)) 
+        if (currentRoundGuesses.ContainsKey(playerName))
         {
-            // ✅ FIX: Resume queue even if duplicate guess
+            // ✅ CRITICAL FIX: Resume queue even if duplicate guess
             FusionRoomManager.Instance.Fpause(false);
             return;
         }
@@ -691,12 +695,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         currentRoundGuesses[playerName] = guess;
 
         // ---------------- StatsManager integration ----------------
-        int points = CalculatePoints(guess, currentHostAnswer); // helper function
-        int hinterID = hintStoredCatories[categoryID].playerID; // track who gave hint
+        int points = CalculatePoints(guess, currentHostAnswer);
+        int hinterID = hintStoredCatories[categoryID].playerID;
         StatsManager.instance.SubmitGuess(hinterID, points);
         // ----------------------------------------------------------
 
-        // ✅ FIX: Resume queue after processing guess
+        // ✅ CRITICAL FIX: Resume queue after processing guess
         FusionRoomManager.Instance.Fpause(false);
 
         photonView.RPC("SyncPlayerGuessRPC", RpcTarget.Others, playerName, guess);
@@ -710,7 +714,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             ShowPlayerAnswers();
             Invoke("ProceedToNextPhase", 3f);
 
-            
+
         }
     }
     [PunRPC]
@@ -819,7 +823,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
         ClearLeaderboard();
 
-        // STEP BY 5 (because each player has 5 values) - ✅ FIXED from comment
+        // STEP BY 5 (because each player has 5 values) - ✅ FIXED
         for (int i = 0; i < leaderboardData.Length; i += 5)
         {
             string playerName = (string)leaderboardData[i];
@@ -1073,13 +1077,26 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         gameplayPanel.SetActive(false);
         playersPanel.SetActive(false);
         hostPanel.SetActive(false);
+        hintPanel.SetActive(false);
 
+        // --- Reset simple state ---
         gameActive = false;
         currentRound = 1;
+        currentHostAnswer = -1;
+        hintRound = 0;
+        voting = 0;
+        hintChance = 0;
 
+        // --- Reset all lists ---
         playerTotalScores.Clear();
         currentRoundGuesses.Clear();
         readyForHints.Clear();
+        hintCatories.Clear();
+        hintStoredCatories.Clear();
+        chatMessages.Clear();
+
+        ResetRoundState();
+        InitializePlayerTracking();
 
         chatMessages.Clear();
         UpdateChatDisplay();
@@ -1095,6 +1112,20 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             profile.hideAnswers();
             profile.SetChatActivity(false);
         }
+        for (int j = 0; j < hinters.Length; j++)
+        {
+            hinters[j] = 0;
+        }
+
+
+        messagePanel.SetActive(false);
+
+        gameplayPanel.SetActive(false);
+        leaderboardPanel.SetActive(false);
+
+        roomManager.ShowMenuPanel();
+
+        StatsManager.instance.ResetAllRounds();
     }
 
 
@@ -1249,7 +1280,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         roundsInputField = roundsInput;
 
-        string raw = roundsInput.text.Trim(); 
+        string raw = roundsInput.text.Trim();
 
         if (string.IsNullOrWhiteSpace(raw))
         {

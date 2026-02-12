@@ -59,12 +59,15 @@ public class LeaderboardEntry : MonoBehaviour
 
             if (!StatsManager.instance.allPlayersInfo.TryGetValue(
                 guess.guesserID, out PlayerInfo info))
-                continue;
+            {
+                // Fill UI
+                guessers[uiIndex]._name.gameObject.SetActive(true);
+                guessers[uiIndex]._name.text = info.playerName;
+                guessers[uiIndex]._score.text = guess.guessScore.ToString();
 
-            // Fill UI
-            guessers[uiIndex]._name.gameObject.SetActive(true);
-            guessers[uiIndex]._name.text = info.playerName;
-            guessers[uiIndex]._score.text = guess.guessScore.ToString();
+                continue;
+            }
+
 
             uiIndex++;
         }

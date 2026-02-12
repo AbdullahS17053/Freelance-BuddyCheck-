@@ -48,7 +48,12 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
         PhotonNetwork.SendRate = 30;
         PhotonNetwork.SerializationRate = 10;
-        PhotonNetwork.KeepAliveInBackground = 120;
+
+        // Increase timeout to 60 seconds (60000 ms)
+        // PhotonNetwork.NetworkingClient.LoadBalancingPeer.DisconnectTimeout = 60000;
+
+        // Optional: Increase time client stays alive in background
+        PhotonNetwork.KeepAliveInBackground = 60000;
     }
 
     void Start()
@@ -314,6 +319,9 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void ShowHostPanel()
     {
+        SetPanelActive(loadingPanel, false);
+        SetPanelActive(connectingPanel, false);
+        SetPanelActive(reconnectPanel, false);
         SetPanelActive(hostPanel, true);
         SetPanelActive(clientPanel, false);
         SetPanelActive(menuPanel, false);
@@ -322,15 +330,21 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void ShowClientPanel()
     {
+        SetPanelActive(loadingPanel, false);
+        SetPanelActive(connectingPanel, false);
+        SetPanelActive(reconnectPanel, false);
         SetPanelActive(hostPanel, false);
         SetPanelActive(clientPanel, true);
         SetPanelActive(menuPanel, false);
     }
 
-    private void ShowMenuPanel()
+    public void ShowMenuPanel()
     {
         SetPanelActive(hostPanel, false);
         SetPanelActive(clientPanel, false);
+        SetPanelActive(loadingPanel, false);
+        SetPanelActive(connectingPanel, false);
+        SetPanelActive(reconnectPanel, false);
         SetPanelActive(menuPanel, true);
     }
     public void OnPrivacyToggleChanged()
@@ -374,6 +388,6 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public void Fpause(bool pause)
     {
 
-        PhotonNetwork.IsMessageQueueRunning = !pause;
+       // PhotonNetwork.IsMessageQueueRunning = pause;
     }
 }
