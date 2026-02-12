@@ -279,6 +279,46 @@ public class StatsManager : MonoBehaviourPunCallbacks
     }
 
 
+    // ✅ FIX: Make this public so LeaderboardEntry can call it directly
+    public void SyncRoundDataLocal(int hintGiverID, int guesserID, int points)
+    {
+        SyncRoundData(hintGiverID, guesserID, points);
+    }
+    // ✅ NEW: Calculate max possible score for a specific player
+    public int GetMaxPossibleScore(int playerID)
+    {
+        int roundsAsGuesser = 0;
 
+        foreach (var round in roundsData)
+        {
+            // Count rounds where this player was a guesser (not hint giver)
+            if (round.hintGiverID != playerID)
+            {
+                roundsAsGuesser++;
+            }
+        }
 
+        // Max 2 points per round
+        return roundsAsGuesser * 2;
+    }
+
+    // ✅ NEW: Get total points earned by a player from a specific hint giver
+    public int GetPointsFromHintGiver(int guesserID, int hintGiverID)
+    {
+        int totalPoints = 0;
+
+        foreach (var round in roundsData)
+        {
+            if (round.hintGiverID == hintGiverID)
+            {
+                RoundGuess guess = round.guesses.Find(g => g.guesserID == guesserID);
+                if (guess != null)
+                {
+                    totalPoints += guess.guessScore;
+                }
+            }
+        }
+
+        return totalPoints;
+    }
 }

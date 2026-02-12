@@ -1958,8 +1958,8 @@ MonoBehaviour:
   perceText: {fileID: 2801266863590564098}
   subText: {fileID: 2804913408363034850}
   scoreText: {fileID: 454080517969053393}
-  AtoBScore: {fileID: 6319483897936209913}
-  BtoAScore: {fileID: 1887123282107783403}
+  AtoBScore: {fileID: 1887123282107783403}
+  BtoAScore: {fileID: 6319483897936209913}
   hostBadge: {fileID: 0}
   hostColor: {r: 0.33962262, g: 0.31298554, b: 0, a: 1}
   defaultColor: {r: 0, g: 0, b: 0, a: 1}

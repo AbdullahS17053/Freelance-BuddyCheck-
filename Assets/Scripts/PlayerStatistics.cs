@@ -165,15 +165,13 @@ public class PlayerStatistics : MonoBehaviour
 
     private void UpdateDisplay()
     {
-        for (int i = 1; i < names.Length - 1; i++)
+        friendsStats.RemoveAll(f => f.friendID == StatsManager.instance.myID);
+
+
+        for (int i = 0; i < names.Length; i++)
         {
             if (i < friendsStats.Count)
             {
-                if(friendsStats[i - 1].friendID == StatsManager.instance.myID)
-                {
-                    continue;
-                }
-
                 FriendStats f = friendsStats[i];
 
                 // avatar
@@ -219,6 +217,7 @@ public class PlayerStatistics : MonoBehaviour
                 // ensure UI is visible
                 names[i].transform.parent.gameObject.SetActive(true);
                 avatars[i].transform.parent.gameObject.transform.parent.gameObject.SetActive(true);
+
             }
             else
             {

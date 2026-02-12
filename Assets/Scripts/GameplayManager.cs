@@ -700,20 +700,33 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         if (currentRoundGuesses.ContainsKey(playerName))
         {
-            // ✅ CRITICAL FIX: Resume queue even if duplicate guess
             FusionRoomManager.Instance.Fpause(false);
             return;
         }
 
         currentRoundGuesses[playerName] = guess;
 
-        // ---------------- StatsManager integration ----------------
+        // ✅ FIX: Get the actual guesser's ID
+        Player guesser = PhotonNetwork.PlayerList.FirstOrDefault(p => p.NickName == playerName);
+        int guesserID = -1;
+
+        if (guesser != null && guesser.CustomProperties.TryGetValue("myID", out object idObj))
+        {
+            guesserID = (int)idObj;
+        }
+        else
+        {
+            Debug.LogError($"Could not find player ID for {playerName}");
+            FusionRoomManager.Instance.Fpause(false);
+            return;
+        }
+
         int points = CalculatePoints(guess, currentHostAnswer);
         int hinterID = hintStoredCatories[categoryID].playerID;
-        StatsManager.instance.SubmitGuess(hinterID, points);
-        // ----------------------------------------------------------
 
-        // ✅ CRITICAL FIX: Resume queue after processing guess
+        // ✅ FIX: Call local sync (we're already in an RPC)
+        StatsManager.instance.SyncRoundDataLocal(hinterID, guesserID, points);
+
         FusionRoomManager.Instance.Fpause(false);
 
         photonView.RPC("SyncPlayerGuessRPC", RpcTarget.Others, playerName, guess);
@@ -721,13 +734,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount - 1;
         if (currentRoundGuesses.Count >= expectedVotes)
         {
-            //photonView.RPC("showAllaAds", RpcTarget.All);
-
             realAnswer.SetActive(true);
             ShowPlayerAnswers();
             Invoke("ProceedToNextPhase", 3f);
-
-
         }
     }
     [PunRPC]

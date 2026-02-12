@@ -29,8 +29,10 @@ public class LeaderboardEntry : MonoBehaviour
     }
 
     public UIEL[] guessers;
+
     public void ShowGuessesForHintGiver(int hintGiverID)
     {
+        // Hide all UI slots first
         for (int i = 0; i < guessers.Length; i++)
         {
             guessers[i]._name.gameObject.SetActive(false);
@@ -57,7 +59,8 @@ public class LeaderboardEntry : MonoBehaviour
             if (uiIndex >= guessers.Length)
                 break;
 
-            if (!StatsManager.instance.allPlayersInfo.TryGetValue(
+            // ✅ FIXED: Removed the ! negation - now checks if info EXISTS
+            if (StatsManager.instance.allPlayersInfo.TryGetValue(
                 guess.guesserID, out PlayerInfo info))
             {
                 // Fill UI
@@ -65,13 +68,12 @@ public class LeaderboardEntry : MonoBehaviour
                 guessers[uiIndex]._name.text = info.playerName;
                 guessers[uiIndex]._score.text = guess.guessScore.ToString();
 
-                continue;
+                uiIndex++; // ✅ FIXED: Moved inside the if block
             }
-
-
-            uiIndex++;
+            // ✅ If player info not found, skip this guess (no continue needed)
         }
     }
+
     /// <summary>
     /// Shows what THIS player guessed on OTHER people's hints (when they were a guesser)
     /// </summary>
@@ -83,33 +85,33 @@ public class LeaderboardEntry : MonoBehaviour
             guessers[i]._name.gameObject.SetActive(false);
         }
 
+        // ✅ FIX: Get list of all OTHER players
+        List<int> otherPlayerIDs = new List<int>();
+        foreach (var kvp in StatsManager.instance.allPlayersInfo)
+        {
+            if (kvp.Key != myPlayerID)
+            {
+                otherPlayerIDs.Add(kvp.Key);
+            }
+        }
+
         int uiIndex = 0;
 
-        // ✅ Loop through ALL rounds
-        foreach (var round in StatsManager.instance.roundsData)
+        // ✅ FIX: Loop through each other player and calculate points from them
+        foreach (int hintGiverID in otherPlayerIDs)
         {
-            // Skip rounds where I was the hint giver
-            if (round.hintGiverID == myPlayerID)
-                continue;
-
-            // Stop if UI slots are full
             if (uiIndex >= guessers.Length)
                 break;
 
-            // Find MY guess in this round
-            RoundGuess myGuess = round.guesses.Find(g => g.guesserID == myPlayerID);
+            // Get total points I earned from this hint giver
+            int pointsFromThisPlayer = StatsManager.instance.GetPointsFromHintGiver(myPlayerID, hintGiverID);
 
-            if (myGuess == null)
-                continue; // I didn't guess in this round
-
-            // Get the hint giver's info
-            if (StatsManager.instance.allPlayersInfo.TryGetValue(
-                round.hintGiverID, out PlayerInfo hintGiverInfo))
+            // ✅ FIX: ALWAYS show, even if 0 points
+            if (StatsManager.instance.allPlayersInfo.TryGetValue(hintGiverID, out PlayerInfo hintGiverInfo))
             {
-                // Show hint giver's name and MY score on their hint
                 guessers[uiIndex]._name.gameObject.SetActive(true);
                 guessers[uiIndex]._name.text = hintGiverInfo.playerName;
-                guessers[uiIndex]._score.text = myGuess.guessScore.ToString();
+                guessers[uiIndex]._score.text = pointsFromThisPlayer.ToString(); // Will show "0" if no points
 
                 uiIndex++;
             }
@@ -118,50 +120,49 @@ public class LeaderboardEntry : MonoBehaviour
 
     private void SetScores(int thisPlayerID)
     {
+        // This is for the AtoB/BtoA scores at the top
+        // Keep your existing logic here or simplify it
+
         // Get all round data once
         List<RoundData> rounds = StatsManager.instance.GetAllRoundsData();
 
-        // Local temporary values
-        int AtoB = 0; // thisPlayer → me
-        int BtoA = 0; // me → thisPlayer
+        int AtoB = 0; // I guessed on thisPlayer's hint
+        int BtoA = 0; // thisPlayer guessed on my hint
 
-        // Loop once through all rounds
         foreach (var r in rounds)
         {
-            // CASE 1: this player gave the hint → I guessed
+            // CASE 1: thisPlayer gave the hint → I guessed on it
             if (r.hintGiverID == thisPlayerID)
             {
                 foreach (var g in r.guesses)
                 {
                     if (g.guesserID == StatsManager.instance.myID)
                     {
-                        BtoA = g.guessScore;
+                        AtoB += g.guessScore;
                     }
                 }
             }
 
-            // CASE 2: I gave the hint → this player guessed
+            // CASE 2: I gave the hint → thisPlayer guessed on it
             if (r.hintGiverID == StatsManager.instance.myID)
             {
                 foreach (var g in r.guesses)
                 {
                     if (g.guesserID == thisPlayerID)
                     {
-                        AtoB = g.guessScore;
+                        BtoA += g.guessScore;
                     }
                 }
             }
         }
 
         // Update UI
-        AtoBScore.text = AtoB.ToString();   // This player guessed my hint (A→B)
-        BtoAScore.text = BtoA.ToString();   // I guessed this player’s hint (B→A)
+        if (AtoBScore != null) AtoBScore.text = AtoB.ToString();
+        if (BtoAScore != null) BtoAScore.text = BtoA.ToString();
 
-
+        // ✅ Show breakdown
         ShowMyGuessesOnOthers(thisPlayerID);
-
     }
-
 
 
     public void SetForOverall(int rank, string playerName, int totalScore, int allPlayersScore, bool isHost, int otherID)
@@ -228,12 +229,12 @@ public class LeaderboardEntry : MonoBehaviour
             nameText.gameObject.SetActive(true);
         }
 
-        // Set total score - CRITICAL FIX HERE
+        // Set total score
         if (scoreText != null)
         {
-            scoreText.text = totalScore.ToString(); // Display the actual score
+            scoreText.text = totalScore.ToString();
             scoreText.color = isHost ? hostColor : defaultColor;
-            scoreText.gameObject.SetActive(true); // Ensure it's active
+            scoreText.gameObject.SetActive(true);
         }
 
         // Calculate % of total
@@ -242,7 +243,7 @@ public class LeaderboardEntry : MonoBehaviour
             if (allPlayersScore > 0)
             {
                 float percentage = (float)totalScore / allPlayersScore * 100f;
-                perceText.text = $"{percentage:F1}%"; // one decimal place
+                perceText.text = $"{percentage:F1}%";
             }
             else
             {

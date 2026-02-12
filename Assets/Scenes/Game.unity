@@ -35048,7 +35048,6 @@ MonoBehaviour:
   friendsStats: []
   hardResetOnStart: 0
   avatars:
-  - {fileID: 459874217}
   - {fileID: 2242385619750880399}
   - {fileID: 769098202}
   - {fileID: 1079201582}
@@ -35056,7 +35055,6 @@ MonoBehaviour:
   - {fileID: 1920419048}
   - {fileID: 2068665143}
   names:
-  - {fileID: 6406593141046339079}
   - {fileID: 7948120995095483142}
   - {fileID: 769098201}
   - {fileID: 1079201581}
@@ -35064,7 +35062,6 @@ MonoBehaviour:
   - {fileID: 1920419047}
   - {fileID: 2068665142}
   AtoB:
-  - {fileID: 494497044}
   - {fileID: 8468132159024697725}
   - {fileID: 769098193}
   - {fileID: 1079201573}
@@ -35072,7 +35069,6 @@ MonoBehaviour:
   - {fileID: 1920419039}
   - {fileID: 2068665134}
   AtoBslider:
-  - {fileID: 8071462114846621470}
   - {fileID: 929610661814862724}
   - {fileID: 769098194}
   - {fileID: 1079201574}
@@ -35080,7 +35076,6 @@ MonoBehaviour:
   - {fileID: 1920419040}
   - {fileID: 2068665135}
   AtoBtotal:
-  - {fileID: 1381073150}
   - {fileID: 1136438240991372257}
   - {fileID: 769098192}
   - {fileID: 1079201572}
@@ -35088,7 +35083,6 @@ MonoBehaviour:
   - {fileID: 1920419038}
   - {fileID: 2068665133}
   AtoBtotalPercent:
-  - {fileID: 618907142}
   - {fileID: 4161621356185713787}
   - {fileID: 769098191}
   - {fileID: 1079201571}
@@ -35096,7 +35090,6 @@ MonoBehaviour:
   - {fileID: 1920419037}
   - {fileID: 2068665132}
   BtoA:
-  - {fileID: 2023726262}
   - {fileID: 4801681480989710225}
   - {fileID: 769098197}
   - {fileID: 1079201577}
@@ -35104,7 +35097,6 @@ MonoBehaviour:
   - {fileID: 1920419043}
   - {fileID: 2068665138}
   BtoAslider:
-  - {fileID: 2129014838}
   - {fileID: 1470124621354229574}
   - {fileID: 769098198}
   - {fileID: 1079201578}
@@ -35112,7 +35104,6 @@ MonoBehaviour:
   - {fileID: 1920419044}
   - {fileID: 2068665139}
   BtoAtotal:
-  - {fileID: 1967998201}
   - {fileID: 6777176420530186784}
   - {fileID: 769098196}
   - {fileID: 1079201576}
@@ -35120,7 +35111,6 @@ MonoBehaviour:
   - {fileID: 1920419042}
   - {fileID: 2068665137}
   BtoAtotalPercent:
-  - {fileID: 1128979192}
   - {fileID: 1573038350353220057}
   - {fileID: 769098195}
   - {fileID: 1079201575}
@@ -35128,7 +35118,6 @@ MonoBehaviour:
   - {fileID: 1920419041}
   - {fileID: 2068665136}
   lastPlayed:
-  - {fileID: 1824926330}
   - {fileID: 33155262918434456}
   - {fileID: 769098199}
   - {fileID: 1079201579}
@@ -35136,7 +35125,6 @@ MonoBehaviour:
   - {fileID: 1920419045}
   - {fileID: 2068665140}
   buddyScoreText:
-  - {fileID: 505805232}
   - {fileID: 5146915893458681482}
   - {fileID: 769098190}
   - {fileID: 1079201570}
@@ -35144,7 +35132,6 @@ MonoBehaviour:
   - {fileID: 1920419036}
   - {fileID: 2068665131}
   buddyRankText:
-  - {fileID: 8806345552322472176}
   - {fileID: 6725781427239295211}
   - {fileID: 769098200}
   - {fileID: 1079201580}
@@ -35152,7 +35139,6 @@ MonoBehaviour:
   - {fileID: 1920419046}
   - {fileID: 2068665141}
   buddyRankExtraText:
-  - {fileID: 2043414621}
   - {fileID: 9108635911885810966}
   - {fileID: 769098189}
   - {fileID: 1079201569}
