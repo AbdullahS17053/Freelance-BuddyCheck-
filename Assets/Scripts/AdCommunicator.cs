@@ -39,7 +39,7 @@ public class AdCommunicator : MonoBehaviourPunCallbacks
     /// </summary>
     public void ShowEndOfRoundAd()
     {
-        // Show short interstitial ad (5-7 sec skippable)
+
         ShowShortAd();
     }
 

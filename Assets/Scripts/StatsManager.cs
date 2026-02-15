@@ -20,12 +20,19 @@ public class StatsManager : MonoBehaviourPunCallbacks
     [System.Serializable]
     public class RoundData
     {
-        public int roundNumber;        // ✅ NEW: Track which game round this is
         public int hintGiverID;        // who gave the hint
         public List<RoundGuess> guesses = new List<RoundGuess>();
     }
 
-    public int currentRoundNumber = 0; // ✅ NEW: Track current round
+    [System.Serializable]
+    public class tempRounds
+    {
+        public int hinter;
+        public int guesser;
+        public int point;
+    }
+
+    public List<tempRounds> tempRoundList = new List<tempRounds>();
 
     [System.Serializable]
     public class PlayerInfo
@@ -46,6 +53,8 @@ public class StatsManager : MonoBehaviourPunCallbacks
     // ✅ Track round data temporarily
     public List<RoundData> roundsData = new List<RoundData>();
 
+    #region stuff
+
     private void Awake()
     {
         instance = this;
@@ -58,12 +67,6 @@ public class StatsManager : MonoBehaviourPunCallbacks
         {
             myID = PlayerPrefs.GetInt("ID");
         }
-    }
-    // ✅ NEW: Method to increment round
-    public void IncrementRound()
-    {
-        currentRoundNumber++;
-        Debug.Log($"Round incremented to {currentRoundNumber}");
     }
     public List<int> GetAllPlayerIDsInRoom()
     {
@@ -165,54 +168,64 @@ public class StatsManager : MonoBehaviourPunCallbacks
         photonView.RPC("SyncRoundData", RpcTarget.All, hintGiverID, myID, points);
     }
 
+    #endregion
+
+    public void FinalizeRound()
+    {
+        SyncToMain();
+    }
+
+
+    private void SyncToMain()
+    {
+        roundsData.Clear();
+
+        foreach (var temp in tempRoundList)
+        {
+            // 1️⃣ Find RoundData for this hinter
+            RoundData round = roundsData.Find(r => r.hintGiverID == temp.hinter);
+
+            // If not found → create new
+            if (round == null)
+            {
+                round = new RoundData();
+                round.hintGiverID = temp.hinter;
+                roundsData.Add(round);
+            }
+
+            // 2️⃣ Find guess inside this hinter
+            RoundGuess guess = round.guesses.Find(g => g.guesserID == temp.guesser);
+
+            // If guess not found → create new
+            if (guess == null)
+            {
+                guess = new RoundGuess();
+                guess.guesserID = temp.guesser;
+                guess.guessScore = temp.point;
+                round.guesses.Add(guess);
+            }
+            else
+            {
+                // 3️⃣ If same hinter + guesser → add points
+                guess.guessScore += temp.point;
+            }
+        }
+
+        tempRoundList.Clear();
+    }
+
+
     // ✅ Add logging to SyncRoundData
-    [PunRPC]
     private void SyncRoundData(int hintGiverID, int guesserID, int points)
     {
-        Debug.Log($"SyncRoundData: Round {currentRoundNumber}, HintGiver {hintGiverID}, Guesser {guesserID}, Points {points}");
-
-        // ✅ FIX: Find by BOTH round number AND hint giver
-        RoundData round = roundsData.Find(r =>
-            r.roundNumber == currentRoundNumber && r.hintGiverID == hintGiverID);
-
-        if (round == null)
+        tempRounds temp = new tempRounds
         {
-            round = new RoundData();
-            round.roundNumber = currentRoundNumber; // ✅ NEW
-            round.hintGiverID = hintGiverID;
-            roundsData.Add(round);
-            Debug.Log($"Created new round: Round#{currentRoundNumber}, HintGiver {hintGiverID}");
-        }
+            hinter = hintGiverID,
+            guesser = guesserID,
+            point = points
+        };
 
-        // Add or update guess for this player
-        RoundGuess existing = round.guesses.Find(g => g.guesserID == guesserID);
-        if (existing == null)
-        {
-            RoundGuess newGuess = new RoundGuess()
-            {
-                guesserID = guesserID,
-                guessScore = points
-            };
-            round.guesses.Add(newGuess);
-            Debug.Log($"Added new guess: Round#{currentRoundNumber}, Guesser {guesserID} scored {points} on HintGiver {hintGiverID}'s hint");
-        }
-        else
-        {
-            existing.guessScore = points;
-            Debug.Log($"Updated guess: Round#{currentRoundNumber}, Guesser {guesserID} scored {points} on HintGiver {hintGiverID}'s hint");
-        }
-
-        Debug.Log($"Round#{currentRoundNumber} (HintGiver {hintGiverID}) now has {round.guesses.Count} guesses");
-
-        // Optional logging
-        if (myID == hintGiverID)
-        {
-            StoreGuessForHint(guesserID, points);
-        }
-        else
-        {
-            StoreYourJudgement(hintGiverID, points);
-        }
+        tempRoundList.Add(temp);
     }
 
 
@@ -290,7 +303,7 @@ public class StatsManager : MonoBehaviourPunCallbacks
     public void ResetAllRounds()
     {
         roundsData.Clear();
-        currentRoundNumber = 0; // ✅ NEW: Reset round counter
+        tempRoundList.Clear();
         Debug.Log("All rounds data cleared!");
     }
 

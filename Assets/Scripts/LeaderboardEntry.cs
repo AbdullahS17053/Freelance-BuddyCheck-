@@ -210,14 +210,15 @@ public class LeaderboardEntry : MonoBehaviour
 
             Debug.Log($"Player {otherID} ({playerName}): {totalScore}/{maxPossible} points");
 
-            if (StatsManager.instance.maxScore > 0)
+            if (StatsManager.instance.maxScore >= 0)
             {
                 float percentage = ((float)totalScore / StatsManager.instance.maxScore) * 100f;
+                percentage = Mathf.CeilToInt(percentage);
                 perceText.text = $"{percentage}%";
             }
             else
             {
-                perceText.text = $"0% ({totalScore}/0)";
+                perceText.text = $"0%";
             }
 
             perceText.color = isHost ? hostColor : defaultColor;

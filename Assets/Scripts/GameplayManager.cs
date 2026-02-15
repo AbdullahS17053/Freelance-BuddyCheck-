@@ -301,8 +301,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         ResetRoundState();
 
-        // ✅ NEW: Increment round number in StatsManager
-        StatsManager.instance.IncrementRound();
 
         realAnswer.SetActive(false);
         currentRoundGuesses.Clear();
@@ -311,7 +309,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         HideAllAnswers();
         NewCategory();
 
-        AdCommunicator.Instance.ShowEndOfRoundAd();
+        // AdCommunicator.Instance.ShowEndOfRoundAd();
     }
 
     private void ProceedToNextPhase()
@@ -496,17 +494,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         Debug.Log("hintCatories sorted order: " + ids);
         Debug.Log("ID: " + ID);
 
-        if (hintCatories[ID].playerID == StatsManager.instance.myID)
-        {
-            playerGuessInput.interactable = false;
-            voteButton.interactable = false;
-            SetChatActive(true);
-        }
-        else
-        {
-            playerGuessInput.interactable = true;
-            voteButton.interactable = true;
-        }
+        
 
         // Reset the counter
         tempPlayerChecks = 0;
@@ -522,6 +510,18 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         foreach (var t in scores) t.text = hintCatories[ID].score.ToString();
 
         currentHostAnswer = hintCatories[ID].score;
+
+        if (hintCatories[ID].playerID == StatsManager.instance.myID)
+        {
+            playerGuessInput.interactable = false;
+            voteButton.interactable = false;
+            SetChatActive(true);
+        }
+        else
+        {
+            playerGuessInput.interactable = true;
+            voteButton.interactable = true;
+        }
 
         FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNNING - category ready
     }
@@ -540,6 +540,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void SubmitHint()
     {
+        if (IsInvalidHintAnswer(hintAnswerInput))
+        {
+            Debug.Log("Invalid hint answer. Must be a number between 0 and 10.");
+            hintAnswerInput.text = "";
+            return; // ⛔ STOP submission
+        }
+
         hintRound++;
 
         FusionRoomManager.Instance.Fpause(true); // ✅ Queue PAUSED - submitting hint
@@ -854,6 +861,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             profile.ResetSlider();
         }
+        StatsManager.instance.FinalizeRound();
         ClearLeaderboard();
 
         // STEP BY 5 (because each player has 5 values) - ✅ FIXED
@@ -880,6 +888,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         // Update the persistent stats
         StatsManager.instance.UpdatePlayerStatistics();
+
+        AdCommunicator.Instance.ShowEndOfRoundAd();
     }
 
 
