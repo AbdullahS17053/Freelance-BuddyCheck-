@@ -269,7 +269,7 @@ PlayerSettings:
   AndroidTargetArchitectures: 3
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: '{dedicated}: .android/playbud.keystore'
+  AndroidKeystoreName: '{inproject}: KeyStore/user.keystore'
   AndroidKeyaliasName: buddycheck
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidEnableArm64MTE: 0

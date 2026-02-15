@@ -1,11 +1,11 @@
 lastUpgrade=20100
 proj.pluginVersion=2.1.0
-proj.AppId=1084101000354
+proj.AppId=170855159499
 and.BundleId=com.DefaultCompany.BUDDYCHECK
 proj.classDir=Assets
 proj.ConstantsClassName=GPGSIds
-and.ResourceData=%3c%3fxml+version%3d%221.0%22+encoding%3d%22utf-8%22%3f%3e%0d%0a%3c%21--Google+Play+game+services+IDs.+Save+this+file+as+res%2fvalues%2fgames-ids.xml+in+your+project.--%3e%0d%0a%3cresources%3e%0d%0a++%3c%21--app_id--%3e%0d%0a++%3cstring+name%3d%22app_id%22+translatable%3d%22false%22%3e1084101000354%3c%2fstring%3e%0d%0a++%3c%21--package_name--%3e%0d%0a++%3cstring+name%3d%22package_name%22+translatable%3d%22false%22%3ecom.DefaultCompany.BUDDYCHECK%3c%2fstring%3e%0d%0a%3c%2fresources%3e
-and.ClientId=1084101000354-ffmm5e4nestuu1cu93cld802ka6gdlbp.apps.googleusercontent.com
+and.ResourceData=%3c%3fxml+version%3d%221.0%22+encoding%3d%22utf-8%22%3f%3e%0d%0a%3c%21--Google+Play+game+services+IDs.+Save+this+file+as+res%2fvalues%2fgames-ids.xml+in+your+project.--%3e%0d%0a%3cresources%3e%0d%0a++%3c%21--app_id--%3e%0d%0a++%3cstring+name%3d%22app_id%22+translatable%3d%22false%22%3e170855159499%3c%2fstring%3e%0d%0a++%3c%21--package_name--%3e%0d%0a++%3cstring+name%3d%22package_name%22+translatable%3d%22false%22%3ecom.DefaultCompany.BUDDYCHECK%3c%2fstring%3e%0d%0a%3c%2fresources%3e
+and.ClientId=170855159499-qte2eekcmqsggeod9bu8hmtorco0p18m.apps.googleusercontent.com
 android.SetupDone=true
 App.NearbdServiceId=com.DefaultCompany.BUDDYCHECK
 android.NearbySetupDone=true

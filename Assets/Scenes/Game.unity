@@ -13853,8 +13853,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc4e509c7e8c00a429b14cb1623ba7c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fakePurchaseStore: 1
+  fakePurchaseStore: 0
   fakePurchaseStorePanel: {fileID: 2116995130}
+  bannerAdUnitId: unused
+  interstitialAdUnitId: unused
+  rewardedAdUnitId: unused
   adsBoughtButton: {fileID: 1741082640}
   noAds: 0
 --- !u!4 &371511358
@@ -35029,7 +35032,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31c61a58df0bb5e499eae8b6341a5621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentRoundNumber: 0
+  tempRoundList: []
   maxScore: 0
   myID: 0
   allPlayerIDs: 
