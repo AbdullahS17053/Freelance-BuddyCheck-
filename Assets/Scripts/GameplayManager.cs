@@ -1,4 +1,5 @@
-﻿using ExitGames.Client.Photon;
+﻿using DG.Tweening;
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Pun.Demo.PunBasics;
 using Photon.Realtime;
@@ -45,6 +46,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [Header("Player UI")]
     [SerializeField] private TMP_InputField playerGuessInput;
     [SerializeField] private Button voteButton;
+    [SerializeField] private GameObject voteWarning;
 
     [Header("Game State UI")]
     [SerializeField] private TMP_Text roundText;
@@ -357,6 +359,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     /// <summary>
     /// /////////////////// YEAHHHHHHHHHHHHHH
     /// </summary>
+    
+    private int lastTempScore = -1;
     public void HintNewCategory()
     {
         // ✅ FIRST: Pick new random category (always allow the action)
@@ -369,7 +373,19 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         foreach (var t in good)
             t.text = categories[0].categories[hintCategoryID].good[Menus.instance.GetLanguageIndex()];
 
-        tempScore = UnityEngine.Random.Range(0, 10);
+        // ✅ Prevent same score appearing twice in a row
+        int newScore;
+        int attempts = 0;
+        do
+        {
+            newScore = UnityEngine.Random.Range(0, 10);
+            attempts++;
+        }
+        while (newScore == lastTempScore && attempts < 10);
+
+        tempScore = newScore;
+        lastTempScore = tempScore;
+
         categories[0].categories[hintCategoryID].score = tempScore;
 
         foreach (var t in scores)
@@ -411,65 +427,52 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             reniewHintAnswerConfirmText.text = "Do you really want to skip ? : " + (1 - hintChance) + " Skip Left";
         }
     }
+    private int hintRoundIndex = 0;
     public void NewCategory()
     {
         if (!PhotonNetwork.IsMasterClient) return;
 
-        FusionRoomManager.Instance.Fpause(true); // ✅ Queue PAUSED - preparing category
+        FusionRoomManager.Instance.Fpause(true);
 
-        // Sort lists
+        // Sort lists consistently across all clients
         hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
         hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
 
-        // ✅ Build list of player IDs that haven't been used yet
-        HashSet<int> usedPlayerIDs = new HashSet<int>(hinters.Where(h => h != 0));
-
-        // ✅ Get list of available (unused) players
-        List<int> availablePlayerIDs = hintCatories
+        // Get distinct player IDs in a fixed sorted order
+        List<int> sortedPlayerIDs = hintCatories
             .Select(c => c.playerID)
-            .Where(id => !usedPlayerIDs.Contains(id))
+            .Distinct()
+            .OrderBy(id => id)
             .ToList();
 
-        // ✅ If everyone has been used, reset
-        if (availablePlayerIDs.Count == 0)
+        if (sortedPlayerIDs.Count == 0)
         {
-            for (int j = 0; j < hinters.Length; j++)
-            {
-                hinters[j] = 0;
-            }
-
-            // All players are now available again
-            availablePlayerIDs = hintCatories
-                .Select(c => c.playerID)
-                .Distinct()
-                .ToList();
+            Debug.LogWarning("NewCategory: No players in hintCatories!");
+            FusionRoomManager.Instance.Fpause(false);
+            return;
         }
 
-        // ✅ Pick random player from available ones
-        int randomPlayerID = availablePlayerIDs[UnityEngine.Random.Range(0, availablePlayerIDs.Count)];
+        // ✅ Round-robin: A B C D A B C D — no randomness
+        int selectedPlayerID = sortedPlayerIDs[hintRoundIndex % sortedPlayerIDs.Count];
 
-        // ✅ Find that player's category index
-        int categoryIndex = hintCatories.FindIndex(c => c.playerID == randomPlayerID);
+        // Find first available hint from this player
+        int categoryIndex = hintCatories.FindIndex(c => c.playerID == selectedPlayerID);
 
-        // ✅ Find first empty slot
-        int slot = -1;
-        for (int i = 0; i < hinters.Length; i++)
+        if (categoryIndex == -1)
         {
-            if (hinters[i] == 0)
-            {
-                slot = i;
-                break;
-            }
+            Debug.LogWarning($"NewCategory: No hints left for player {selectedPlayerID}, skipping.");
+            hintRoundIndex++;
+            FusionRoomManager.Instance.Fpause(false);
+            return;
         }
 
-        if (slot == -1) slot = 0; // Fallback
+        int slot = hintRoundIndex % hinters.Length;
+        hinters[slot] = selectedPlayerID;
 
-        // ✅ Mark this player as used
-        hinters[slot] = randomPlayerID;
+        Debug.Log($"[Round-Robin] hintRoundIndex={hintRoundIndex} → Player {selectedPlayerID} at categoryIndex={categoryIndex}, slot={slot}");
 
-        Debug.Log($"Selected player {randomPlayerID} at category index {categoryIndex} for slot {slot}");
+        hintRoundIndex++;
 
-        // Broadcast
         photonView.RPC("GameNewCategoryAll", RpcTarget.All, categoryIndex, slot);
     }
 
@@ -540,12 +543,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void SubmitHint()
     {
-        if (IsInvalidHintAnswer(hintAnswerInput))
+        /*if (IsInvalidHintAnswer(hintAnswerInput))
         {
             Debug.Log("Invalid hint answer. Must be a number between 0 and 10.");
             hintAnswerInput.text = "";
             return; // ⛔ STOP submission
-        }
+        }*/
 
         hintRound++;
 
@@ -694,6 +697,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             Debug.Log("Invalid hint answer. Must be a number between 0 and 10.");
             playerGuessInput.text = "";
+            DOTween.CompleteAll();
+            voteWarning.SetActive(true);
+            voteWarning.transform.DOScale(1f, 0.2f).OnComplete(() =>
+            {
+                voteWarning.transform.DOScale(0f, 0.2f).SetDelay(3).OnComplete(() => voteWarning.SetActive(false));
+            }); 
             return; // ⛔ STOP submission
         }
 
@@ -1130,6 +1139,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
+
+        hintRoundIndex = 0;
+        lastTempScore = -1;
         StatsManager.instance.maxScore = 0;
 
         // --- Reset all lists ---
@@ -1220,6 +1232,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
+
+        hintRoundIndex = 0;
+        lastTempScore = -1;
         StatsManager.instance.maxScore = 0;
 
         // --- Reset all lists ---
@@ -1425,6 +1440,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
+
+        hintRoundIndex = 0;
+        lastTempScore = -1;
         StatsManager.instance.maxScore = 0;
 
         // --- Reset all lists ---

@@ -54,7 +54,10 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         // PhotonNetwork.NetworkingClient.LoadBalancingPeer.DisconnectTimeout = 60000;
 
         // Optional: Increase time client stays alive in background
-        PhotonNetwork.KeepAliveInBackground = 60000;
+        PhotonNetwork.NetworkingClient.LoadBalancingPeer.DisconnectTimeout = 60000; // 60 seconds
+        PhotonNetwork.KeepAliveInBackground = 60f; // seconds
+        Application.runInBackground = true;
+
     }
 
     void Start()
