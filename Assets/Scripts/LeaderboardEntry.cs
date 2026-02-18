@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using Photon.Pun;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -35,21 +36,43 @@ public class LeaderboardEntry : MonoBehaviour
     /// </summary>
     public void ShowPlayerBreakdown(int playerID)
     {
+        Debug.Log("====================================");
+        Debug.Log($"ShowPlayerBreakdown CALLED for PlayerID: {playerID}");
+
+        // 🔎 Photon State (VERY useful for multiplayer debugging)
+        Debug.Log($"IsConnected: {PhotonNetwork.IsConnected}");
+        Debug.Log($"IsMasterClient: {PhotonNetwork.IsMasterClient}");
+        Debug.Log($"LocalPlayer ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
+
+        Debug.Log($"Total players in allPlayersInfo: {StatsManager.instance.allPlayersInfo.Count}");
+        Debug.Log($"UI Slots Available: {guessers.Length}");
+
         // Hide all UI slots first
         for (int i = 0; i < guessers.Length; i++)
         {
             guessers[i]._name.gameObject.SetActive(false);
+            Debug.Log($"Hiding UI Slot {i}");
         }
 
         // ✅ Get list of all OTHER players (potential hint givers)
         List<int> otherPlayerIDs = new List<int>();
+
         foreach (var kvp in StatsManager.instance.allPlayersInfo)
         {
+            Debug.Log($"Checking player in dictionary: ID = {kvp.Key}");
+
             if (kvp.Key != playerID)
             {
                 otherPlayerIDs.Add(kvp.Key);
+                Debug.Log($" -> Added as OTHER player: {kvp.Key}");
+            }
+            else
+            {
+                Debug.Log($" -> Skipped self player: {kvp.Key}");
             }
         }
+
+        Debug.Log($"Total other players found: {otherPlayerIDs.Count}");
 
         int uiIndex = 0;
 
@@ -58,74 +81,137 @@ public class LeaderboardEntry : MonoBehaviour
         // ✅ Loop through each other player and show points earned from them
         foreach (int hintGiverID in otherPlayerIDs)
         {
+            Debug.Log($"Processing HintGiverID: {hintGiverID}");
+
             if (uiIndex >= guessers.Length)
+            {
+                Debug.LogWarning("UI slots exhausted! Breaking loop.");
                 break;
+            }
 
             // Get total points THIS player earned from this hint giver
-            int pointsFromThisHintGiver = StatsManager.instance.GetPointsFromHintGiver(playerID, hintGiverID);
+            int pointsFromThisHintGiver =
+                StatsManager.instance.GetPointsFromHintGiver(playerID, hintGiverID);
 
-            // ✅ ALWAYS show, even if 0 points
+            Debug.Log($"Points from HintGiver {hintGiverID} to Player {playerID}: {pointsFromThisHintGiver}");
+
             if (StatsManager.instance.allPlayersInfo.TryGetValue(hintGiverID, out PlayerInfo hintGiverInfo))
             {
+                Debug.Log($"Found PlayerInfo for HintGiver {hintGiverID} -> Name: {hintGiverInfo.playerName}");
+
                 guessers[uiIndex]._name.gameObject.SetActive(true);
                 guessers[uiIndex]._name.text = hintGiverInfo.playerName;
                 guessers[uiIndex]._score.text = pointsFromThisHintGiver.ToString();
 
-                Debug.Log($"  {hintGiverInfo.playerName}: {pointsFromThisHintGiver} points");
+                Debug.Log($"UI Slot {uiIndex} SET -> Name: {hintGiverInfo.playerName}, Score: {pointsFromThisHintGiver}");
 
                 uiIndex++;
             }
+            else
+            {
+                Debug.LogError($"PlayerInfo NOT FOUND for HintGiver {hintGiverID}");
+            }
         }
 
-        Debug.Log($"===================");
+        Debug.Log($"Final UI slots used: {uiIndex}");
+        Debug.Log("====================================");
     }
+
 
     private void SetScores(int thisPlayerID)
     {
-        // ✅ FIX: Calculate THIS player's total scores (not relationship with me)
-        int totalEarned = 0;  // Total points THIS player earned by guessing correctly
-        int totalGiven = 0;   // Total points given to THIS player's hints
+        Debug.Log("====================================");
+        Debug.Log($"SetScores CALLED for PlayerID: {thisPlayerID}");
+
+        // 🔎 Photon State (very useful in multiplayer debugging)
+        Debug.Log($"IsConnected: {PhotonNetwork.IsConnected}");
+        Debug.Log($"IsMasterClient: {PhotonNetwork.IsMasterClient}");
+        Debug.Log($"LocalPlayer ActorNumber: {PhotonNetwork.LocalPlayer.ActorNumber}");
+        Debug.Log($"Frame: {Time.frameCount}");
+
+        int totalEarned = 0;
+        int totalGiven = 0;
 
         List<RoundData> rounds = StatsManager.instance.GetAllRoundsData();
 
+        Debug.Log($"Total rounds retrieved: {rounds.Count}");
+
+        int roundIndex = 0;
+
         foreach (var round in rounds)
         {
-            // Calculate points THIS player earned (when they were a guesser)
+            Debug.Log($"--- Processing Round {roundIndex} ---");
+            Debug.Log($"HintGiverID: {round.hintGiverID}");
+            Debug.Log($"Total guesses in this round: {round.guesses.Count}");
+
+            // 🟢 1️⃣ When THIS player was a guesser
             if (round.hintGiverID != thisPlayerID)
             {
-                RoundGuess thisPlayerGuess = round.guesses.Find(g => g.guesserID == thisPlayerID);
+                Debug.Log("Checking if this player guessed in this round...");
+
+                RoundGuess thisPlayerGuess =
+                    round.guesses.Find(g => g.guesserID == thisPlayerID);
+
                 if (thisPlayerGuess != null)
                 {
+                    Debug.Log($"Player was guesser. Score found: {thisPlayerGuess.guessScore}");
                     totalEarned += thisPlayerGuess.guessScore;
+                    Debug.Log($"Updated totalEarned: {totalEarned}");
+                }
+                else
+                {
+                    Debug.Log("Player did NOT guess in this round.");
                 }
             }
 
-            // Calculate points given to THIS player's hints (when they were the hint giver)
+            // 🔵 2️⃣ When THIS player was the hint giver
             if (round.hintGiverID == thisPlayerID)
             {
+                Debug.Log("Player WAS hint giver in this round.");
+
                 foreach (var guess in round.guesses)
                 {
+                    Debug.Log($"Adding guess score from guesser {guess.guesserID}: {guess.guessScore}");
                     totalGiven += guess.guessScore;
+                    Debug.Log($"Updated totalGiven: {totalGiven}");
                 }
             }
+
+            roundIndex++;
         }
 
-        // Update UI
+        Debug.Log("=== FINAL TOTALS ===");
+        Debug.Log($"Player {thisPlayerID} TOTAL EARNED: {totalEarned}");
+        Debug.Log($"Player {thisPlayerID} TOTAL GIVEN: {totalGiven}");
+
+        // 🖥 UI Update
         if (AtoBScore != null)
         {
             AtoBScore.text = totalEarned.ToString();
-            Debug.Log($"Player {thisPlayerID} total earned: {totalEarned}");
+            Debug.Log($"AtoBScore UI updated -> {totalEarned}");
+        }
+        else
+        {
+            Debug.LogWarning("AtoBScore UI reference is NULL!");
         }
 
         if (BtoAScore != null)
         {
             BtoAScore.text = totalGiven.ToString();
-            Debug.Log($"Player {thisPlayerID} total given: {totalGiven}");
+            Debug.Log($"BtoAScore UI updated -> {totalGiven}");
+        }
+        else
+        {
+            Debug.LogWarning("BtoAScore UI reference is NULL!");
         }
 
-        // ✅ Show breakdown of where points came from
+        Debug.Log("Calling ShowPlayerBreakdown...");
         ShowPlayerBreakdown(thisPlayerID);
+
+        Debug.Log("SetScores FINISHED");
+        Debug.Log("====================================");
     }
+
 
 
     public void SetForOverall(int rank, string playerName, int totalScore, int allPlayersScore, bool isHost, int otherID)

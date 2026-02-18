@@ -178,41 +178,77 @@ public class StatsManager : MonoBehaviourPunCallbacks
 
     private void SyncToMain()
     {
+        Debug.Log("=== SyncToMain START ===");
+        Debug.Log("TempRoundList Count: " + tempRoundList.Count);
+
         roundsData.Clear();
+        Debug.Log("roundsData cleared.");
 
         foreach (var temp in tempRoundList)
         {
+            Debug.Log($"Processing -> Hinter: {temp.hinter} | Guesser: {temp.guesser} | Points: {temp.point}");
+
             // 1️⃣ Find RoundData for this hinter
             RoundData round = roundsData.Find(r => r.hintGiverID == temp.hinter);
 
-            // If not found → create new
             if (round == null)
             {
+                Debug.Log($"No RoundData found for hinter {temp.hinter}. Creating new RoundData.");
+
                 round = new RoundData();
                 round.hintGiverID = temp.hinter;
                 roundsData.Add(round);
+            }
+            else
+            {
+                Debug.Log($"Found existing RoundData for hinter {temp.hinter}");
             }
 
             // 2️⃣ Find guess inside this hinter
             RoundGuess guess = round.guesses.Find(g => g.guesserID == temp.guesser);
 
-            // If guess not found → create new
             if (guess == null)
             {
+                Debug.Log($"No RoundGuess found for guesser {temp.guesser}. Creating new RoundGuess.");
+
                 guess = new RoundGuess();
                 guess.guesserID = temp.guesser;
                 guess.guessScore = temp.point;
+
                 round.guesses.Add(guess);
+
+                Debug.Log($"Added new guess. Score = {guess.guessScore}");
             }
             else
             {
-                // 3️⃣ If same hinter + guesser → add points
+                Debug.Log($"Found existing guess for guesser {temp.guesser}. Adding points.");
+
                 guess.guessScore += temp.point;
+
+                Debug.Log($"Updated score for guesser {temp.guesser}. New Score = {guess.guessScore}");
+            }
+        }
+
+        Debug.Log("Finished processing all temp rounds.");
+
+        // 🔎 Final state print
+        Debug.Log("=== FINAL ROUNDS DATA ===");
+
+        foreach (var round in roundsData)
+        {
+            Debug.Log($"Hinter: {round.hintGiverID}");
+
+            foreach (var guess in round.guesses)
+            {
+                Debug.Log($"   -> Guesser: {guess.guesserID} | Score: {guess.guessScore}");
             }
         }
 
         tempRoundList.Clear();
+        Debug.Log("tempRoundList cleared.");
+        Debug.Log("=== SyncToMain END ===");
     }
+
 
 
     // ✅ Add logging to SyncRoundData
@@ -226,6 +262,8 @@ public class StatsManager : MonoBehaviourPunCallbacks
         };
 
         tempRoundList.Add(temp);
+
+        Debug.Log($"[SyncRoundData] Added guess: Hinter {hintGiverID}, Guesser {guesserID}, Points {points}. Total temp guesses: {tempRoundList.Count}");
     }
 
 
