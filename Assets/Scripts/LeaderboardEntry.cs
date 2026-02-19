@@ -18,6 +18,8 @@ public class LeaderboardEntry : MonoBehaviour
     [SerializeField] private TMP_Text AtoBScore;
     [SerializeField] private TMP_Text BtoAScore;
     [SerializeField] private GameObject hostBadge;
+    [SerializeField] private GameObject crown;
+    [SerializeField] private GameObject container;
     [SerializeField] private Color hostColor = Color.yellow;
     [SerializeField] private Color defaultColor = Color.black;
 
@@ -217,6 +219,9 @@ public class LeaderboardEntry : MonoBehaviour
     public void SetForOverall(int rank, string playerName, int totalScore, int allPlayersScore, bool isHost, int otherID)
     {
         Debug.Log($"=== SetForOverall: {playerName} (ID: {otherID}) - Score: {totalScore} ===");
+        // ✅ Crown and scale based on rank
+        if (crown != null) crown.SetActive(rank == 1);
+        if (container != null) container.transform.localScale = rank == 1 ? Vector3.one * 1.2f : Vector3.one;
 
         SetScores(otherID);
 

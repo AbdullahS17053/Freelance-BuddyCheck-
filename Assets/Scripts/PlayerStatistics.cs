@@ -36,7 +36,8 @@ public class PlayerStatistics : MonoBehaviour
     [Header("Reset Options")]
     public bool hardResetOnStart = false;
     private string savePath => Application.persistentDataPath + "/friend_stats.json";
-
+    public int displayIndex;
+    public GameObject removeFriendDisplay;
     [Header("UI for display")]
     public Image[] avatars;
     public TextMeshProUGUI[] names;
@@ -345,6 +346,31 @@ public class PlayerStatistics : MonoBehaviour
     // ----------------------------
     // RESET
     // ----------------------------
+    public void DeleteFriendByIndex(int displayIndex_)
+    {
+        displayIndex = displayIndex_;
+        removeFriendDisplay.SetActive(true);
+    }
+
+    public void RemoveFriend()
+    {
+        var displayList = friendsStats
+            .Where(f => f.friendID != StatsManager.instance.myID)
+            .ToList();
+
+        if (displayIndex < 0 || displayIndex >= displayList.Count)
+        {
+            Debug.LogWarning($"DeleteFriendByIndex: index {displayIndex} out of range");
+            return;
+        }
+
+        int friendID = displayList[displayIndex].friendID;
+        friendsStats.RemoveAll(f => f.friendID == friendID);
+        friendsStats = friendsStats.OrderByDescending(f => GetBuddyScore(f)).ToList();
+        SaveStats();
+        UpdateDisplay();
+        Debug.Log($"Deleted friend at display index {displayIndex} (ID: {friendID})");
+    }
 
     public void HardReset()
     {
