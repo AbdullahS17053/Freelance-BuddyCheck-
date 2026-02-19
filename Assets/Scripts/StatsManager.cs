@@ -13,8 +13,9 @@ public class StatsManager : MonoBehaviourPunCallbacks
     [System.Serializable]
     public class RoundGuess
     {
-        public int guesserID;  // who guessed
-        public int guessScore; // points given
+        public int guesserID;
+        public int guessScore;
+        public int roundCount; // ✅ ADD THIS — tracks how many rounds were merged
     }
 
     [System.Serializable]
@@ -209,23 +210,16 @@ public class StatsManager : MonoBehaviourPunCallbacks
 
             if (guess == null)
             {
-                Debug.Log($"No RoundGuess found for guesser {temp.guesser}. Creating new RoundGuess.");
-
                 guess = new RoundGuess();
                 guess.guesserID = temp.guesser;
                 guess.guessScore = temp.point;
-
+                guess.roundCount = 1; // ✅
                 round.guesses.Add(guess);
-
-                Debug.Log($"Added new guess. Score = {guess.guessScore}");
             }
             else
             {
-                Debug.Log($"Found existing guess for guesser {temp.guesser}. Adding points.");
-
                 guess.guessScore += temp.point;
-
-                Debug.Log($"Updated score for guesser {temp.guesser}. New Score = {guess.guessScore}");
+                guess.roundCount++; // ✅
             }
         }
 
@@ -302,13 +296,12 @@ public class StatsManager : MonoBehaviourPunCallbacks
                     friendName = guesserInfo.playerName,
                     totalPointsAtoB = points,
                     totalPointsBtoA = 0,
-                    totalPossibleAtoB = 2,
+                    totalPossibleAtoB = guess.roundCount * 2, // ✅ correct possible
                     totalPossibleBtoA = 0,
                     avatarIndex = guesserInfo.avatarIndex
                 };
 
                 PlayerStatistics.instance.UpdateAtoB(fs);
-
                 FriendStats fs2 = new FriendStats
                 {
                     friendID = hinterID,
@@ -316,7 +309,7 @@ public class StatsManager : MonoBehaviourPunCallbacks
                     totalPointsAtoB = 0,
                     totalPointsBtoA = points,
                     totalPossibleAtoB = 0,
-                    totalPossibleBtoA = 2,
+                    totalPossibleBtoA = guess.roundCount * 2, // ✅ correct possible
                     avatarIndex = hinterInfo.avatarIndex
                 };
 

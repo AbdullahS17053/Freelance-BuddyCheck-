@@ -324,7 +324,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         Debug.Log("Proceeding to next phase..." + currentRound + " ||| " + totalRounds);
 
-        StatsManager.instance.UpdatePlayerStatistics();
+        // StatsManager.instance.UpdatePlayerStatistics();
         if (currentRound > totalRounds)
         {
             ShowOverallLeaderboard();
@@ -483,11 +483,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         tempPlayerChecks++;
     }
-
+    private int currentHinterPlayerID = -1;
     [PunRPC]
     private void GameNewCategoryAll(int ID, int playerID)
     {
         hinters[playerID] = hintCatories[ID].playerID;
+        currentHinterPlayerID = hintCatories[ID].playerID;
         // Every client sorts the same way
         hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
         hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
@@ -722,10 +723,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void SubmitPlayerGuessRPC(string playerName, int guess)
     {
-        RemoveHint();
-        Debug.Log("Correct Answer = " + currentHostAnswer);
-
-        if (currentRoundGuesses.ContainsKey(playerName))
+        // ✅ Only remove hint on first guess, not every time
+        if (!currentRoundGuesses.ContainsKey(playerName))
+        {
+            if (currentRoundGuesses.Count == 0) // first guesser triggers removal
+                RemoveHint();
+        }
+        else
         {
             FusionRoomManager.Instance.Fpause(false);
             return;
@@ -733,14 +737,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         currentRoundGuesses[playerName] = guess;
 
-        // ✅ FIX: Get the actual guesser's ID
         Player guesser = PhotonNetwork.PlayerList.FirstOrDefault(p => p.NickName == playerName);
         int guesserID = -1;
-
         if (guesser != null && guesser.CustomProperties.TryGetValue("myID", out object idObj))
-        {
             guesserID = (int)idObj;
-        }
         else
         {
             Debug.LogError($"Could not find player ID for {playerName}");
@@ -749,13 +749,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
 
         int points = CalculatePoints(guess, currentHostAnswer);
-        int hinterID = hintStoredCatories[categoryID].playerID;
+        int hinterID = currentHinterPlayerID; // ✅ Use stored ID, not index lookup
 
-        // ✅ FIX: Call local sync (we're already in an RPC)
         StatsManager.instance.SyncRoundDataLocal(hinterID, guesserID, points);
 
         FusionRoomManager.Instance.Fpause(false);
-
         photonView.RPC("SyncPlayerGuessRPC", RpcTarget.Others, playerName, guess);
 
         int expectedVotes = PhotonNetwork.CurrentRoom.PlayerCount - 1;
@@ -1139,7 +1137,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
-
+        currentHinterPlayerID = -1;
         hintRoundIndex = 0;
         lastTempScore = -1;
         StatsManager.instance.maxScore = 0;
@@ -1232,7 +1230,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
-
+        currentHinterPlayerID = -1;
         hintRoundIndex = 0;
         lastTempScore = -1;
         StatsManager.instance.maxScore = 0;
@@ -1440,7 +1438,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRound = 0;
         voting = 0;
         hintChance = 0;
-
+        currentHinterPlayerID = -1;
         hintRoundIndex = 0;
         lastTempScore = -1;
         StatsManager.instance.maxScore = 0;

@@ -35226,7 +35226,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   friendsStats: []
-  hardResetOnStart: 0
+  hardResetOnStart: 1
   avatars:
   - {fileID: 2242385619750880399}
   - {fileID: 769098202}
