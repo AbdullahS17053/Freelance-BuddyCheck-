@@ -764,11 +764,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             Invoke("ProceedToNextPhase", 3f);
         }
     }
-    [PunRPC]
-    private void showAllaAds()
-    {
-        AdCommunicator.Instance.ShowEndOfRoundAd();
-    }
 
     private int CalculatePoints(int guess, int answer)
     {
@@ -897,6 +892,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         StatsManager.instance.UpdatePlayerStatistics();
 
         AdCommunicator.Instance.ShowEndOfRoundAd();
+
     }
 
 

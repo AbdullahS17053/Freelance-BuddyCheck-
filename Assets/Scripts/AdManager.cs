@@ -61,7 +61,8 @@ public class AdManager : MonoBehaviour
     {
         MobileAds.Initialize(initStatus =>
         {
-
+            LoadInterstitialAd(interstitialAdUnitId);
+            LoadRewardedAd(rewardedAdUnitId);
         });
 
         if (PlayerPrefs.HasKey("NoAds"))

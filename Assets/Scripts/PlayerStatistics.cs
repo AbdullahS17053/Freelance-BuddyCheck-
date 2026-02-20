@@ -294,19 +294,19 @@ public class PlayerStatistics : MonoBehaviour
             min=65, max=79
         },
         new BuddyRankInfo {
-            rankEN="Parallel-Class Buddy", rankDE="Parallelklassbuddy",
+            rankEN="Parallel-Class Buddy", rankDE="Parallelclassbuddy",
             extraEN="You know each other surprisingly well.",
             extraDE="Ihr kennt euch überraschend gut.",
             min=50, max=64
         },
         new BuddyRankInfo {
-            rankEN="Bronze Buddy",         rankDE="Bronzebuddy",
+            rankEN="Bronze Buddy",         rankDE="Bronze buddy",
             extraEN="Not bad — but still some mysteries left.",
             extraDE="Nicht schlecht — aber es gibt noch einige Geheimnisse.",
             min=35, max=49
         },
         new BuddyRankInfo {
-            rankEN="Spare Tire Buddy",     rankDE="Ersatzradbuddy",
+            rankEN="Spare Tire Buddy",     rankDE="Ersatzrad buddy",
             extraEN="Reliable… in emergencies.",
             extraDE="Zuverlässig… in Notfällen.",
             min=20, max=34
