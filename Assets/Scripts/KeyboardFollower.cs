@@ -16,13 +16,15 @@ public class KeyboardFollower : MonoBehaviour
     {
         if (TouchScreenKeyboard.visible)
         {
-            Rect keyboardArea = TouchScreenKeyboard.area;
+            float keyboardHeight = Screen.height - Display.main.systemHeight;
 
-            if (keyboardArea.height > 0)
-            {
-                float keyboardHeight = keyboardArea.height / CanvasScale();
-                rect.anchoredPosition = originalPos + new Vector2(0, keyboardHeight);
-            }
+            // fallback for Android
+            if (keyboardHeight == 0)
+                keyboardHeight = Screen.height * 0.35f;
+
+            keyboardHeight /= CanvasScale();
+
+            rect.anchoredPosition = originalPos + new Vector2(0, keyboardHeight);
         }
         else
         {
