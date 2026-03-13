@@ -888,7 +888,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             profile.showAnswers();
 
             int difference = Mathf.Abs(guess.Value - currentHostAnswer);
-            profile.Correct(difference <= 2);
+            profile.Correct(difference <= 1);
         }
     }
 
