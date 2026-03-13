@@ -278,6 +278,8 @@ public class StatsManager : MonoBehaviourPunCallbacks
 
     public void UpdatePlayerStatistics()
     {
+        int myID = StatsManager.instance.myID;
+
         foreach (var round in roundsData)
         {
             int hinterID = round.hintGiverID;
@@ -286,35 +288,41 @@ public class StatsManager : MonoBehaviourPunCallbacks
             {
                 int guesserID = guess.guesserID;
                 int points = guess.guessScore;
+                int possible = guess.roundCount * 2;
 
-                PlayerInfo guesserInfo = allPlayersInfo[guesserID];
-                PlayerInfo hinterInfo = allPlayersInfo[hinterID];
-
-                FriendStats fs = new FriendStats
+                // I was the GUESSER — record MY points earned on this friend's hints (AtoB)
+                if (guesserID == myID && allPlayersInfo.ContainsKey(hinterID))
                 {
-                    friendID = guesserID,
-                    friendName = guesserInfo.playerName,
-                    totalPointsAtoB = points,
-                    totalPointsBtoA = 0,
-                    totalPossibleAtoB = guess.roundCount * 2, // ✅ correct possible
-                    totalPossibleBtoA = 0,
-                    avatarIndex = guesserInfo.avatarIndex
-                };
+                    PlayerInfo hinterInfo = allPlayersInfo[hinterID];
+                    FriendStats fs = new FriendStats
+                    {
+                        friendID = hinterID,
+                        friendName = hinterInfo.playerName,
+                        avatarIndex = hinterInfo.avatarIndex,
+                        totalPointsAtoB = points,
+                        totalPossibleAtoB = possible,
+                        totalPointsBtoA = 0,
+                        totalPossibleBtoA = 0
+                    };
+                    PlayerStatistics.instance.UpdateAtoB(fs);
+                }
 
-                PlayerStatistics.instance.UpdateAtoB(fs);
-                FriendStats fs2 = new FriendStats
+                // I was the HINTER — record FRIEND's points earned on my hints (BtoA)
+                if (hinterID == myID && allPlayersInfo.ContainsKey(guesserID))
                 {
-                    friendID = hinterID,
-                    friendName = hinterInfo.playerName,
-                    totalPointsAtoB = 0,
-                    totalPointsBtoA = points,
-                    totalPossibleAtoB = 0,
-                    totalPossibleBtoA = guess.roundCount * 2, // ✅ correct possible
-                    avatarIndex = hinterInfo.avatarIndex
-                };
-
-                PlayerStatistics.instance.UpdateAtoB(fs2);
-
+                    PlayerInfo guesserInfo = allPlayersInfo[guesserID];
+                    FriendStats fs = new FriendStats
+                    {
+                        friendID = guesserID,
+                        friendName = guesserInfo.playerName,
+                        avatarIndex = guesserInfo.avatarIndex,
+                        totalPointsAtoB = 0,
+                        totalPossibleAtoB = 0,
+                        totalPointsBtoA = points,
+                        totalPossibleBtoA = possible
+                    };
+                    PlayerStatistics.instance.UpdateAtoB(fs);
+                }
             }
         }
 

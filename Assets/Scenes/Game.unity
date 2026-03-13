@@ -51110,7 +51110,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 169a3d0e090e38642b8cc8be596ed0da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultUsername: Player1
+  defaultUsername: your name
   defaultAvatarIndex: 4
   maxAvatarIndex: 9
   pfp:
