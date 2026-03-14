@@ -140,6 +140,8 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             CustomRoomPropertiesForLobby = new string[] { "public" }
         };
 
+        options.PlayerTtl = 60000; // 60 seconds
+
         PhotonNetwork.CreateRoom(currentRoomCode, options);
 
         GameplayManager.instance.UpdateRounds(roundsInput);
@@ -406,5 +408,28 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
 
        // PhotonNetwork.IsMessageQueueRunning = pause;
+    }
+
+    void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+            Debug.Log("Application Paused");
+        }
+        else
+        {
+            Debug.Log("Application Resumed");
+        }
+    }
+    void OnApplicationFocus(bool focus)
+    {
+        if (!focus)
+        {
+            Debug.Log("Simulated Pause");
+        }
+        else
+        {
+            Debug.Log("Simulated Resume");
+        }
     }
 }
