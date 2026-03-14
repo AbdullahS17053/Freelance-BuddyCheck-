@@ -92,6 +92,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
+        Debug.Log("OnConnectedToMaster triggered Fusion Room Manager");
         connectingPanel?.SetActive(false);
         reconnectPanel?.SetActive(false);
 
@@ -183,6 +184,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        Debug.Log("OnJoinedRoom triggered Fusion Room Manager");
         loadingPanel.SetActive(false);
         MusicManager.instance.GameMusic();
         foreach (var t in roomCodeText) t.text = PhotonNetwork.CurrentRoom.Name;
@@ -226,6 +228,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
+        GameplayManager.instance.HandleRoomLeave();
         loadingPanel.SetActive(false);
         Debug.Log("No available room found. Creating a new room...");
 
@@ -234,6 +237,8 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinRoomFailed(short returnCode, string msg)
     {
+        GameplayManager.instance.HandleRoomLeave();
+        Debug.Log("OnJoinRoomFailed triggered Fusion Room Manager");
         loadingPanel.SetActive(false);
         Debug.Log($"Join room failed: {returnCode} - {msg}");
 
@@ -255,6 +260,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        Debug.Log("OnPlayerEnteredRoom triggered Fusion Room Manager");
         loadingPanel.SetActive(false);
         UpdatePlayerCount();
 
@@ -263,6 +269,14 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
+        Debug.Log("OnPlayerLeftRoom triggered Fusion Room Manager");
+
+        if (otherPlayer.IsInactive)
+        {
+            Debug.Log("Player temporarily disconnected: " + otherPlayer.NickName);
+            return; // Ignore temporary leave
+        }
+
         UpdatePlayerCount();
 
         // If the game was ongoing, show player disconnected panel
@@ -276,6 +290,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnLeftRoom()
     {
+        Debug.Log("OnLeftRoom triggered Fusion Room Manager");
         MusicManager.instance.LobbyMusic();
         ShowMenuPanel();
 
@@ -286,6 +301,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     }
     public override void OnDisconnected(DisconnectCause cause)
     {
+        Debug.Log("OnDisconnected triggered Fusion Room Manager");
         loadingPanel.SetActive(false);
         Debug.LogWarning("Photon disconnected: " + cause);
         ShowMenuPanel();
@@ -418,6 +434,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         }
         else
         {
+            PhotonNetwork.ReconnectAndRejoin();
             Debug.Log("Application Resumed");
         }
     }
@@ -429,6 +446,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         }
         else
         {
+            PhotonNetwork.ReconnectAndRejoin();
             Debug.Log("Simulated Resume");
         }
     }

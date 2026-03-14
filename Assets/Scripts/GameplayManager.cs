@@ -29,6 +29,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject leaderboardPanel;
     [SerializeField] private GameObject playersPanel;
     [SerializeField] private GameObject messagePanel;
+    [SerializeField] private GameObject waitingPlayerReconnectPanel;
 
     [Header("Simple Chat System")]
     [SerializeField] private TMP_InputField chatInputField;
@@ -1137,6 +1138,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        Debug.Log("OnJoinedRoom triggered Gameplay Manager");
         if (!PhotonNetwork.IsMasterClient)
         {
             if (PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue(TOTAL_ROUNDS_KEY, out object tot))
@@ -1165,10 +1167,11 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnLeftRoom()
     {
+        Debug.Log("OnLeftRoom triggered Gameplay Manager");
         HandleRoomLeave();
     }
 
-    private void HandleRoomLeave()
+    public void HandleRoomLeave()
     {
         leaderboardPanel.SetActive(false);
         gameplayPanel.SetActive(false);
@@ -1233,11 +1236,16 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        Debug.Log("OnPlayerEnteredRoom triggered Gameplay Manager");
         UpdatePlayerProfiles();
 
         if (PhotonNetwork.IsMasterClient && gameActive)
         {
+            GamePaused(false);
+            Debug.Log($"New player {newPlayer.NickName} joined during active game. Syncing state to them.");
             photonView.RPC("SyncGameStateRPC", newPlayer);
+
+            
         }
     }
 
@@ -1253,11 +1261,34 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
+        Debug.Log("OnPlayerLeftRoom triggered Gameplay Manager");
+
+        if (otherPlayer.IsInactive)
+        {
+            Debug.Log("Player temporarily disconnected: " + otherPlayer.NickName);
+            GamePaused(true);
+            return; // Ignore temporary leave
+        }
+
         Debug.Log($"{otherPlayer.NickName} left. Ending game for everyone.");
 
         if (PhotonNetwork.NetworkClientState == ClientState.Joined)
         {
             photonView.RPC("EndGameForAllRPC", RpcTarget.All);
+        }
+    }
+
+    public void GamePaused(bool pause)
+    {
+        if(pause)
+        {
+            waitingPlayerReconnectPanel.SetActive(true);
+            FusionRoomManager.Instance.Fpause(true);
+        }
+        else
+        {
+            waitingPlayerReconnectPanel.SetActive(false);
+            FusionRoomManager.Instance.Fpause(false);
         }
     }
 
