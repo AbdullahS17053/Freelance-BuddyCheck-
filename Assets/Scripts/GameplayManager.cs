@@ -1246,8 +1246,20 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             Debug.Log($"Player {newPlayer.NickName} rejoined. Resyncing game state to them.");
 
-            GamePaused(false);
             photonView.RPC("SyncGameStateRPC", newPlayer);
+
+            bool paused = false;
+            foreach (Player player in PhotonNetwork.PlayerList)
+            {
+                string status = player.IsInactive ? "Offline / Disconnected" : "Online / Active";
+
+
+                Debug.Log(player.NickName + " is " + status);
+
+                if(player.IsInactive)
+                    paused = true;
+            }
+            GamePaused(paused);
             return; // Don't treat as new join during active game
         }
 
