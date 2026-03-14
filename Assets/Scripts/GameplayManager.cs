@@ -1168,11 +1168,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     public override void OnLeftRoom()
     {
         Debug.Log("OnLeftRoom triggered Gameplay Manager");
-        HandleRoomLeave();
+
+        //HandleRoomLeave();
     }
 
     public void HandleRoomLeave()
     {
+        GamePaused(false);
         leaderboardPanel.SetActive(false);
         gameplayPanel.SetActive(false);
         playersPanel.SetActive(false);
@@ -1318,6 +1320,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void EndGameForAllRPC()
     {
+        GamePaused(false);
         leaderboardPanel.SetActive(false);
         gameplayPanel.SetActive(false);
         playersPanel.SetActive(true);

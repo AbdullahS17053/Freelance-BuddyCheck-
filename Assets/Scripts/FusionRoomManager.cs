@@ -141,7 +141,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             CustomRoomPropertiesForLobby = new string[] { "public" }
         };
 
-        options.PlayerTtl = 60000; // 60 seconds
+        options.PlayerTtl = 20000; // 60 seconds
 
         PhotonNetwork.CreateRoom(currentRoomCode, options);
 
@@ -291,13 +291,6 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public override void OnLeftRoom()
     {
         Debug.Log("OnLeftRoom triggered Fusion Room Manager");
-        MusicManager.instance.LobbyMusic();
-        ShowMenuPanel();
-
-        UpdatePlayerCount();
-
-
-        Fpause(false);
     }
     public override void OnDisconnected(DisconnectCause cause)
     {
@@ -308,12 +301,17 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         }
         else
         {
+            GameplayManager.instance.GamePaused(false);
             Debug.Log("ReconnectAndRejoin failed to start");
             loadingPanel.SetActive(false);
             Debug.LogWarning("Photon disconnected: " + cause);
             ShowMenuPanel();
             connectingPanel.SetActive(false);
             playerDisconnectedPanel.SetActive(true);
+            MusicManager.instance.LobbyMusic();
+
+            UpdatePlayerCount();
+
 
 
             Fpause(false);
@@ -439,6 +437,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
         if (pause)
         {
+
             Debug.Log("Application Paused");
         }
         else
