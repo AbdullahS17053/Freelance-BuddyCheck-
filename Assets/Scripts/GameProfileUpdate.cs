@@ -17,6 +17,9 @@ public class GameProfileUpdate : MonoBehaviour
     public GameObject chatIndicator;
     public TMP_Text lastMessageText;
 
+    [Header("Offline Indicator")]
+    public GameObject offlineIndicator;
+
     [Header("Animation")]
     [SerializeField] private float appearDuration = 0.5f;
     [SerializeField] private GameObject confetti;
@@ -32,11 +35,12 @@ public class GameProfileUpdate : MonoBehaviour
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup) canvasGroup.alpha = 0;
 
-        // Initialize chat indicator as hidden
         if (chatIndicator != null)
             chatIndicator.SetActive(false);
 
-        // Ensure particles are off at start
+        if (offlineIndicator != null)
+            offlineIndicator.SetActive(false);
+
         if (confetti != null)
         {
             confetti.SetActive(false);
@@ -77,6 +81,12 @@ public class GameProfileUpdate : MonoBehaviour
         yield return new WaitForSeconds(delay);
         if (chatIndicator != null)
             chatIndicator.SetActive(false);
+    }
+
+    public void SetOffline(bool offline)
+    {
+        if (offlineIndicator != null)
+            offlineIndicator.SetActive(offline);
     }
 
     public void updatePlayer(int playerPFP, string pName)
@@ -130,14 +140,15 @@ public class GameProfileUpdate : MonoBehaviour
 
         scoreMeter.gameObject.SetActive(true);
 
-        // Stop and hide particles
         StopAllParticles();
 
         if (canvasGroup) canvasGroup.alpha = 0;
 
-        // Reset chat indicator
         if (chatIndicator != null)
             chatIndicator.SetActive(false);
+
+        // Offline indicator intentionally NOT cleared here —
+        // SetOffline(false) is called explicitly when the player rejoins
     }
 
     private void StopAllParticles()

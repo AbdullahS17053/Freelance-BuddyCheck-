@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Pun.Demo.PunBasics;
@@ -83,6 +83,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [Header("Player Profiles")]
     [SerializeField] private GameProfileUpdate[] playerProfiles;
 
+    [Header("Disconnection UI")]
+    [SerializeField] private GameObject disconnectionPanel;
+    [SerializeField] private TMP_Text disconnectionTimerText;
+
     #endregion
     // -----------------------------------------------------------
 
@@ -124,6 +128,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private const string VOTING = "Voting";
     private const string TOTAL_ROUNDS_KEY = "TotalRounds";
     private const string EACH_ROUNDS_KEY = "EachRounds";
+
+    // --- Disconnection wait system ---
+    private const float ReconnectGracePeriod = 180f; // 3 minutes
+    private bool isWaitingForReconnect = false;
+    private string disconnectedPlayerName = "";
+    private Coroutine disconnectWaitCoroutine;
 
     #endregion
     // -----------------------------------------------------------
@@ -330,6 +340,9 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     private void ProceedToNextPhase()
     {
+        // Do not advance rounds while a player is trying to reconnect
+        if (isWaitingForReconnect) return;
+
         currentRound++;
 
         UpdatePlayerProfiles();
@@ -727,6 +740,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (currentHinterPlayerID == StatsManager.instance.myID)
         {
             Debug.LogWarning("SubmitVote blocked: you are the current hinter.");
+            return;
+        }
+
+        // Pause input while waiting for disconnected player
+        if (isWaitingForReconnect)
+        {
+            Debug.LogWarning("SubmitVote blocked: waiting for player to reconnect.");
             return;
         }
 
@@ -1188,6 +1208,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         lastTempScore = -1;
         StatsManager.instance.maxScore = 0;
 
+        // Clear any active disconnect wait
+        isWaitingForReconnect = false;
+        disconnectedPlayerName = "";
+        if (disconnectWaitCoroutine != null) { StopCoroutine(disconnectWaitCoroutine); disconnectWaitCoroutine = null; }
+        if (disconnectionPanel != null) disconnectionPanel.SetActive(false);
+
         // --- Reset all lists ---
         playerTotalScores.Clear();
         currentRoundGuesses.Clear();
@@ -1235,6 +1261,27 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         UpdatePlayerProfiles();
 
+        // If this is the player we were waiting for, cancel the timer and resume
+        if (isWaitingForReconnect && newPlayer.NickName == disconnectedPlayerName)
+        {
+            isWaitingForReconnect = false;
+            disconnectedPlayerName = "";
+
+            if (disconnectWaitCoroutine != null)
+            {
+                StopCoroutine(disconnectWaitCoroutine);
+                disconnectWaitCoroutine = null;
+            }
+
+            if (disconnectionPanel != null) disconnectionPanel.SetActive(false);
+
+            // Clear offline badge on their profile card
+            if (activeProfiles.TryGetValue(newPlayer.NickName, out GameProfileUpdate rejoined))
+                rejoined.SetOffline(false);
+
+            Debug.Log($"{newPlayer.NickName} rejoined — game resuming.");
+        }
+
         if (PhotonNetwork.IsMasterClient && gameActive)
         {
             photonView.RPC("SyncGameStateRPC", newPlayer);
@@ -1253,10 +1300,56 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        Debug.Log($"{otherPlayer.NickName} left. Ending game for everyone.");
+        Debug.Log($"{otherPlayer.NickName} left.");
 
-        if (PhotonNetwork.NetworkClientState == ClientState.Joined)
+        // If no game running, just update the lobby UI
+        if (!gameActive)
         {
+            UpdatePlayerProfiles();
+            return;
+        }
+
+        // Show offline badge on their profile card
+        if (activeProfiles.TryGetValue(otherPlayer.NickName, out GameProfileUpdate offlineProfile))
+            offlineProfile.SetOffline(true);
+
+        // Start 3-minute grace period — every client runs its own countdown display,
+        // master client is the one that fires EndGameForAll if time expires
+        disconnectedPlayerName = otherPlayer.NickName;
+        isWaitingForReconnect = true;
+
+        if (disconnectWaitCoroutine != null) StopCoroutine(disconnectWaitCoroutine);
+        disconnectWaitCoroutine = StartCoroutine(DisconnectWaitRoutine(otherPlayer.NickName));
+    }
+
+    private IEnumerator DisconnectWaitRoutine(string playerName)
+    {
+        if (disconnectionPanel != null) disconnectionPanel.SetActive(true);
+
+        float remaining = ReconnectGracePeriod;
+
+        while (remaining > 0f)
+        {
+            int mins = Mathf.FloorToInt(remaining / 60f);
+            int secs = Mathf.FloorToInt(remaining % 60f);
+
+            if (disconnectionTimerText != null)
+                disconnectionTimerText.text = $"{playerName} disconnected\n{mins}:{secs:D2} to rejoin";
+
+            yield return new WaitForSeconds(1f);
+            remaining -= 1f;
+        }
+
+        // Time expired — only master ends the game to avoid duplicate calls
+        isWaitingForReconnect = false;
+        disconnectedPlayerName = "";
+        disconnectWaitCoroutine = null;
+
+        if (disconnectionPanel != null) disconnectionPanel.SetActive(false);
+
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.NetworkClientState == ClientState.Joined)
+        {
+            Debug.Log($"{playerName} did not rejoin in time. Ending game.");
             photonView.RPC("EndGameForAllRPC", RpcTarget.All);
         }
     }
@@ -1281,6 +1374,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRoundIndex = 0;
         lastTempScore = -1;
         StatsManager.instance.maxScore = 0;
+
+        // Clear any active disconnect wait
+        isWaitingForReconnect = false;
+        disconnectedPlayerName = "";
+        if (disconnectWaitCoroutine != null) { StopCoroutine(disconnectWaitCoroutine); disconnectWaitCoroutine = null; }
+        if (disconnectionPanel != null) disconnectionPanel.SetActive(false);
 
         // --- Reset all lists ---
         playerTotalScores.Clear();
@@ -1490,6 +1589,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintRoundIndex = 0;
         lastTempScore = -1;
         StatsManager.instance.maxScore = 0;
+
+        // Clear any active disconnect wait
+        isWaitingForReconnect = false;
+        disconnectedPlayerName = "";
+        if (disconnectWaitCoroutine != null) { StopCoroutine(disconnectWaitCoroutine); disconnectWaitCoroutine = null; }
+        if (disconnectionPanel != null) disconnectionPanel.SetActive(false);
 
         // --- Reset all lists ---
         playerTotalScores.Clear();

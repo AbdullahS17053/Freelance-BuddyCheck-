@@ -284,14 +284,76 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     }
     public override void OnDisconnected(DisconnectCause cause)
     {
-        loadingPanel.SetActive(false);
+        loadingPanel?.SetActive(false);
         Debug.LogWarning("Photon disconnected: " + cause);
-        ShowMenuPanel();
-        connectingPanel.SetActive(false); 
-        playerDisconnectedPanel.SetActive(true);
-
-
         Fpause(false);
+
+        // Intentional leaves don't need a reconnect attempt
+        bool intentional = cause == DisconnectCause.DisconnectByClientLogic
+                        || cause == DisconnectCause.ApplicationQuit;
+
+        if (intentional)
+        {
+            ShowMenuPanel();
+            connectingPanel?.SetActive(false);
+            playerDisconnectedPanel?.SetActive(false);
+            return;
+        }
+
+        // Unexpected drop (timeout, network loss, background kill during ad) → auto-reconnect
+        StartCoroutine(AutoReconnectRoutine());
+    }
+
+    private IEnumerator AutoReconnectRoutine()
+    {
+        connectingPanel?.SetActive(false);
+        playerDisconnectedPanel?.SetActive(false);
+        reconnectPanel?.SetActive(true);
+
+        Debug.Log("[Reconnect] Attempting ReconnectAndRejoin...");
+
+        // Attempt 1: rejoin the existing room — preserves all game state
+        PhotonNetwork.ReconnectAndRejoin();
+
+        float waited = 0f;
+        while (waited < 15f && !PhotonNetwork.InRoom)
+        {
+            yield return new WaitForSeconds(0.5f);
+            waited += 0.5f;
+        }
+
+        if (PhotonNetwork.InRoom)
+        {
+            Debug.Log("[Reconnect] Rejoin successful.");
+            reconnectPanel?.SetActive(false);
+            yield break;
+        }
+
+        // Attempt 2: fresh connect to master (room likely gone, return to menu cleanly)
+        Debug.Log("[Reconnect] Rejoin failed, trying fresh connect...");
+        if (!PhotonNetwork.IsConnected)
+            PhotonNetwork.ConnectUsingSettings();
+
+        waited = 0f;
+        while (waited < 10f && !PhotonNetwork.IsConnectedAndReady)
+        {
+            yield return new WaitForSeconds(0.5f);
+            waited += 0.5f;
+        }
+
+        reconnectPanel?.SetActive(false);
+
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            Debug.Log("[Reconnect] Connected to master. Returning to menu.");
+            ShowMenuPanel();
+        }
+        else
+        {
+            Debug.LogWarning("[Reconnect] All attempts failed.");
+            ShowMenuPanel();
+            playerDisconnectedPanel?.SetActive(true);
+        }
     }
 
     private void UpdatePlayerCount()
