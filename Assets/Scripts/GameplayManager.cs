@@ -1217,9 +1217,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             profile.hideAnswers();
             profile.SetChatActivity(false);
         }
-        for (int j = 0; j < hinters.Length; j++)
+        if(hinters != null)
         {
-            hinters[j] = 0;
+            for (int j = 0; j < hinters.Length; j++)
+            {
+                hinters[j] = 0;
+            }
         }
 
 
@@ -1239,14 +1242,22 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         Debug.Log("OnPlayerEnteredRoom triggered Gameplay Manager");
         UpdatePlayerProfiles();
 
+        if(newPlayer.HasRejoined)
+        {
+            Debug.Log($"Player {newPlayer.NickName} rejoined. Resyncing game state to them.");
+
+            GamePaused(false);
+            photonView.RPC("SyncGameStateRPC", newPlayer);
+            return; // Don't treat as new join during active game
+        }
+
         if (PhotonNetwork.IsMasterClient && gameActive)
         {
-            GamePaused(false);
             Debug.Log($"New player {newPlayer.NickName} joined during active game. Syncing state to them.");
-            photonView.RPC("SyncGameStateRPC", newPlayer);
 
-            
+
         }
+        photonView.RPC("SyncGameStateRPC", newPlayer);
     }
 
     [PunRPC]

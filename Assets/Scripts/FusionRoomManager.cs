@@ -302,14 +302,23 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public override void OnDisconnected(DisconnectCause cause)
     {
         Debug.Log("OnDisconnected triggered Fusion Room Manager");
-        loadingPanel.SetActive(false);
-        Debug.LogWarning("Photon disconnected: " + cause);
-        ShowMenuPanel();
-        connectingPanel.SetActive(false); 
-        playerDisconnectedPanel.SetActive(true);
+        if (PhotonNetwork.ReconnectAndRejoin())
+        {
+            Debug.Log("Reconnecting and trying to rejoin room...");
+        }
+        else
+        {
+            Debug.Log("ReconnectAndRejoin failed to start");
+            loadingPanel.SetActive(false);
+            Debug.LogWarning("Photon disconnected: " + cause);
+            ShowMenuPanel();
+            connectingPanel.SetActive(false);
+            playerDisconnectedPanel.SetActive(true);
 
 
-        Fpause(false);
+            Fpause(false);
+
+        }
     }
 
     private void UpdatePlayerCount()
@@ -434,7 +443,6 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            PhotonNetwork.ReconnectAndRejoin();
             Debug.Log("Application Resumed");
         }
     }
@@ -446,7 +454,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            PhotonNetwork.ReconnectAndRejoin();
+            
             Debug.Log("Simulated Resume");
         }
     }
