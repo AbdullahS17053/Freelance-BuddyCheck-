@@ -18,6 +18,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject roomFullPanel;
     [SerializeField] private GameObject roomNotFoundPanel;
     [SerializeField] private GameObject playerDisconnectedPanel;
+    [SerializeField] private int waitForReconnectTime;
     [SerializeField] private Button shadowGameButton;
 
     [Header("Connection UI")]
@@ -178,8 +179,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void LeaveRoom()
     {
-        if (PhotonNetwork.InRoom)
-            PhotonNetwork.LeaveRoom();
+        PhotonNetwork.LeaveRoom();
     }
 
     public override void OnJoinedRoom()
@@ -286,37 +286,6 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             //playerDisconnectedPanel?.SetActive(true);
         }
         CheckPrivilegedStatus();
-    }
-
-    public override void OnLeftRoom()
-    {
-        Debug.Log("OnLeftRoom triggered Fusion Room Manager");
-    }
-    public override void OnDisconnected(DisconnectCause cause)
-    {
-        Debug.Log("OnDisconnected triggered Fusion Room Manager");
-        if (PhotonNetwork.ReconnectAndRejoin())
-        {
-            Debug.Log("Reconnecting and trying to rejoin room...");
-        }
-        else
-        {
-            GameplayManager.instance.GamePaused(false);
-            Debug.Log("ReconnectAndRejoin failed to start");
-            loadingPanel.SetActive(false);
-            Debug.LogWarning("Photon disconnected: " + cause);
-            ShowMenuPanel();
-            connectingPanel.SetActive(false);
-            playerDisconnectedPanel.SetActive(true);
-            MusicManager.instance.LobbyMusic();
-
-            UpdatePlayerCount();
-
-
-
-            Fpause(false);
-
-        }
     }
 
     private void UpdatePlayerCount()
@@ -457,4 +426,6 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             Debug.Log("Simulated Resume");
         }
     }
+
+
 }

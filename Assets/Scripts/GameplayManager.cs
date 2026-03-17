@@ -30,6 +30,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject playersPanel;
     [SerializeField] private GameObject messagePanel;
     [SerializeField] private GameObject waitingPlayerReconnectPanel;
+    [SerializeField] private float waitForReconnectTime;
+    [SerializeField] private GameObject PlayersTryingReconnect;
 
     [Header("Simple Chat System")]
     [SerializeField] private TMP_InputField chatInputField;
@@ -889,7 +891,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             profile.showAnswers();
 
             int difference = Mathf.Abs(guess.Value - currentHostAnswer);
-            profile.Correct(difference <= 1);
+            profile.Correct(difference <= 2);
         }
     }
 
@@ -1165,124 +1167,31 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         UpdateRoundText();
     }
 
+
+
+
     public override void OnLeftRoom()
     {
         Debug.Log("OnLeftRoom triggered Gameplay Manager");
 
-        //HandleRoomLeave();
+        HandleRoomLeave();
     }
-
-    public void HandleRoomLeave()
-    {
-        GamePaused(false);
-        leaderboardPanel.SetActive(false);
-        gameplayPanel.SetActive(false);
-        playersPanel.SetActive(false);
-        hostPanel.SetActive(false);
-        hintPanel.SetActive(false);
-
-        // --- Reset simple state ---
-        gameActive = false;
-        currentRound = 1;
-        currentHostAnswer = -1;
-        hintRound = 0;
-        voting = 0;
-        hintChance = 0;
-        currentHinterPlayerID = -1;
-        hintRoundIndex = 0;
-        lastTempScore = -1;
-        StatsManager.instance.maxScore = 0;
-
-        // --- Reset all lists ---
-        playerTotalScores.Clear();
-        currentRoundGuesses.Clear();
-        readyForHints.Clear();
-        hintCatories.Clear();
-        hintStoredCatories.Clear();
-        chatMessages.Clear();
-        usedCategoryIDs.Clear();
-
-        ResetRoundState();
-        InitializePlayerTracking();
-
-        chatMessages.Clear();
-        UpdateChatDisplay();
-
-        // Reset inputs
-        playerGuessInput.text = "";
-        playerGuessInput.interactable = true;
-        voteButton.interactable = true;
-
-        foreach (var profile in playerProfiles)
-        {
-            profile.numberGuessed("");
-            profile.hideAnswers();
-            profile.SetChatActivity(false);
-        }
-        if(hinters != null)
-        {
-            for (int j = 0; j < hinters.Length; j++)
-            {
-                hinters[j] = 0;
-            }
-        }
-
-
-        messagePanel.SetActive(false);
-
-        gameplayPanel.SetActive(false);
-        leaderboardPanel.SetActive(false);
-
-        roomManager.ShowMenuPanel();
-
-        StatsManager.instance.ResetAllRounds();
-    }
-
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         Debug.Log("OnPlayerEnteredRoom triggered Gameplay Manager");
-        UpdatePlayerProfiles();
+
+        photonView.RPC("SyncGameStateRPC", RpcTarget.All);
 
         if(newPlayer.HasRejoined)
         {
             Debug.Log($"Player {newPlayer.NickName} rejoined. Resyncing game state to them.");
 
-            photonView.RPC("SyncGameStateRPC", newPlayer);
+            tryReconnect();
 
-            bool paused = false;
-            foreach (Player player in PhotonNetwork.PlayerList)
-            {
-                string status = player.IsInactive ? "Offline / Disconnected" : "Online / Active";
-
-
-                Debug.Log(player.NickName + " is " + status);
-
-                if(player.IsInactive)
-                    paused = true;
-            }
-            GamePaused(paused);
             return; // Don't treat as new join during active game
         }
-
-        if (PhotonNetwork.IsMasterClient && gameActive)
-        {
-            Debug.Log($"New player {newPlayer.NickName} joined during active game. Syncing state to them.");
-
-
-        }
-        photonView.RPC("SyncGameStateRPC", newPlayer);
     }
-
-    [PunRPC]
-    private void SyncGameStateRPC(object[] data)
-    {
-        totalRounds = (int)data[0];
-
-        UpdatePlayerProfiles();
-        UpdateRoundText();
-    }
-
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
@@ -1291,36 +1200,30 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (otherPlayer.IsInactive)
         {
             Debug.Log("Player temporarily disconnected: " + otherPlayer.NickName);
-            GamePaused(true);
+            playerDisconnects();
             return; // Ignore temporary leave
         }
 
-        Debug.Log($"{otherPlayer.NickName} left. Ending game for everyone.");
-
-        if (PhotonNetwork.NetworkClientState == ClientState.Joined)
+        // Permanent leave — end game for everyone
+        if (PhotonNetwork.IsMasterClient)
         {
-            photonView.RPC("EndGameForAllRPC", RpcTarget.All);
+            endGameAll();
         }
     }
 
-    public void GamePaused(bool pause)
+
+    public override void OnDisconnected(DisconnectCause cause)
     {
-        if(pause)
-        {
-            waitingPlayerReconnectPanel.SetActive(true);
-            FusionRoomManager.Instance.Fpause(true);
-        }
-        else
-        {
-            waitingPlayerReconnectPanel.SetActive(false);
-            FusionRoomManager.Instance.Fpause(false);
-        }
+        PhotonNetwork.ReconnectAndRejoin();
     }
+
+    #region Game Ending Logic Calls
 
     [PunRPC]
     private void EndGameForAllRPC()
     {
-        GamePaused(false);
+        StopAllCoroutines();
+        PlayersTryingReconnect.SetActive(false);
         leaderboardPanel.SetActive(false);
         gameplayPanel.SetActive(false);
         playersPanel.SetActive(true);
@@ -1387,17 +1290,156 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         StatsManager.instance.ResetAllRounds();
     }
+    [PunRPC]
+    private void RestartGameRPC()
+    {
+        StopAllCoroutines();
+        PlayersTryingReconnect.SetActive(false);
+        leaderboardPanel.SetActive(false);
+        gameplayPanel.SetActive(false);
+        playersPanel.SetActive(true);
+        hostPanel.SetActive(false);
+        hintPanel.SetActive(false);
+
+        // --- Reset simple state ---
+        gameActive = false;
+        currentRound = 1;
+        currentHostAnswer = -1;
+        hintRound = 0;
+        voting = 0;
+        hintChance = 0;
+        currentHinterPlayerID = -1;
+        hintRoundIndex = 0;
+        lastTempScore = -1;
+        StatsManager.instance.maxScore = 0;
+
+        // --- Reset all lists ---
+        playerTotalScores.Clear();
+        currentRoundGuesses.Clear();
+        readyForHints.Clear();
+        hintCatories.Clear();
+        hintStoredCatories.Clear();
+        usedCategoryIDs.Clear();
+        chatMessages.Clear();
+
+        ResetRoundState();
+        InitializePlayerTracking();
+
+        chatMessages.Clear();
+        UpdateChatDisplay();
+
+        // Reset inputs
+        playerGuessInput.text = "";
+        playerGuessInput.interactable = true;
+        voteButton.interactable = true;
+
+        foreach (var profile in playerProfiles)
+        {
+            profile.numberGuessed("");
+            profile.hideAnswers();
+            profile.SetChatActivity(false);
+        }
+        for (int j = 0; j < hinters.Length; j++)
+        {
+            hinters[j] = 0;
+        }
+
+
+        messagePanel.SetActive(false);
+
+        gameplayPanel.SetActive(false);
+        leaderboardPanel.SetActive(false);
+
+        // Show the room lobby UI again
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.CurrentRoom.IsOpen = true;
+            roomManager.ShowHostPanel();
+        }
+        else
+        {
+            roomManager.ShowClientPanel();
+        }
+
+        StatsManager.instance.ResetAllRounds();
+    }
+
+    public void HandleRoomLeave()
+    {
+        StopAllCoroutines();
+        PlayersTryingReconnect.SetActive(false);
+        leaderboardPanel.SetActive(false);
+        gameplayPanel.SetActive(false);
+        playersPanel.SetActive(false);
+        hostPanel.SetActive(false);
+        hintPanel.SetActive(false);
+
+        // --- Reset simple state ---
+        gameActive = false;
+        currentRound = 1;
+        currentHostAnswer = -1;
+        hintRound = 0;
+        voting = 0;
+        hintChance = 0;
+        currentHinterPlayerID = -1;
+        hintRoundIndex = 0;
+        lastTempScore = -1;
+        StatsManager.instance.maxScore = 0;
+
+        // --- Reset all lists ---
+        playerTotalScores.Clear();
+        currentRoundGuesses.Clear();
+        readyForHints.Clear();
+        hintCatories.Clear();
+        hintStoredCatories.Clear();
+        chatMessages.Clear();
+        usedCategoryIDs.Clear();
+
+        ResetRoundState();
+        InitializePlayerTracking();
+
+        chatMessages.Clear();
+        UpdateChatDisplay();
+
+        // Reset inputs
+        playerGuessInput.text = "";
+        playerGuessInput.interactable = true;
+        voteButton.interactable = true;
+
+        foreach (var profile in playerProfiles)
+        {
+            profile.numberGuessed("");
+            profile.hideAnswers();
+            profile.SetChatActivity(false);
+        }
+        if (hinters != null)
+        {
+            for (int j = 0; j < hinters.Length; j++)
+            {
+                hinters[j] = 0;
+            }
+        }
+
+
+        //messagePanel.SetActive(false);
+
+        gameplayPanel.SetActive(false);
+        leaderboardPanel.SetActive(false);
+
+        roomManager.ShowMenuPanel();
+
+        StatsManager.instance.ResetAllRounds();
+    }
+
+    #endregion
+
+
+
 
     [PunRPC]
-    private void RestartRoundAfterPlayerLeaveRPC()
+    private void SyncGameStateRPC()
     {
-        ResetRoundState();
-
-        currentRoundGuesses.Clear();
-        ResetUIForNewRound();
-        HideAllAnswers();
-
-        Invoke("DelayedHostSelection", 0.5f);
+        SyncWithRoomState();
     }
 
     public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
@@ -1482,15 +1524,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public void CancelMatch()
     {
-        gameActive = false;
-        if (PhotonNetwork.NetworkClientState == ClientState.Joined)
-        {
-            PhotonNetwork.LeaveRoom();
-        }
-        else
-        {
-            Debug.Log("Not leaving room because client is not ready. Current state: " + PhotonNetwork.NetworkClientState);
-        }
+        endGameAll();
     }
 
     public void RequestRestartGame()
@@ -1527,82 +1561,89 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         SetChatActive(true);
     }
 
-    [PunRPC]
-    private void RestartGameRPC()
-    {
-        leaderboardPanel.SetActive(false);
-        gameplayPanel.SetActive(false);
-        playersPanel.SetActive(true);
-        hostPanel.SetActive(false);
-        hintPanel.SetActive(false);
-
-        // --- Reset simple state ---
-        gameActive = false;
-        currentRound = 1;
-        currentHostAnswer = -1;
-        hintRound = 0;
-        voting = 0;
-        hintChance = 0;
-        currentHinterPlayerID = -1;
-        hintRoundIndex = 0;
-        lastTempScore = -1;
-        StatsManager.instance.maxScore = 0;
-
-        // --- Reset all lists ---
-        playerTotalScores.Clear();
-        currentRoundGuesses.Clear();
-        readyForHints.Clear();
-        hintCatories.Clear();
-        hintStoredCatories.Clear();
-        usedCategoryIDs.Clear();
-        chatMessages.Clear();
-
-        ResetRoundState();
-        InitializePlayerTracking();
-
-        chatMessages.Clear();
-        UpdateChatDisplay();
-
-        // Reset inputs
-        playerGuessInput.text = "";
-        playerGuessInput.interactable = true;
-        voteButton.interactable = true;
-
-        foreach (var profile in playerProfiles)
-        {
-            profile.numberGuessed("");
-            profile.hideAnswers();
-            profile.SetChatActivity(false);
-        }
-        for (int j = 0; j < hinters.Length; j++)
-        {
-            hinters[j] = 0;
-        }
-
-
-        messagePanel.SetActive(false);
-
-        gameplayPanel.SetActive(false);
-        leaderboardPanel.SetActive(false);
-
-        // Show the room lobby UI again
-        if (PhotonNetwork.IsMasterClient)
-        {
-            PhotonNetwork.CurrentRoom.IsOpen = true;
-            roomManager.ShowHostPanel();
-        }
-        else
-        {
-            roomManager.ShowClientPanel();
-        }
-
-        StatsManager.instance.ResetAllRounds();
-    }
+    
 
 
     public void OpenWebpageIntroVideo()
     {
         UnityEngine.Application.OpenURL("https://drive.google.com/file/d/1bobCLbFbLqbYDcIjoj-Y87e8YZcMeNDb/views");
+    }
+
+    #endregion
+    // -----------------------------------------------------------
+
+    // -----------------------------------------------------------
+    #region Reconnection Logic
+
+    //-> Disconnects
+    public void playerDisconnects()
+    {
+        PlayersTryingReconnect.SetActive(true);
+        StopAllCoroutines();
+        StartCoroutine(WaitForAutoGameEnd());
+    }
+
+    //-> TryReconnect
+    public void tryReconnect()
+    {
+        StopAllCoroutines();
+        if (isEveryoneOnline())
+        {
+            PlayersTryingReconnect.SetActive(false);
+        }
+        else
+        {
+            StartCoroutine(WaitForAutoGameEnd());
+            PlayersTryingReconnect.SetActive(true);
+        }
+    }
+
+    //-> RestartRoom
+    public void restartRoom()
+    {
+        if (PhotonNetwork.IsMasterClient && isEveryoneOnline())
+        {
+            photonView.RPC("RestartGameRPC", RpcTarget.All);
+        }
+        else if (PhotonNetwork.IsMasterClient && !isEveryoneOnline())
+        {
+            endGameAll();
+        }
+    }
+
+    //-> GameEnded
+    public void endGameAll()
+    {
+        gameActive = false;
+        // photonView.RPC("EndGameForAllRPC", RpcTarget.All);
+        photonView.RPC("KickEveryone", RpcTarget.All);
+    }
+
+    //-> helper functions
+    private bool isEveryoneOnline()
+    {
+        foreach (Player player in PhotonNetwork.PlayerList)
+        {
+            if (player.IsInactive)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    IEnumerator WaitForAutoGameEnd()
+    {
+        yield return new WaitForSecondsRealtime(waitForReconnectTime + 5f);
+
+        restartRoom();
+    }
+
+    [PunRPC]
+    public void KickEveryone()
+    {
+        messagePanel.SetActive(true);
+        PhotonNetwork.LeaveRoom();
     }
 
     #endregion
