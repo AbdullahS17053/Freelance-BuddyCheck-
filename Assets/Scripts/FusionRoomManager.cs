@@ -142,7 +142,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
             CustomRoomPropertiesForLobby = new string[] { "public" }
         };
 
-        options.PlayerTtl = 20000; // 60 seconds
+        options.PlayerTtl = waitForReconnectTime * 1000; // 60 seconds
 
         PhotonNetwork.CreateRoom(currentRoomCode, options);
 
@@ -184,6 +184,12 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        if (PhotonNetwork.LocalPlayer.HasRejoined)
+        {
+            Debug.Log("Player rejoined room, skipping OnJoinedRoom logic.");
+            return; // Skip the rest of this method if we're rejoining
+        }
+
         Debug.Log("OnJoinedRoom triggered Fusion Room Manager");
         loadingPanel.SetActive(false);
         MusicManager.instance.GameMusic();
@@ -260,6 +266,11 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        if (newPlayer.HasRejoined)
+        {
+            Debug.Log("Player rejoined room, skipping OnJoinedRoom logic.");
+            return; // Skip the rest of this method if we're rejoining
+        }
         Debug.Log("OnPlayerEnteredRoom triggered Fusion Room Manager");
         loadingPanel.SetActive(false);
         UpdatePlayerCount();
@@ -270,7 +281,11 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         Debug.Log("OnPlayerLeftRoom triggered Fusion Room Manager");
-
+        if (otherPlayer.HasRejoined)
+        {
+            Debug.Log("Player rejoined room, skipping OnJoinedRoom logic.");
+            return; // Skip the rest of this method if we're rejoining
+        }
         if (otherPlayer.IsInactive)
         {
             Debug.Log("Player temporarily disconnected: " + otherPlayer.NickName);

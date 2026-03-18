@@ -1140,6 +1140,12 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        if(PhotonNetwork.LocalPlayer.HasRejoined)
+        {
+            Debug.Log("Player rejoined room, skipping OnJoinedRoom logic.");
+            return; // Skip the rest of this method if we're rejoining
+        }
+
         Debug.Log("OnJoinedRoom triggered Gameplay Manager");
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -1151,7 +1157,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             var total = new Hashtable { [TOTAL_ROUNDS_KEY] = totalRounds };
             PhotonNetwork.CurrentRoom.SetCustomProperties(total);
         }
-
+        photonView.RPC("SyncGameStateRPC", RpcTarget.All);
         playersPanel.SetActive(true);
 
         UpdatePlayerProfiles();
@@ -1174,14 +1180,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("OnLeftRoom triggered Gameplay Manager");
 
-        HandleRoomLeave();
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         Debug.Log("OnPlayerEnteredRoom triggered Gameplay Manager");
 
-        photonView.RPC("SyncGameStateRPC", RpcTarget.All);
+        //photonView.RPC("SyncGameStateRPC", RpcTarget.All);
 
         if(newPlayer.HasRejoined)
         {
@@ -1215,7 +1220,15 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        PhotonNetwork.ReconnectAndRejoin();
+        if (PhotonNetwork.ReconnectAndRejoin())
+        {
+            tryReconnect();
+        }
+        else
+        {
+            PhotonNetwork.LeaveRoom(false);
+            HandleRoomLeave();
+        }
     }
 
     #region Game Ending Logic Calls
