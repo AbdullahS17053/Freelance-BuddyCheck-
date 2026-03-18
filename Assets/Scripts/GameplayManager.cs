@@ -274,6 +274,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("New Hint Round of " + hintRoundEach);
 
+        hintCatories.Clear();      // ← add this
+        hintStoredCatories.Clear(); // ← and this
 
         if (PhotonNetwork.IsMasterClient)
         {
