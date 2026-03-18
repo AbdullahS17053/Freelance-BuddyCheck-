@@ -274,9 +274,6 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("New Hint Round of " + hintRoundEach);
 
-        hintCatories.Clear();      // ← add this
-        hintStoredCatories.Clear(); // ← and this
-
         if (PhotonNetwork.IsMasterClient)
         {
             int playerCount = PhotonNetwork.CurrentRoom.PlayerCount;
@@ -490,7 +487,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
         // Find first available hint from this player
         // Round-robin by index directly on the remaining list
-        int categoryIndex = hintRoundIndex % hintCatories.Count;
+        int categoryIndex = hintCatories.FindIndex(c => c.playerID == selectedPlayerID);
 
         if (categoryIndex == -1)
         {
