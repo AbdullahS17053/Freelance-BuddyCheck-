@@ -5811,6 +5811,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce06d1be678642f42846fd1bb859fd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerID: -1
   hostCrown: {fileID: 356586669}
   offline: {fileID: 867350505}
   guessedAnswer: {fileID: 1665306024}
@@ -23136,6 +23137,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce06d1be678642f42846fd1bb859fd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerID: -1
   hostCrown: {fileID: 20703376}
   offline: {fileID: 1401020058}
   guessedAnswer: {fileID: 339544763}
@@ -33205,6 +33207,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce06d1be678642f42846fd1bb859fd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerID: -1
   hostCrown: {fileID: 742499543}
   offline: {fileID: 111423498}
   guessedAnswer: {fileID: 820026893}
@@ -40171,7 +40174,7 @@ MonoBehaviour:
   roomFullPanel: {fileID: 568253004}
   roomNotFoundPanel: {fileID: 241354489}
   playerDisconnectedPanel: {fileID: 670667908}
-  waitForReconnectTime: 20
+  waitForReconnectTime: 60
   shadowGameButton: {fileID: 1163575248}
   loadingPanel: {fileID: 1729763871}
   connectingPanel: {fileID: 1729763871}
@@ -40225,7 +40228,7 @@ MonoBehaviour:
   playersPanel: {fileID: 1538616442}
   messagePanel: {fileID: 1367565116}
   waitingPlayerReconnectPanel: {fileID: 1842344923}
-  waitForReconnectTime: 20
+  waitForReconnectTime: 60
   PlayersTryingReconnect: {fileID: 1673490079}
   chatInputField: {fileID: 856084130}
   sendChatButton: {fileID: 918544446}
@@ -53439,6 +53442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce06d1be678642f42846fd1bb859fd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerID: -1
   hostCrown: {fileID: 1647239405}
   offline: {fileID: 465565389}
   guessedAnswer: {fileID: 936460400}
@@ -72580,6 +72584,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce06d1be678642f42846fd1bb859fd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerID: -1
   hostCrown: {fileID: 493602402}
   offline: {fileID: 142663726}
   guessedAnswer: {fileID: 178745791}
@@ -83601,6 +83606,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce06d1be678642f42846fd1bb859fd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerID: -1
   hostCrown: {fileID: 479063307}
   offline: {fileID: 98149869}
   guessedAnswer: {fileID: 204213110}
@@ -86294,6 +86300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce06d1be678642f42846fd1bb859fd5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerID: -1
   hostCrown: {fileID: 1014745262}
   offline: {fileID: 338818549}
   guessedAnswer: {fileID: 205673928}

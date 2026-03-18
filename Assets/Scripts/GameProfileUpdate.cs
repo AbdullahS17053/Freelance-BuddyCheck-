@@ -246,8 +246,10 @@ public class GameProfileUpdate : MonoBehaviour
     }
     public void SetCrown(bool crown)
     {
+        /*
         if (hostCrown)
             hostCrown.SetActive(crown);
+        */
     }
     public void SetChatOffline(bool On)
     {

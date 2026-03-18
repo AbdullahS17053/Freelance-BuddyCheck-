@@ -521,13 +521,13 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void GameNewCategoryAll(int ID, int playerID)
     {
+        // Every client sorts the same way
+        hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
+        hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
 
         hinters[playerID] = hintCatories[ID].playerID;
         currentHinterPlayerID = hintCatories[ID].playerID;
 
-        // Every client sorts the same way
-        hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
-        hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
 
         /*
         // Clear crown from all profiles first
