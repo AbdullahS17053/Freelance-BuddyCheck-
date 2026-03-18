@@ -8,6 +8,7 @@ public class GameProfileUpdate : MonoBehaviour
 {
     [Header("UI Elements")]
     public GameObject hostCrown;
+    public GameObject offline;
     public GameObject guessedAnswer;
     public Image pfp;
     public TextMeshProUGUI playerName;
@@ -33,8 +34,11 @@ public class GameProfileUpdate : MonoBehaviour
         if (canvasGroup) canvasGroup.alpha = 0;
 
         // Initialize chat indicator as hidden
+        /*if (chatIndicator != null)
+            chatIndicator.SetActive(false);*/
+
         if (chatIndicator != null)
-            chatIndicator.SetActive(false);
+            chatIndicator.transform.localScale = Vector3.zero ;
 
         // Ensure particles are off at start
         if (confetti != null)
@@ -54,10 +58,10 @@ public class GameProfileUpdate : MonoBehaviour
     public void SetChatActivity(bool isActive, string lastMessage = "")
     {
         if (chatIndicatorCoroutine != null)
-            StopCoroutine(chatIndicatorCoroutine);
+            //StopCoroutine(chatIndicatorCoroutine);
 
-        if (chatIndicator != null)
-            chatIndicator.SetActive(isActive);
+        /*if (chatIndicator != null)
+            chatIndicator.SetActive(isActive);*/
 
         if (lastMessageText != null && !string.IsNullOrEmpty(lastMessage))
         {
@@ -68,7 +72,7 @@ public class GameProfileUpdate : MonoBehaviour
         // Auto-hide chat indicator after 3 seconds
         if (isActive)
         {
-            chatIndicatorCoroutine = StartCoroutine(HideChatIndicatorAfterDelay(3f));
+            //chatIndicatorCoroutine = StartCoroutine(HideChatIndicatorAfterDelay(3f));
         }
     }
 
@@ -135,9 +139,9 @@ public class GameProfileUpdate : MonoBehaviour
 
         if (canvasGroup) canvasGroup.alpha = 0;
 
-        // Reset chat indicator
+        /*// Reset chat indicator
         if (chatIndicator != null)
-            chatIndicator.SetActive(false);
+            chatIndicator.SetActive(false);*/
     }
 
     private void StopAllParticles()
@@ -232,5 +236,23 @@ public class GameProfileUpdate : MonoBehaviour
     {
         // Ensure particles are stopped when object is disabled
         StopAllParticles();
+    }
+
+    public void SetOffline(bool isOffline)
+    {
+        if (offline)
+            offline.SetActive(isOffline);
+    }
+    public void SetChatOffline(bool On)
+    {
+        if (On)
+        {
+            chatIndicator.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack);
+        }
+        else
+        {
+            chatIndicator.transform.DOScale(Vector3.zero, 0.5f).SetEase(Ease.Linear);
+        }
+
     }
 }

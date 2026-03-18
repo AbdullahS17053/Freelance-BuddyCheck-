@@ -91,6 +91,8 @@ MonoBehaviour:
   - SetPrivilagedStatus
   - KickEveryone
   - RoomEveryone
+  - SetPlayerOfflineRPC
+  - SetChatIndicatorRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

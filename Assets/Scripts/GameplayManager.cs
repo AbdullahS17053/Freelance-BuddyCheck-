@@ -1188,7 +1188,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             Debug.Log($"Player {newPlayer.NickName} rejoined. Resyncing game state to them.");
 
             tryReconnect();
-
+            photonView.RPC("SetPlayerOfflineRPC", RpcTarget.All, newPlayer.NickName, false);
             return; // Don't treat as new join during active game
         }
     }
@@ -1201,6 +1201,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         {
             Debug.Log("Player temporarily disconnected: " + otherPlayer.NickName);
             playerDisconnects();
+            photonView.RPC("SetPlayerOfflineRPC", RpcTarget.All, otherPlayer.NickName, true);
             return; // Ignore temporary leave
         }
 
@@ -1646,6 +1647,33 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         PhotonNetwork.LeaveRoom();
     }
 
+    [PunRPC]
+    private void SetPlayerOfflineRPC(string playerName, bool isOffline)
+    {
+        if (activeProfiles.TryGetValue(playerName, out GameProfileUpdate profile))
+        {
+            profile.SetOffline(isOffline);
+        }
+    }
+
+    public void ShowChatIndicator()
+    {
+        photonView.RPC("SetChatIndicatorRPC", RpcTarget.All, PhotonNetwork.NickName, true);
+    }
+
+    public void HideChatIndicator()
+    {
+        photonView.RPC("SetChatIndicatorRPC", RpcTarget.All, PhotonNetwork.NickName, false);
+    }
+
+    [PunRPC]
+    private void SetChatIndicatorRPC(string playerName, bool on)
+    {
+        if (activeProfiles.TryGetValue(playerName, out GameProfileUpdate profile))
+        {
+            profile.SetChatOffline(on);
+        }
+    }
     #endregion
     // -----------------------------------------------------------
 }
