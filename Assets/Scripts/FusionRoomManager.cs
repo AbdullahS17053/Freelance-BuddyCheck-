@@ -179,6 +179,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void LeaveRoom()
     {
+        GameplayManager.instance.HandleRoomLeave();
         PhotonNetwork.LeaveRoom(false);
     }
 
@@ -421,7 +422,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
         if (pause)
         {
-
+            PhotonNetwork.Disconnect();
             Debug.Log("Application Paused");
         }
         else
@@ -433,6 +434,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
         if (!focus)
         {
+            PhotonNetwork.Disconnect();
             Debug.Log("Simulated Pause");
         }
         else

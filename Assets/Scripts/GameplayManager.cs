@@ -1657,6 +1657,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     public void KickEveryone()
     {
         messagePanel.SetActive(true);
+        HandleRoomLeave();
         PhotonNetwork.LeaveRoom(false);
     }
 
