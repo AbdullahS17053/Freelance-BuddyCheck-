@@ -489,7 +489,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         int selectedPlayerID = sortedPlayerIDs[hintRoundIndex % sortedPlayerIDs.Count];
 
         // Find first available hint from this player
-        int categoryIndex = hintCatories.FindIndex(c => c.playerID == selectedPlayerID);
+        // Round-robin by index directly on the remaining list
+        int categoryIndex = hintRoundIndex % hintCatories.Count;
 
         if (categoryIndex == -1)
         {
