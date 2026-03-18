@@ -319,6 +319,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     private void StartNewRound()
     {
         photonView.RPC("SetPlayerOfflineRPC", RpcTarget.All, PhotonNetwork.NickName, false);
+
         ResetRoundState();
 
 
@@ -517,8 +518,18 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void GameNewCategoryAll(int ID, int playerID)
     {
+        // Clear crown from all profiles first
+        foreach (var profile in activeProfiles.Values)
+            profile.SetCrown(false);
+
         hinters[playerID] = hintCatories[ID].playerID;
         currentHinterPlayerID = hintCatories[ID].playerID;
+
+        // Set crown on current hinter
+        string hinterName = hintCatories[ID].player;
+        if (activeProfiles.TryGetValue(hinterName, out GameProfileUpdate hinterProfile))
+            hinterProfile.SetCrown(true);
+
         // Every client sorts the same way
         hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
         hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
@@ -1565,6 +1576,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     }
     private void ResetRoundState()
     {
+        // Clear all crowns
+        foreach (var profile in activeProfiles.Values)
+            profile.SetCrown(false);
+
         currentRoundGuesses.Clear();
 
         playerGuessInput.text = "";
