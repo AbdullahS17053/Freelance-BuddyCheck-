@@ -572,7 +572,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             voteButton.interactable = true;
         }
         foreach (var profile in playerProfiles)
-            profile.SetCrown(profile.playerID == currentHinterPlayerID);
+            profile.SetCrown(profile.playerID == hintCatories[ID].playerID);
         FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNNING - category ready
     }
 
