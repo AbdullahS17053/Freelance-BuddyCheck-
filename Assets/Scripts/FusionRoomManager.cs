@@ -422,7 +422,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
         if (pause)
         {
-            PhotonNetwork.Disconnect();
+            //PhotonNetwork.Disconnect();
             Debug.Log("Application Paused");
         }
         else
@@ -434,7 +434,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
     {
         if (!focus)
         {
-            PhotonNetwork.Disconnect();
+            //PhotonNetwork.Disconnect();
             Debug.Log("Simulated Pause");
         }
         else
