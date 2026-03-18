@@ -241,8 +241,10 @@ public class GameProfileUpdate : MonoBehaviour
 
     public void SetOffline(bool isOffline)
     {
+        
         if (offline)
             offline.SetActive(isOffline);
+        
     }
     public void SetCrown(bool crown)
     {
@@ -253,6 +255,7 @@ public class GameProfileUpdate : MonoBehaviour
     }
     public void SetChatOffline(bool On)
     {
+        
         if (On)
         {
             chatIndicator.transform.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack);
@@ -261,6 +264,6 @@ public class GameProfileUpdate : MonoBehaviour
         {
             chatIndicator.transform.DOScale(Vector3.zero, 0.5f).SetEase(Ease.Linear);
         }
-
+        
     }
 }
