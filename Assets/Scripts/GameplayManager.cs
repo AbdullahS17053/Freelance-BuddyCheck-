@@ -1198,9 +1198,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("OnPlayerEnteredRoom triggered Gameplay Manager");
 
+        UpdatePlayerProfiles(); // ← MUST be first, rebuilds activeProfiles
         //photonView.RPC("SyncGameStateRPC", RpcTarget.All);
 
-        if(newPlayer.HasRejoined)
+        if (newPlayer.HasRejoined)
         {
             Debug.Log($"Player {newPlayer.NickName} rejoined. Resyncing game state to them.");
 
@@ -1214,6 +1215,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         Debug.Log("OnPlayerLeftRoom triggered Gameplay Manager");
 
+        UpdatePlayerProfiles(); // ← MUST be first, rebuilds activeProfiles
         if (otherPlayer.IsInactive)
         {
             Debug.Log("Player temporarily disconnected: " + otherPlayer.NickName);
@@ -1234,7 +1236,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.ReconnectAndRejoin())
         {
-            tryReconnect();
+            
         }
         else
         {
