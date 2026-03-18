@@ -1206,10 +1206,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         }
 
         // Permanent leave — end game for everyone
-        if (PhotonNetwork.IsMasterClient)
+        /*if (PhotonNetwork.IsMasterClient)
         {
             endGameAll();
-        }
+        }*/
     }
 
 
