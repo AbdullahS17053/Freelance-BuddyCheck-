@@ -179,7 +179,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
 
     public void LeaveRoom()
     {
-        PhotonNetwork.LeaveRoom();
+        PhotonNetwork.LeaveRoom(false);
     }
 
     public override void OnJoinedRoom()
