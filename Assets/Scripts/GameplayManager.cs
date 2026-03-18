@@ -318,6 +318,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
     }
     private void StartNewRound()
     {
+        photonView.RPC("SetPlayerOfflineRPC", RpcTarget.All, PhotonNetwork.NickName, false);
         ResetRoundState();
 
 
