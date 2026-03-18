@@ -526,7 +526,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         hintCatories = hintCatories.OrderBy(c => c.playerID).ToList();
         hintStoredCatories = hintStoredCatories.OrderBy(c => c.playerID).ToList();
 
-
+        /*
         // Clear crown from all profiles first
         foreach (var profile in activeProfiles.Values)
             profile.SetCrown(false);
@@ -536,6 +536,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         string hinterName = hintCatories[ID].player;
         if (activeProfiles.TryGetValue(hinterName, out GameProfileUpdate hinterProfile))
             hinterProfile.SetCrown(true);
+        */
 
         // Debug the order
         string ids = string.Join(", ", hintCatories.Select(c => c.playerID));
@@ -570,7 +571,8 @@ public class GameplayManager : MonoBehaviourPunCallbacks
             playerGuessInput.interactable = true;
             voteButton.interactable = true;
         }
-
+        foreach (var profile in playerProfiles)
+            profile.SetCrown(profile.playerID == currentHinterPlayerID);
         FusionRoomManager.Instance.Fpause(false); // ✅ Queue RUNNING - category ready
     }
 
@@ -745,6 +747,7 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         if (currentHinterPlayerID == StatsManager.instance.myID)
         {
             Debug.LogWarning("SubmitVote blocked: you are the current hinter.");
+            endGameAll();
             return;
         }
 
@@ -1035,6 +1038,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
 
                 profile.gameObject.SetActive(true);
                 activeProfiles[player.NickName] = profile;
+
+                // Assign ID directly to profile
+                if (player.CustomProperties.TryGetValue("myID", out object idObj))
+                    profile.playerID = (int)idObj;
 
                 UpdateSingleProfile(player);
                 profile.transform.SetSiblingIndex(i);

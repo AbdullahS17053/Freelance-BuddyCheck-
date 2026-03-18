@@ -7,6 +7,7 @@ using DG.Tweening;
 public class GameProfileUpdate : MonoBehaviour
 {
     [Header("UI Elements")]
+    public int playerID = -1;
     public GameObject hostCrown;
     public GameObject offline;
     public GameObject guessedAnswer;
