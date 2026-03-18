@@ -79,7 +79,7 @@ public class FusionRoomManager : MonoBehaviourPunCallbacks
         }
     }
 
-    private void TryReconnect()
+    public void TryReconnect()
     {
         playerDisconnectedPanel?.SetActive(false);
         reconnectPanel?.SetActive(false);

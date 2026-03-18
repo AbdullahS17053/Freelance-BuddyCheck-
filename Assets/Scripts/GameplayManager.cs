@@ -1228,6 +1228,10 @@ public class GameplayManager : MonoBehaviourPunCallbacks
         else
         {
             PhotonNetwork.LeaveRoom(false);
+            if(!PhotonNetwork.Reconnect())
+            {
+                FusionRoomManager.Instance.TryReconnect();
+            }
             HandleRoomLeave();
         }
     }
